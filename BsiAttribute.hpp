@@ -1,9 +1,5 @@
 //
 //  BsiAttribute.hpp
-//  ZH
-//
-//  Created by Charles Patel on 10/22/18.
-//  Copyright © 2018 Charles Patel. All rights reserved.
 //
 
 #ifndef BsiAttribute_hpp

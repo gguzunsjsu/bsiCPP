@@ -1,9 +1,5 @@
 //
 //  BsiUnsigned.hpp
-//  ZH
-//
-//  Created by Aditya Patel on 10/22/18.
-//  Copyright © 2018 Aditya Patel. All rights reserved.
 //
 
 #ifndef BsiUnsigned_hpp
