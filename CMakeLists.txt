@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 cmake_minimum_required(VERSION 3.12)
-include(bsiCPP)
+#include(bsiCPP)
 bsiCPP_getversion(VERSION)
 
 project(bsiCPP
