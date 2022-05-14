@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 #include(bsiCPP)
-bsiCPP_getversion(VERSION)
+#bsiCPP_getversion(VERSION)
 
 project(bsiCPP
   VERSION ${VERSION}
@@ -26,5 +26,5 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 include_directories(.)
-include_directories(bsiCPP)
-include_directories(bsiCPP/hybridBitmap)
+#include_directories(bsiCPP)
+include_directories(hybridBitmap)
