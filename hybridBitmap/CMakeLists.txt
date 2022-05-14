@@ -1,1 +1,1 @@
-add_library (hybridBitmap hybridbitmap.h)
+add_library (hybridBitmap hybridbitmap.cxx)
