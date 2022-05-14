@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include "hybridBitmap/hybridbitmap.h"
+#include "../hybridBitmap/hybridbitmap.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>

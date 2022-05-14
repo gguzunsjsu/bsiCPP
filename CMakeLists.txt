@@ -27,4 +27,19 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
-add_subdirectory(hybridBitmap)
+
+add_library(bsi INTERFACE)
+target_include_directories(
+        bsi
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/bsi>
+        $<INSTALL_INTERFACE:bsi>
+)
+
+add_library(hybridBitmap INTERFACE)
+target_include_directories(
+        hybridBitmap
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hybridBitmap>
+        $<INSTALL_INTERFACE:hybridBitmap>
+)
