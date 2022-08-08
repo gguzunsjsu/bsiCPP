@@ -4,42 +4,26 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-cmake_minimum_required(VERSION 3.1...3.18)
-# Fallback for using newer policies on CMake <3.12.
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+cmake_minimum_required(VERSION 2.9)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MACOSX_RPATH OFF)
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, default to Release")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
+project(BSIHybrid)
 
-project(bsi
-  VERSION ${VERSION}
-  DESCRIPTION "Bit-sliced columnar vectors with compression"
-  HOMEPAGE_URL "https://github.com/gguzunsjsu/bsiCPP"
-  LANGUAGES CXX)
-include(GNUInstallDirs)
-
-# Include guards
-if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
-    message(
-            FATAL_ERROR
-            "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there."
-    )
-endif()
-
-set(CMAKE_CXX_STANDARD 20)
-
-add_library(bsi INTERFACE)
+add_library(BSIHybrid INTERFACE)
 target_include_directories(
-        bsi
+        bsi, hybridBitmap
         INTERFACE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/bsi>
-        $<INSTALL_INTERFACE:bsi>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
-add_library(hybridBitmap INTERFACE)
-target_include_directories(
-        hybridBitmap
-        INTERFACE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hybridBitmap>
-        $<INSTALL_INTERFACE:hybridBitmap>
-)
+enable_testing()
+
+add_subdirectory(examples)
+
