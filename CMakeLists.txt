@@ -15,13 +15,22 @@ endif()
 
 project(BSIHybrid)
 
-add_library(BSIHybrid INTERFACE)
+add_library(bsi INTERFACE)
 target_include_directories(
-        bsi, hybridBitmap
+        bsi
         INTERFACE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/bsi>
+        $<INSTALL_INTERFACE:include/bsi>
 )
+
+add_library(hybridBitmap INTERFACE)
+target_include_directories(
+        hybridBitmap
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/hybridBitmap>
+        $<INSTALL_INTERFACE:include/hybridBitmap>
+)
+
 
 enable_testing()
 
