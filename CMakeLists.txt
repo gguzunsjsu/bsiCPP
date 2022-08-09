@@ -19,16 +19,8 @@ add_library(bsi INTERFACE)
 target_include_directories(
         bsi
         INTERFACE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/bsi>
-        $<INSTALL_INTERFACE:include/bsi>
-)
-
-add_library(hybridBitmap INTERFACE)
-target_include_directories(
-        hybridBitmap
-        INTERFACE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/hybridBitmap>
-        $<INSTALL_INTERFACE:include/hybridBitmap>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/bsi>
+        $<INSTALL_INTERFACE:bsi>
 )
 
 
