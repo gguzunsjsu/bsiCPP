@@ -13,10 +13,10 @@
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
 #include "BsiAttribute.hpp"
-#include "hybridBitmap/hybridbitmap.h"
-#include "hybridBitmap/UnitTestsOfHybridBitmap.hpp"
+#include "include/hybridBitmap/hybridbitmap.h"
+#include "include/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 #include "NNUtilities.hpp"
 
 int main(){
-    cout<<"Hello"<<endl;
+    std::cout<<"Hello"<<endl;
 }
