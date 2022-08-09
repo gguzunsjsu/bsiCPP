@@ -13,8 +13,8 @@
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
 #include "BsiAttribute.hpp"
-#include "../include/hybridBitmap/hybridbitmap.h"
-#include "../include/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
+#include "../bsi/hybridBitmap/hybridbitmap.h"
+#include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
 
 int main(){

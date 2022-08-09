@@ -1,7 +1,7 @@
 //
 //  BsiAttribute.cpp
 //
-#include "../hybridBitmap/hybridbitmap.h"
+#include "hybridBitmap/hybridbitmap.h"
 #include "BsiAttribute.hpp"
 #include <stdio.h>
 #include <iostream>
