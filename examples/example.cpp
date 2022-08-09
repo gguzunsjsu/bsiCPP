@@ -13,9 +13,9 @@
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
 #include "BsiAttribute.hpp"
-#include "include/hybridBitmap/hybridbitmap.h"
-#include "include/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
-#include "NNUtilities.hpp"
+#include "../include/hybridBitmap/hybridbitmap.h"
+#include "../include/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
+
 
 int main(){
     std::cout<<"Hello"<<endl;
