@@ -1265,8 +1265,8 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Verbatim(const 
     uword y[size_y];
     uword answer[size_ans];
     
-    for(int i=0; i< this->bsi[0].bufferSize(); i++){
-        for(int j=0; j< size_x; j++){
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
+        for(size_t j=0; j< size_x; j++){
             x[j] = this->bsi[j].getWord(i);
         }
         for(int j=0; j< size_y; j++){
