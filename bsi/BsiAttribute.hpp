@@ -332,7 +332,7 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
     int lengthCounter =0;
     for(int i = 0; i < bits; i++)
     {
-        uword ai = (static_cast<uword>(1) << i);
+        //uword ai = (static_cast<uword>(1) << i);
         if( ( value & (static_cast<uword>(1) << i ) ) != 0 ){
             lengthCounter = i+1;
         }

@@ -799,7 +799,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
         C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
         res->addSlice(S);
     }
-    if(this->bsi.size() == minSlices){
+    if(this->getNumberOfSlices == minSlices){
         for(int i=minSlices; i<maxSlices; i++){
             slice = thisSign;
             aSlice = aSign.Xor(a->bsi[i]);
@@ -1527,7 +1527,7 @@ BsiAttribute<uword>*  BsiSigned<uword>::multiplyWithBsiHorizontal(const BsiAttri
     std::vector<uword> y(size_y);
     std::vector<uword> answer(size_x+size_y);
     
-    for(int i=0; i< this->bsi[0].bufferSize(); i++){
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         for(int j=0; j< size_x; j++){
             x[j] = this->bsi[j].getWord(i);
         }
@@ -1536,7 +1536,7 @@ BsiAttribute<uword>*  BsiSigned<uword>::multiplyWithBsiHorizontal(const BsiAttri
         }
         
         this->multiply(x,y,answer);
-        for(int j=0; j< answer.size() ; j++){
+        for(size_t j=0; j< answer.size() ; j++){
             res->bsi[j].addVerbatim(answer[j]);
         }
 //        for(int k=answer.size(); k < res->bsi.size(); k++){
@@ -2066,7 +2066,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Verbatim(const BsiAttribut
     if(this->bsi.size() ==0 or a->bsi.size()==0){
         BsiSigned<uword>* res = new BsiSigned<uword>();
         if(this->bsi.size() ==0){
-            for(int i=0; i<a->bsi.size(); i++){
+            for(size_t i=0; i<a->bsi.size(); i++){
                 res->addSlice(a->bsi[i]);
             }
             res->existenceBitmap = a->existenceBitmap;
@@ -2147,7 +2147,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
             res->twosComplement = false;
             return res;
         }else{
-            for(int i=0; i<this->bsi.size(); i++){
+            for(size_t i=0; i<this->bsi.size(); i++){
                 res->addSlice(this->bsi[i]);
             }
             res->existenceBitmap = this->existenceBitmap;
@@ -2184,10 +2184,10 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
     
     int position = 0;
     int literal_counter = 1;
-    int positionNext = 0;
+    //int positionNext = 0;
     int a_literal_counter = 1;
     int a_position = 0;
-    int a_positionNext = 0;
+    //int a_positionNext = 0;
     while (rlwi.size() > 0 and rlwa.size() > 0) {
         while ((rlwi.getRunningLength() > 0) || (rlwa.getRunningLength() > 0)) {
             const bool i_is_prey = rlwi.getRunningLength() < rlwa.getRunningLength();
@@ -2202,7 +2202,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
             predator.discardFirstWordsWithReload(prey.getRunningLength());
             prey.discardRunningWordsWithReload();
             if(prey.getNumberOfLiteralWords() >= predator.getRunningLength()){
-                for(int k=0; k < predator.getRunningLength(); k++){
+                for(size_t k=0; k < predator.getRunningLength(); k++){
                     if(i_is_prey){
                         for(int j=0; j< size_x; j++){
                             res->bsi[j].addLiteralWord(this->bsi[j].getWord(position+literal_counter));
@@ -2235,7 +2235,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
                 prey.discardFirstWordsWithReload(predator.getRunningLength());
                 predator.discardRunningWordsWithReload();
             }else{
-                for(int k=0; k < prey.getNumberOfLiteralWords(); k++){
+                for(size_t k=0; k < prey.getNumberOfLiteralWords(); k++){
                     if(i_is_prey){
                         for(int j=0; j< size_x; j++){
                             res->bsi[j].addLiteralWord(this->bsi[j].getWord(position+literal_counter));
