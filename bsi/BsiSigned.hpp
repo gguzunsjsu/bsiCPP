@@ -799,7 +799,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
         C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
         res->addSlice(S);
     }
-    if(this->getNumberOfSlices == minSlices){
+    if(this->getNumberOfSlices() == minSlices){
         for(int i=minSlices; i<maxSlices; i++){
             slice = thisSign;
             aSlice = aSign.Xor(a->bsi[i]);
