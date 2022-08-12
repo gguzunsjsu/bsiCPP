@@ -841,7 +841,7 @@ void  BsiSigned<uword>::twosToSignMagnitude(BsiAttribute<uword>* a) const{
     
     HybridBitmap<uword> C = a->sign;
     HybridBitmap<uword> S,slice;
-    for(int i=0; i< a->bsi.size(); i++){
+    for(size_t i=0; i< a->bsi.size(); i++){
         slice = a->sign.Xor(a->bsi[i]);
         S = slice.Xor(C);//a->sign.Xor(a->bsi[i]).Xor(C);
         C = slice.And(C);
@@ -1266,7 +1266,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Verbatim(const 
     uword answer[size_ans];
     
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
-        for(size_t j=0; j< size_x; j++){
+        for(int j=0; j< size_x; j++){
             x[j] = this->bsi[j].getWord(i);
         }
         for(int j=0; j< size_y; j++){
@@ -1448,23 +1448,23 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Hybrid_other(co
 template <class uword>
 void BsiSigned<uword>:: multiply(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const{
     uword S=0,C=0,FS;
-    int startPosition = b.size() + a.size() - ans.size();
+    //int startPosition = b.size() + a.size() - ans.size();
     int k=0, ansSize=0;
-    for(int i=0; i<a.size(); i++){  // Initialing with first bit operation
+    for(size_t i=0; i<a.size(); i++){  // Initialing with first bit operation
         ans[i] = a[i] & b[0];
     }
-    for(int i = a.size(); i< b.size() + a.size(); i++){ // Initializing rest of bits to zero
+    for(size_t i = a.size(); i< b.size() + a.size(); i++){ // Initializing rest of bits to zero
         ans[i] = 0;
     }
     k=1;
     ansSize = a.size();
-    for(int it=1; it<b.size(); it++){
+    for(size_t it=1; it<b.size(); it++){
         S = ans[k]^a[0];
         C = ans[k]&a[0];
         FS = S & b[it];
         ans[k] = (~b[it] & ans[k]) | (b[it] & FS); // shifting Operation
         
-        for(int i=1; i<a.size(); i++){
+        for(size_t i=1; i<a.size(); i++){
             int t = i+k;
             if(t < ansSize){
                 S = ans[t] ^ a[i] ^ C;
@@ -1963,7 +1963,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid(const BsiAttribute<
     if(this->bsi.size() ==0 or a->bsi.size()==0){
         BsiSigned<uword>* res = new BsiSigned<uword>();
         if(this->bsi.size() ==0){
-            for(int i=0; i<a->bsi.size(); i++){
+            for(size_t i=0; i<a->bsi.size(); i++){
                 res->addSlice(a->bsi[i]);
             }
             res->existenceBitmap = a->existenceBitmap;
@@ -1974,7 +1974,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid(const BsiAttribute<
             res->twosComplement = false;
             return res;
         }else{
-            for(int i=0; i<this->bsi.size(); i++){
+            for(size_t i=0; i<this->bsi.size(); i++){
                 res->addSlice(this->bsi[i]);
             }
             res->existenceBitmap = this->existenceBitmap;
@@ -2007,7 +2007,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid(const BsiAttribute<
     int positionOfVerbatim = 0;
     while ( rlwi.size() > 0) {
         while (rlwi.getRunningLength() > 0) {
-            for(int k=0; k<rlwi.getRunningLength(); k++){
+            for(size_t k=0; k<rlwi.getRunningLength(); k++){
                 /*
                  * directly adding non zero values to ans if one has zeros
                  */
@@ -2077,7 +2077,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Verbatim(const BsiAttribut
             res->twosComplement = false;
             return res;
         }else{
-            for(int i=0; i<this->bsi.size(); i++){
+            for(size_t i=0; i<this->bsi.size(); i++){
                 res->addSlice(this->bsi[i]);
             }
             res->existenceBitmap = this->existenceBitmap;
@@ -2103,7 +2103,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Verbatim(const BsiAttribut
     for(int j=0; j< size_ans; j++){
         res->addSlice(hybridBitmap);
     }
-    for(int i=0; i< this->bsi[0].bufferSize(); i++){
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         for(int j=0; j< size_x; j++){
             x[j] = this->bsi[j].getWord(i);
         }
@@ -2317,7 +2317,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid_other(const BsiAttr
     if(this->bsi.size() ==0 or a->bsi.size()==0){
         BsiSigned<uword>* res = new BsiSigned<uword>();
         if(this->bsi.size() ==0){
-            for(int i=0; i<a->bsi.size(); i++){
+            for(size_t i=0; i<a->bsi.size(); i++){
                 res->bsi.push_back(a->bsi[i]);
             }
             res->existenceBitmap = a->existenceBitmap;
@@ -2328,7 +2328,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid_other(const BsiAttr
             res->twosComplement = false;
             return res;
         }else{
-            for(int i=0; i<this->bsi.size(); i++){
+            for(size_t i=0; i<this->bsi.size(); i++){
                 res->bsi.push_back(this->bsi[i]);
             }
             res->existenceBitmap = this->existenceBitmap;
@@ -2365,7 +2365,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid_other(const BsiAttr
         while (rlwi.getRunningLength() > 0) {
             //            positionOfCompressed ++;
             //            positionOfVerbatim += rlwi.getRunningLength();
-            for(int k=0; k<rlwi.getRunningLength(); k++){
+            for(size_t k=0; k<rlwi.getRunningLength(); k++){
                 for(int j=0; j< size_x; j++){
                     res->bsi[j].addVerbatim(this->bsi[j].buffer[positionOfVerbatim]);
                 }

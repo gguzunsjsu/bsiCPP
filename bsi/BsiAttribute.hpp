@@ -22,7 +22,7 @@ template <class uword = uint64_t> class BsiSigned;
 //template <class uword = uint32_t>
 template <class uword = uint64_t> class BsiAttribute{
 public:
-    int size;
+    uint8_t size; //holds number of slices
     int offset =0;
     int decimals = 0;
     int bits = 8*sizeof(uword);
