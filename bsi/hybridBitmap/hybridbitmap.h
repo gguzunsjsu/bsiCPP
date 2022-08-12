@@ -3873,7 +3873,7 @@ void HybridBitmap<uword>::xorVerbatim(const HybridBitmap &a, HybridBitmap &conta
     container.verbatim = true;
     container.density = density;
 
-    for (int i = 0; i < buffer.size(); i++) {
+    for (size_t i = 0; i < buffer.size(); i++) {
         container.buffer.push_back( buffer[i] ^ a.buffer[i] );
     }
 
