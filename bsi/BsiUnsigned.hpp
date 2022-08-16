@@ -364,7 +364,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
         HybridBitmap<uword> C;
         if(a<0){
             //int minSP = Math.min(this.size, (intSize+1));
-            res = new BsiSigned<uword>(std::max(this->size, (intSize+1))+1);
+            res = new BsiSigned<uword>(std::max((int)this->size, (intSize+1))+1);
             res->twosComplement=true;
             if ((a&1)==0){
                 res->bsi[0]=this->bsi[0];
@@ -407,8 +407,8 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             //res.size++;}
             res->sign = res->bsi[res->size-1];
         }else{
-            int minSP = std::min(this->size, intSize);
-            res = new BsiUnsigned(std::max(this->size, intSize)+1);
+            int minSP = std::min((int)this->size, intSize);
+            res = new BsiUnsigned(std::max((int)this->size, intSize)+1);
             HybridBitmap<uword> allOnes;
             allOnes.setSizeInBits(this->bsi[0].sizeInBits(),true);
             allOnes.density=1;

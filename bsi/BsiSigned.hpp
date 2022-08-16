@@ -204,13 +204,15 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
 };
 
 /*
- * topKMin used for find k min values from bsi and return postions bitmap
+ * topKMin used for find k min values from bsi and return postions bitmap. NOT IMPLEMENTED YET
  */
 
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
+
     
     HybridBitmap<uword> h;
+    std::cout<<k<<std::endl;
     return h;
 };
 

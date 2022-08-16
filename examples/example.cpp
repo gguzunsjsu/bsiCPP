@@ -19,6 +19,15 @@
 
 int main(){
     std::cout<<"Hello"<<endl;
+    BsiUnsigned<ulong> bsiu;
+    std::cout<< bsiu.getValue(0)<<std::endl;
+    BsiSigned<ulong> bsis;
+
+    BsiAttribute<ulong> *res = bsiu.SUM(&bsis);
+
+    std::cout<<res->getNumberOfSlices()<<std::endl;
+
+
 
 
 }
