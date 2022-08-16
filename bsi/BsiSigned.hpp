@@ -256,7 +256,8 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     
     uword abs_a = std::abs(a);
     int intSize =  BsiAttribute<uword>::sliceLengthFinder(abs_a);
-    HybridBitmap<uword> zeroBitmap();
+    HybridBitmap<uword> zeroBitmap;
+    zeroBitmap.addStreamOfEmptyWords(false,this->existenceBitmap.bufferSize());
     BsiAttribute<uword>* res=new BsiSigned<uword>(std::max((int)this->size, intSize)+1);
     
     HybridBitmap<uword> C;
@@ -376,7 +377,7 @@ template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::rangeBetween(long lowerBound, long upperBound){
     //this needs to be implemented
     HybridBitmap<uword> h;
-    std::cout<<"lower bound is: ", lowerBound, "  uper bound is: ", upperBound<< std::endl;
+    std::cout<<"lower bound is: "<< lowerBound <<"  uper bound is: "<< upperBound << std::endl;
     return h;
 };
 
