@@ -222,10 +222,10 @@ template <class uword>
 long BsiSigned<uword>::sumOfBsi() const{
     long sum =0, minusSum=0;
     //    int power = 1;
-    for (int i=0; i< this->bsi.size(); i++){
+    for (int i=0; i< this->getNumberOfSlices(); i++){
         sum += this->getSlice(i).numberOfOnes()<<(i);
     }
-    for (int i=0; i< this->bsi.size(); i++){
+    for (int i=0; i< this->getNumberOfSlices(); i++){
         minusSum += this->getSlice(i).And(this->sign).numberOfOnes()<<(i);
     }
     return sum - 2*minusSum;
@@ -257,10 +257,10 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     uword abs_a = std::abs(a);
     int intSize =  BsiAttribute<uword>::sliceLengthFinder(abs_a);
     HybridBitmap<uword> zeroBitmap();
-    BsiAttribute<uword>* res=new BsiSigned<uword>(std::max(this->size, intSize)+1);
+    BsiAttribute<uword>* res=new BsiSigned<uword>(std::max((int)this->size, intSize)+1);
     
     HybridBitmap<uword> C;
-    int minSP = std::min(this->size, intSize);
+    //int minSP = std::min(this->size, intSize); was not used
     HybridBitmap<uword> allOnes;
     allOnes.setSizeInBits(this->bsi[0].sizeInBits());
     allOnes.density=1;
@@ -369,12 +369,14 @@ long BsiSigned<uword>::getValue(int i){
 };
 
 /*
- * Provides values between range in position bitmap
+ * Provides values between range in position bitmap: - not implemented yet
  */
 
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::rangeBetween(long lowerBound, long upperBound){
+    //this needs to be implemented
     HybridBitmap<uword> h;
+    std::cout<<"lower bound is: ", lowerBound, "  uper bound is: ", upperBound<< std::endl;
     return h;
 };
 
@@ -1823,7 +1825,7 @@ void BsiSigned<uword>::multiplicationInPlace(BsiAttribute<uword> *a){
     uword y[size_y];
     uword answer[size_ans];
     
-    for(int i=0; i< this->bsi[0].bufferSize(); i++){
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         for(int j=0; j< size_x; j++){
             x[j] = this->bsi[j].getWord(i);
         }
@@ -2136,7 +2138,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
     if(this->bsi.size() ==0 or a->bsi.size()==0){
         BsiSigned<uword>* res = new BsiSigned<uword>();
         if(this->bsi.size() ==0){
-            for(int i=0; i<a->bsi.size(); i++){
+            for(size_t i=0; i<a->bsi.size(); i++){
                 res->addSlice(a->bsi[i]);
             }
             res->existenceBitmap = a->existenceBitmap;
