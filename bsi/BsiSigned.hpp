@@ -809,7 +809,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
             slice = thisSign;
             aSlice = aSign.Xor(a->bsi[i]);
             S = this->XOR(slice, aSlice, C);
-            C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));;
+            C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
             res->addSlice(S);
         }
     
@@ -1066,7 +1066,7 @@ BsiAttribute<uword>*  BsiSigned<uword>::multiplyWithBsiHorizontal_array(const Bs
         res->twosComplement = false;
         return res;
     }
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     hybridBitmap.reset();
     hybridBitmap.verbatim = true;
@@ -1143,7 +1143,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_compressed(cons
         return res;
     }
     
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     hybridBitmap.setSizeInBits(this->existenceBitmap.sizeInBits());
     for(int j=0; j< this->size + a->size; j++){
@@ -1256,7 +1256,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Verbatim(const 
         res->twosComplement = false;
         return res;
     }
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     hybridBitmap.reset();
     hybridBitmap.verbatim = true;
@@ -1312,7 +1312,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Hybrid(const Bs
         return res;
     }
 
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     hybridBitmap.setSizeInBits(this->existenceBitmap.sizeInBits());
     for(int j=0; j< this->size + a->size; j++){
@@ -1387,7 +1387,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Hybrid_other(co
         return res;
     }
     
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     for(int j=0; j< this->size + a->size; j++){
         res->addSlice(hybridBitmap);
@@ -1519,7 +1519,7 @@ BsiAttribute<uword>*  BsiSigned<uword>::multiplyWithBsiHorizontal(const BsiAttri
         res->twosComplement = false;
         return res;
     }
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     hybridBitmap.reset();
     hybridBitmap.verbatim = true;
@@ -1999,7 +1999,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid(const BsiAttribute<
     uword y[size_y];
     uword answer[size_ans];
     
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap(true,0);
     hybridBitmap.setSizeInBits(a->existenceBitmap.sizeInBits());
     for(int j=0; j< size_ans; j++){
@@ -2102,7 +2102,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Verbatim(const BsiAttribut
     uword y[size_y];
     uword answer[size_ans];
     
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap(true,0);
     hybridBitmap.setSizeInBits(a->existenceBitmap.sizeInBits());
     for(int j=0; j< size_ans; j++){
@@ -2172,7 +2172,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
     uword y[size_y];
     uword answer[size_ans];
     
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
     hybridBitmap.setSizeInBits(this->existenceBitmap.sizeInBits());
     for(int j=0; j< size_ans; j++){
@@ -2353,7 +2353,7 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid_other(const BsiAttr
     uword y[size_y];
     uword answer[size_ans];
     
-    BsiSigned<uword>* res = new BsiSigned<uword>();;
+    BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap(true,0);
     hybridBitmap.setSizeInBits(this->existenceBitmap.sizeInBits());
     for(int j=0; j< size_ans; j++){

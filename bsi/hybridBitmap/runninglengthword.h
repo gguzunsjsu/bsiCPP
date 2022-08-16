@@ -422,7 +422,7 @@ size_t dischargeNegatedDecompressed(HybridBitmap<uword> &container, size_t max) 
                 container.addVerbatim(0);
             }
         }else{
-            for(int i = 0; i< pl; i++){
+            for(size_t i = 0; i< pl; i++){
                 container.addVerbatim(~0L);
             }
         }
