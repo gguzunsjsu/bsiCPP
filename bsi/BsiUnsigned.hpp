@@ -364,7 +364,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
         HybridBitmap<uword> C;
         if(a<0){
             //int minSP = Math.min(this.size, (intSize+1));
-            res = new BsiSigned<uword>(std::max((int)this->size, (intSize+1))+1);
+            res = new BsiSigned<uword>(std::max( (int)this->size, (intSize+1) )+1);
             res->twosComplement=true;
             if ((a&1)==0){
                 res->bsi[0]=this->bsi[0];

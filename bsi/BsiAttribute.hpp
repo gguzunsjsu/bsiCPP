@@ -15,6 +15,7 @@
 #include <vector>
 #include <cmath>
 #include <bitset>
+#include <algorithm>
 
 
 template <class uword = uint64_t> class BsiUnsigned;
