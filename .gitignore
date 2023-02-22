@@ -16,3 +16,4 @@ CMakeFiles
 *.ilk
 CMakeCache.txt
 
+*.hpp
