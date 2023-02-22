@@ -356,7 +356,9 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     std::vector<uword> existBits(attRows/(bits)+1); // keep track for non-zero values
     int countOnes =0;
     int CountZeros = 0;
+    //int bits = 8*sizeof(uword);
     //find max, min, and zeros.
+    //Setting sign bits and existence bits for the array of numbers 
     for (int i=0; i<nums.size(); i++){
         int offset = i%(bits);
         if(nums[i] < 0){
@@ -373,6 +375,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             max = nums[i];
         }
     }
+    //Finding the maximum length of the bit representation of the numbers
     int slices = sliceLengthFinder(max);
     BsiSigned<uword>* res = new BsiSigned<uword>(slices+1);
     res->sign.reset();
