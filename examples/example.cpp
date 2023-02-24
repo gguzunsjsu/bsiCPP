@@ -22,11 +22,13 @@ int main(){
         int range1 = 10000;
         int range2 = 10000;
         int vectorLen = 1000;
+
+
         int numberOfElementsInTheArray;
         cout << "Enter the number of elements in the array: ";
         cin >> numberOfElementsInTheArray;
         for (int i = 0; i < numberOfElementsInTheArray; i++) {
-            array1.push_back(i+1);
+            array1.push_back(i);
             array2.push_back(1);
         }
 
