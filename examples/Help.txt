@@ -31,4 +31,13 @@ BSI
 	1 st slice = 1001100110011001100110011001100
 	0 th slice =  101010101010101010101010101010
 
+********************************BSI Attribute************************
+size
+offset
+decimals
+bits -> The size of the word in bits - each bit will represent an element
+bsi  -> The representation of the elements in BitSliceVector format
+existenceBitMap -> each bit used to represent if the element in the corresponding index is non-zero
+sign -> each bit used to represent if the element in the corresponding index is negative(signed)
+
 

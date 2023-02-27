@@ -27,8 +27,11 @@ int main(){
         int numberOfElementsInTheArray;
         cout << "Enter the number of elements in the array: ";
         cin >> numberOfElementsInTheArray;
+        int value;
+        cout << "Enter the value to be put into the array: ";
+        cin >> value;
         for (int i = 0; i < numberOfElementsInTheArray; i++) {
-            array1.push_back(i);
+            array1.push_back(value);
             array2.push_back(1);
         }
 
