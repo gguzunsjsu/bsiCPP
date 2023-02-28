@@ -31,7 +31,10 @@ int main(){
         cout << "Enter the value to be put into the array: ";
         cin >> value;
         for (int i = 0; i < numberOfElementsInTheArray; i++) {
-            array1.push_back(value);
+            if (i % 2 == 0)
+                array1.push_back(1);
+            else
+                array1.push_back(value);
             array2.push_back(1);
         }
 
@@ -48,7 +51,7 @@ int main(){
         //Build BSIAttribute from the vector
         BsiUnsigned<uint64_t> ubsi;
         BsiAttribute<uint64_t>* bsi_1;
-        BsiAttribute<uint64_t>* bsi_2;
+        //BsiAttribute<uint64_t>* bsi_2;
         bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0);
         bsi_1->setPartitionID(0);
         bsi_1->setFirstSliceFlag(true);
