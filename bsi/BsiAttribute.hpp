@@ -478,6 +478,7 @@ std::vector< std::vector< uword > > BsiAttribute<uword>::bringTheBits(const std:
     //But in reality, the first word/0th column represents the number of elements.
     //The second word/1st column onwards represents the actual elements
     std::vector< std::vector< uword > > bitmapDataRaw(slices,std::vector<uword>(wordsNeeded +1));
+    const uword one = 1;
     
     // one for the bit density (the first word in each slice)
     uword thisBin = 0;
@@ -488,7 +489,7 @@ std::vector< std::vector< uword > > BsiAttribute<uword>::bringTheBits(const std:
         int slice = 0;
         while (thisBin != 0 && slice<slices) {
             if ((thisBin & 1) == 1) {
-                bitmapDataRaw[slice][w] |= (1L << offset); //setting bit
+                bitmapDataRaw[slice][w] |= (one << offset); //setting bit
                 bitmapDataRaw[slice][0]++; //update bit density
             }
             thisBin >>= 1;
