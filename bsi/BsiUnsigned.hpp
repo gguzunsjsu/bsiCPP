@@ -1787,9 +1787,10 @@ BsiAttribute<uword>* BsiUnsigned<uword>::negate(){
 
 template <class uword>
 void BsiUnsigned<uword>::BitWords(std::vector<uword> &bitWords, long value, int offset){
+    const uword one = 1;
     int i = 0;
     while (value > 0){
-        bitWords[i] = (value & 1) << offset;
+        bitWords[i] = (value & one) << offset;
         value = value/2;
         i++;
     }

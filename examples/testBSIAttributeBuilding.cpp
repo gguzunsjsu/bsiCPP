@@ -1,0 +1,36 @@
+#include <iostream>
+#include <array>
+#include <chrono>
+#include <format>
+
+#include "BsiUnsigned.hpp"
+#include "BsiSigned.hpp"
+#include "BsiAttribute.hpp"
+#include "../bsi/hybridBitmap/hybridbitmap.h"
+
+#include "testBSIAttributeBuilding.h"
+using namespace std;
+
+bool validateBuild(vector<long> array, double compressThreshold) {
+	//Build the BSI representation of the array
+	BsiAttribute<uint64_t>* bsi_1;
+	BsiUnsigned<uint64_t> ubsi;
+	bsi_1 = ubsi.buildBsiAttributeFromVector(array, compressThreshold);
+	//Check if the BSI is stored properly
+	//Retrieve the bsi representation at each index and compare with the input array elements
+	bool result = true;
+	for (int i = 0; i < array.size(); i++) {
+		if (array[i] != bsi_1->getValue(i)) {
+			cout << "Element at " << i + 1 << " position does not match the BSI representation \n";
+			cout << "BSI representation: " << bsi_1->getValue(i) << "\n";
+			cout << "Value in the array:  " << array[i] << "\n";
+			result = false;
+		}					
+	}
+	return result;
+}
+
+void validateMultiplicationByAConstant(std::vector<long>, double, long) {
+
+
+}

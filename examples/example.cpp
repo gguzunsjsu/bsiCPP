@@ -12,6 +12,11 @@
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
+/*
+* Testing header files
+*/
+
+#include "testBSIAttributeBuilding.h"
 
 int main(){
     
@@ -53,7 +58,8 @@ int main(){
         BsiUnsigned<uint64_t> ubsi;
         BsiAttribute<uint64_t>* bsi_1;
         //BsiAttribute<uint64_t>* bsi_2;
-        bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0);
+
+        bsi_1 = ubsi.buildBsiAttributeFromVector(array1,1);
         bsi_1->setPartitionID(0);
         bsi_1->setFirstSliceFlag(true);
         bsi_1->setLastSliceFlag(true);

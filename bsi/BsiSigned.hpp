@@ -1612,7 +1612,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_array(BsiAttribute<uword> 
 
 template <class uword>
 void BsiSigned<uword>::appendBitWords(long value){
-    
+    const uword one = 1;
     if (this->bsi.size() == 0){
         int i = 0;
         if(value <0){
@@ -1651,19 +1651,19 @@ void BsiSigned<uword>::appendBitWords(long value){
         int offset = this->getNumberOfRows()%(BsiAttribute<uword>::bits);
         if(value <0){
             value = std::abs(value);
-            this->sign.buffer[size] = this->sign.buffer.back() | (1 << offset);
+            this->sign.buffer[size] = this->sign.buffer.back() | (one << offset);
             this->sign.setSizeInBits(this->sign.sizeInBits()+1);
         }else{
             this->sign.setSizeInBits(this->sign.sizeInBits()+1);
         }
         for(int i=0; i<this->size;i++){
-            this->bsi[i].buffer[size] = this->bsi[i].buffer.back() | ((value & 1) << offset);
+            this->bsi[i].buffer[size] = this->bsi[i].buffer.back() | ((value & one) << offset);
             this->bsi[i].setSizeInBits(this->bsi[i].sizeInBits()+1);
             value = value/2;
         }
         while (value > 0){
             HybridBitmap<uword> zeroBitmap(true,size+1);
-            zeroBitmap.buffer[0] = (value & 1)<< offset;
+            zeroBitmap.buffer[0] = (value & one)<< offset;
             zeroBitmap.setSizeInBits(this->rows+1);
             this->bsi.push_back(zeroBitmap);
             value = value/2;
