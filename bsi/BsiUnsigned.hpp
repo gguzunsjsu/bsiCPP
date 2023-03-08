@@ -24,7 +24,7 @@ public:
     /*
      Declaring Override Functions
      */
-    //template <class uword>
+    
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMin(int k) override;
     BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
@@ -48,7 +48,7 @@ public:
     void multiply(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const;
     long sumOfBsi()const override;
     HybridBitmap<uword> getExistenceBitmap();
-   // void setExistenceBitmap(const HybridBitmap<uword> &exBitmap);
+  
     
     /*
      Declaring Other Functions

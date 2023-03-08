@@ -963,7 +963,6 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
                 zeroBitmap.reset();
                 zeroBitmap.verbatim = true;
                 zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
-                //                res->offset = k;
                 for (int i = 0; i < this->size; i++) {
                     res->bsi.push_back(zeroBitmap);
                 }

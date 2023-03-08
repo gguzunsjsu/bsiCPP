@@ -27,57 +27,85 @@ public:
     int offset =0;
     int decimals = 0;
     int bits = 8*sizeof(uword);
+
     std::vector<HybridBitmap<uword> > bsi ;
     HybridBitmap<uword> existenceBitmap;
+    HybridBitmap<uword> sign; // sign bitslice
+
     long rows;  // number of elements
     long index; // if split horizontally
+
     bool is_signed; // sign flag
+
     bool firstSlice; //contains first slice
     bool lastSlice; //contains last slice
-    HybridBitmap<uword> sign; // sign bitslice
+    
     bool twosComplement;
     
-    /*Declare functions
-     */
+    /*
+    * Member functions
+    */
+        
     bool isLastSlice() const;
     void setLastSliceFlag(bool flag);
     
     bool isFirstSlice() const;
     void setFirstSliceFlag(bool flag);
-    bool isSigned()const;
-    void addSlice(const HybridBitmap<uword> &slice);
+
+    bool isSigned()const;    
+
     void setNumberOfSlices(int s);
     int getNumberOfSlices() const;
+
+    void addSlice(const HybridBitmap<uword>& slice);
     HybridBitmap<uword> getSlice(int i) const;
+
     int getOffset() const;
-    void setOffset(int offset);
-  
+    void setOffset(int offset);  
     
-    long getNumberOfRows() const;   // return size of vector of original numbers
+    long getNumberOfRows() const;   
     void setNumberOfRows(long rows);
+
     long getPartitionID() const;
     void setPartitionID(long index);
+
     HybridBitmap<uword> getExistenceBitmap();
     void setExistenceBitmap(const HybridBitmap<uword> &exBitmap);
+
     void setTwosFlag(bool flag);
-    
+    /*
+    * ---------------------- Declarations for getters and setters end---------------------------
+    */
+
+    /*
+    * ---------------------- Declarations for member functions pertaining vector operations -----------------
+    */
     virtual HybridBitmap<uword> topKMax(int k)=0;
     virtual HybridBitmap<uword> topKMin(int k)=0;
+
     virtual BsiAttribute* SUM(BsiAttribute* a)const=0;
     virtual BsiAttribute* SUM(long a)const=0;
+
     virtual BsiAttribute* convertToTwos(int bits)=0;
+
     virtual BsiUnsigned<uword>* abs()=0;
     virtual BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB)=0;
     virtual BsiUnsigned<uword>* absScale(double range)=0;
+
     virtual long getValue(int pos)=0;   
+
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
+
     virtual BsiAttribute<uword>* multiplyByConstant(int number)const=0;
     virtual BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *a) const=0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
+
     virtual BsiAttribute<uword>* negate()=0;
+
     virtual long sumOfBsi()const=0;
+
     virtual bool append(long value)=0;
     
     BsiAttribute* buildQueryAttribute(long query, int rows, long partitionID);
@@ -87,21 +115,25 @@ public:
     BsiAttribute<uword>* buildCompressedBsiFromVector(std::vector<long> nums, double compressThreshold) const;
     
     HybridBitmap<uword> maj(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
+
     HybridBitmap<uword> XOR(const HybridBitmap<uword> &a,const HybridBitmap<uword> &b,const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> orAndNot(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> orAnd(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> And(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
    
     BsiAttribute* signMagnToTwos(int bits);
-    BsiAttribute* TwosToSignMagnitue();
-    
+    BsiAttribute* TwosToSignMagnitue();    
     void signMagnitudeToTwos(int bits);
+
     void addOneSliceSameOffset(const HybridBitmap<uword> &slice);
     void addOneSliceDiscardCarry(const HybridBitmap<uword> &slice);
     void addOneSliceNoSignExt(const HybridBitmap<uword> &slice);
-    void applyExsistenceBitmap(const HybridBitmap<uword> &ex);
-    
+    void applyExsistenceBitmap(const HybridBitmap<uword> &ex);    
     virtual ~BsiAttribute();
+
+    /*
+    * ------------------------Decalrations for private helper methods------------------------------
+    */
 private:
     std::vector< std::vector< uword > > bringTheBits(const std::vector<long> &array, int slices, int attRows) const;
     std::vector< std::vector< uword > > bringTheBits(const std::vector<uword> &array, int slices, int attRows) const;
@@ -110,15 +142,37 @@ protected:
      
 };
 
+/*
+* ------------------------------------ Function implementations ---------------------------------------
+* Provided for all getters and setters + the following functions
+* 
+* buildQueryAttribute
+* sliceLengthFinder
+* bringTheBits
+* buildCompressedBsiFromVector
+* buildBsiAttributeFromVector
+*
+* maj
+  XOR
+  orAndNot
+  orAnd
+  And
 
-//------------------------------------------------------------------------------------------------------
+* signMagnitudeToTwos
+  signMagnToTwos
+  TwosToSignMagnitue
+
+* addOneSliceSameOffset
+  addOneSliceDiscardCarry
+  addOneSliceNoSignExt
+  applyExsistenceBitmap
+*/
 
 /*
  * Destructor
  */
 template <class uword>
-BsiAttribute<uword>::~BsiAttribute(){
-    
+BsiAttribute<uword>::~BsiAttribute(){    
 };
 
 
@@ -176,7 +230,7 @@ void BsiAttribute<uword>::setNumberOfSlices(int s){
 }
 
 /**
- * Returns the size of the bsi (how many slices are non zeros)
+ * Returns the size of the bsi (how many slices are non zeros) ----> Really ? This just returns the number of slices, right ?
  */
 template <class uword>
 int BsiAttribute<uword>::getNumberOfSlices()const{
@@ -346,7 +400,9 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
  * @param compressThreshold determined wether to compress the bit vetor or not
  */
 
-
+/*
+* This is the function being used to create BSI attributes from Vector in our tests
+*/
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold) const{
     uword max = std::numeric_limits<uword>::min();
@@ -513,6 +569,9 @@ HybridBitmap<uword> BsiAttribute<uword>::maj(const HybridBitmap<uword> &a, const
     }
 };
 
+/*
+* XOR operation
+*/
 
 
 template <class uword>

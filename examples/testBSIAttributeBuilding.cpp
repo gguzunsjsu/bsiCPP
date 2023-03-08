@@ -30,7 +30,32 @@ bool validateBuild(vector<long> array, double compressThreshold) {
 	return result;
 }
 
-void validateMultiplicationByAConstant(std::vector<long>, double, long) {
+bool validateMultiplicationByAConstant(std::vector<long> array, BsiAttribute<uint64_t>* bsi, int multiplier) {
+
+	//Build the BSI representation of the array
+	bool result = true;
+	for (int i = 0; i < array.size(); i++) {
+		if (array[i]*multiplier != bsi->getValue(i)) {
+			cout << "Element at " << i + 1 << " position does not match the BSI representation \n";
+			cout << "BSI representation: " << bsi->getValue(i) << "\n";
+			cout << "Value in the array:  " << array[i] << "\n";
+			result = false;
+		}
+	}
+	return result;
 
 
+}
+
+bool validateBSIWithArray(BsiAttribute<uint64_t>* bsi, std::vector<long> array ) {
+	bool result = true;
+	for (int i = 0; i < array.size(); i++) {
+		if (array[i] != bsi->getValue(i)) {
+			cout << "Element at " << i + 1 << " position does not match the BSI representation \n";
+			cout << "BSI representation: " << bsi->getValue(i) << "\n";
+			cout << "Value in the array:  " << array[i] << "\n";
+			result = false;
+		}
+	}
+	return result;
 }
