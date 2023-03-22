@@ -37,6 +37,7 @@ public:
     BsiUnsigned<uword>* absScale(double range) override;
     BsiAttribute<uword>* negate() override;
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
+    BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     bool append(long value) override;
     
     /*
@@ -64,7 +65,8 @@ public:
     BsiUnsigned<uword>& multiplyWithKaratsuba(BsiUnsigned &unbsi) const;
     BsiAttribute<uword>* multiplyWithBsiHorizontal(const BsiAttribute<uword> *unbsi, int precision) const;
     BsiUnsigned<uword>* multiplyBSIWithPrecision(const BsiUnsigned<uword> &unbsi, int precision) const;
-    BsiUnsigned<uword>* twosComplement() const;
+    
+    //BsiUnsigned<uword>* twosComplement() const;
 //    uword sumOfBsi();
     void reset();
     BsiAttribute<uword>* peasantMultiply(BsiUnsigned &unbsi) const;
@@ -897,6 +899,79 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a, HybridBitmap<uword> EB, int
 };
 
 template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const {
+    BsiUnsigned<uword>* res = nullptr;  
+    //Declare Sum and Carry
+    HybridBitmap<uword> C, S;
+    int k = 0;
+    while (number > 0) {
+        //If the last bit of the multiplier is one
+        if ((number & 1) == 1) {
+            if (res == nullptr) {
+                //If result is uninitialized, initialize result with the current bit slices
+                res = new BsiUnsigned<uword>();
+                for (int i = 0; i < this->size; i++) {
+                    res->bsi.push_back(this->bsi[i]);
+                }
+                res->size = this->size;
+            }
+            else {
+                //The result is initialized
+                /* Move the slices of res k positions */
+                HybridBitmap<uword> A, B;
+                A = res->bsi[k];
+                B = this->bsi[0];
+                S = A.Xor(B);
+                C = A.And(B);
+                res->bsi[k] = S;
+                //More processing
+                for (int i = 1; i < this->size; i++) {
+                    B = this->bsi[i];
+                    if ((i + k) >= this->size) {
+                        S = B.Xor(C);
+                        C = B.And(C);
+                        res->size++;
+                        res->bsi.push_back(S);
+                        continue;                        
+                    }
+                    else {
+                        A = res->bsi[i + k];
+                        S = A.Xor(B).Xor(C);                        
+                        C = A.And(B).Or(B.And(C)).Or(A.And(C));                        
+                    }
+                    res->bsi[i + k] = S;
+                }
+                for (int i = this->size + k; i < res->size; i++) {
+                    A = res->bsi[i];
+                    S = A.Xor(C);
+                    C = A.And(C);                    
+                    res->bsi[i] = S;
+                }
+                if (C.numberOfOnes() > 0) {
+                    res->bsi.push_back(C); // Carry bit
+                    res->size++;
+                }
+            }
+        }
+        else {
+            if (res == nullptr) {
+                res = new BsiUnsigned<uword>();
+                HybridBitmap<uword> zeroBitmap;
+                zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                for (int i = 0; i < this->size; i++) {
+                    res->bsi.push_back(zeroBitmap);
+                }
+                res->size = this->size;
+            }
+        }
+        number >>= 1;
+        k++;
+    }
+    return res;
+};
+
+
+template <class uword>
 BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstant(int number)const{
     BsiUnsigned<uword>* res = nullptr;
     HybridBitmap<uword> C, S;
@@ -988,13 +1063,15 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstant(int number)const{
             res->index = this->index;
         
     }else{
+        //If multiplier is greater than 0.
         int k = 0;
-        number = 0 - number;
+        //number = 0 - number;
         while (number > 0) {
             if ((number & 1) == 1) {
                 if (res == nullptr) {
                     res = new BsiUnsigned<uword>();
                     //                res->offset = k;
+                    //Add the slices of the object to the result
                     for (int i = 0; i < this->size; i++) {
                         res->bsi.push_back(this->bsi[i]);
                     }

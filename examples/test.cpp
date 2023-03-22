@@ -40,18 +40,34 @@ int main() {
         cin >> compressionThreshold;
         cout << "The number of elements in array1: " << array1.size() << "\n";
         cout << "The BSI representation is correct ?  " << (validateBuild(array1, compressionThreshold) == true ? "Yes" : "No");
-        
+        //Working with unsigned BSI for now
 
         BsiSigned<uint64_t> bsi;
         
 
         BsiAttribute<uint64_t>* bsi_1 = bsi.buildBsiAttributeFromVector(array1, compressionThreshold);
-        int multiplier;
+        bsi_1->setPartitionID(0);
+        bsi_1->setFirstSliceFlag(true);
+        bsi_1->setLastSliceFlag(true);
+        BsiAttribute<uint64_t>* bsi_2 = bsi.buildBsiAttributeFromVector(array1, compressionThreshold);
+        bsi_2->setPartitionID(0);
+        bsi_2->setFirstSliceFlag(true);
+        bsi_2->setLastSliceFlag(true);
+        BsiAttribute<uint64_t>* bsi_3 = bsi_1->SUM(bsi_2);
+        vector<long> sumArray;
+        for (int i = 0; i < array1.size(); i++) {
+            sumArray.push_back(array1[i] * 2);
+        }
+        cout << "Sum of two BSI instances is valid ? " << validateBSIWithArray(sumArray, bsi_3);
+        /*
+        *  int multiplier;
         cout << "\n\nEnter the number to multiply with ? ";
         cin >> multiplier;
-        BsiAttribute<uint64_t>* bsi_2 = bsi_1->multiplyByConstant(multiplier);
+        BsiAttribute<uint64_t>* bsi_2 = bsi_1->multiplyByConstantNew(multiplier);
         cout << "\n The BSI Multiplication with constant " << multiplier << " result :";
         cout << (validateMultiplicationByAConstant(array1, bsi_2, multiplier) == true ? "Yes" : "No");
+        */
+       
         cout << "\nDo you want to continue? (n to stop) ";
         cin >> ch;
 

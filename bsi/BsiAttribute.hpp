@@ -95,7 +95,7 @@ public:
     virtual long getValue(int pos)=0;   
 
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
-
+    virtual BsiAttribute<uword>* multiplyByConstantNew(int number)const=0;
     virtual BsiAttribute<uword>* multiplyByConstant(int number)const=0;
     virtual BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const=0;
@@ -334,7 +334,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildQueryAttribute(long query, int ro
     if(query<0){
         uword q = std::abs(query);
         int maxsize = sliceLengthFinder(q);
-        BsiAttribute* res = new BsiSigned<uword>(maxsize);
+        BsiAttribute* res = new BsiUnsigned<uword>(maxsize);
         res->setPartitionID(partitionID);
         for(int i=0; i<=maxsize; i++){
             bool currentBit = (q&(1<<i))!=0;
@@ -510,7 +510,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     res->existenceBitmap.density=1;
     res->lastSlice=true;
     res->firstSlice=true;
-    res->twosComplement=false;
+    res->twosComplement = false;
     res->rows = numberOfElements;
     res->is_signed = true;
     return res;

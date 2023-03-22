@@ -10,3 +10,4 @@
 #pragma once
 bool validateBuild(std::vector<long>, double);
 bool validateMultiplicationByAConstant(std::vector<long>, BsiAttribute<uint64_t>*, int);
+bool validateBSIWithArray(std::vector<long>, BsiAttribute<uint64_t>*);

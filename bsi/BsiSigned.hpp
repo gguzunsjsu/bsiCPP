@@ -36,6 +36,7 @@ public:
     BsiUnsigned<uword>* absScale(double range) override;
     BsiAttribute<uword>* negate() override;
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
+    BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const override;
     void multiplicationInPlace(BsiAttribute<uword> *a) override;
     long sumOfBsi()const override;
@@ -236,7 +237,7 @@ long BsiSigned<uword>::sumOfBsi() const{
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) const{
-    return sum_Horizontal(a);
+    //return sum_Horizontal(a);
     if (a->is_signed and a->twosComplement){
         return this->SUMsignToMagnitude(a);
     }else if(a->is_signed){
@@ -879,7 +880,15 @@ BsiAttribute<uword>* BsiSigned<uword>::negate(){
  */
 
 template <class uword>
+BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstantNew(int number)const {
+    BsiSigned<uword>* res = nullptr;
+    return res;
+};
+
+
+template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
+    //The result
     BsiSigned<uword>* res = nullptr;
     HybridBitmap<uword> C, S;
     bool isNegative = false;
@@ -960,8 +969,9 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
             if (res == nullptr) {
                 res = new BsiSigned<uword>();
                 HybridBitmap<uword> zeroBitmap;
-                zeroBitmap.reset();
-                zeroBitmap.verbatim = true;
+                zeroBitmap.addStreamOfEmptyWords(false, this->existenceBitmap.bufferSize());
+                //zeroBitmap.reset();
+                //zeroBitmap.verbatim = true;
                 zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
                 for (int i = 0; i < this->size; i++) {
                     res->bsi.push_back(zeroBitmap);
@@ -2297,6 +2307,10 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
         
         const size_t nbre_literal = std::min(rlwi.getNumberOfLiteralWords(),
                                              rlwa.getNumberOfLiteralWords());
+        //To test for 10 numbers addition. All having only one buffer.
+        literal_counter = 0;
+        a_literal_counter = 0;
+
         if (nbre_literal > 0) {
             for (size_t k = 0; k < nbre_literal; ++k) {
                 for(int j=0; j< size_x; j++){
