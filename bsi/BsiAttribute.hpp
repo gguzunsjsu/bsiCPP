@@ -15,6 +15,7 @@
 #include <vector>
 #include <cmath>
 #include <bitset>
+#include <algorithm>
 
 
 template <class uword = uint64_t> class BsiUnsigned;
@@ -22,61 +23,89 @@ template <class uword = uint64_t> class BsiSigned;
 //template <class uword = uint32_t>
 template <class uword = uint64_t> class BsiAttribute{
 public:
-    uint8_t size; //holds number of slices
+    int size; //holds number of slices
     int offset =0;
     int decimals = 0;
     int bits = 8*sizeof(uword);
+
     std::vector<HybridBitmap<uword> > bsi ;
     HybridBitmap<uword> existenceBitmap;
+    HybridBitmap<uword> sign; // sign bitslice
+
     long rows;  // number of elements
     long index; // if split horizontally
+
     bool is_signed; // sign flag
+
     bool firstSlice; //contains first slice
     bool lastSlice; //contains last slice
-    HybridBitmap<uword> sign; // sign bitslice
+    
     bool twosComplement;
     
-    /*Declare functions
-     */
+    /*
+    * Member functions
+    */
+        
     bool isLastSlice() const;
     void setLastSliceFlag(bool flag);
     
     bool isFirstSlice() const;
     void setFirstSliceFlag(bool flag);
-    bool isSigned()const;
-    void addSlice(const HybridBitmap<uword> &slice);
+
+    bool isSigned()const;    
+
     void setNumberOfSlices(int s);
     int getNumberOfSlices() const;
+
+    void addSlice(const HybridBitmap<uword>& slice);
     HybridBitmap<uword> getSlice(int i) const;
+
     int getOffset() const;
-    void setOffset(int offset);
-  
+    void setOffset(int offset);  
     
-    long getNumberOfRows() const;   // return size of vector of original numbers
+    long getNumberOfRows() const;   
     void setNumberOfRows(long rows);
+
     long getPartitionID() const;
     void setPartitionID(long index);
+
     HybridBitmap<uword> getExistenceBitmap();
     void setExistenceBitmap(const HybridBitmap<uword> &exBitmap);
+
     void setTwosFlag(bool flag);
-    
+    /*
+    * ---------------------- Declarations for getters and setters end---------------------------
+    */
+
+    /*
+    * ---------------------- Declarations for member functions pertaining vector operations -----------------
+    */
     virtual HybridBitmap<uword> topKMax(int k)=0;
     virtual HybridBitmap<uword> topKMin(int k)=0;
+
     virtual BsiAttribute* SUM(BsiAttribute* a)const=0;
     virtual BsiAttribute* SUM(long a)const=0;
+
     virtual BsiAttribute* convertToTwos(int bits)=0;
+
     virtual BsiUnsigned<uword>* abs()=0;
     virtual BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB)=0;
     virtual BsiUnsigned<uword>* absScale(double range)=0;
+
     virtual long getValue(int pos)=0;   
+
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
+    virtual BsiAttribute<uword>* multiplyByConstantNew(int number)const=0;
     virtual BsiAttribute<uword>* multiplyByConstant(int number)const=0;
     virtual BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *a) const=0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
+
     virtual BsiAttribute<uword>* negate()=0;
+
     virtual long sumOfBsi()const=0;
+
     virtual bool append(long value)=0;
     
     BsiAttribute* buildQueryAttribute(long query, int rows, long partitionID);
@@ -86,21 +115,25 @@ public:
     BsiAttribute<uword>* buildCompressedBsiFromVector(std::vector<long> nums, double compressThreshold) const;
     
     HybridBitmap<uword> maj(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
+
     HybridBitmap<uword> XOR(const HybridBitmap<uword> &a,const HybridBitmap<uword> &b,const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> orAndNot(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> orAnd(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> And(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
    
     BsiAttribute* signMagnToTwos(int bits);
-    BsiAttribute* TwosToSignMagnitue();
-    
+    BsiAttribute* TwosToSignMagnitue();    
     void signMagnitudeToTwos(int bits);
+
     void addOneSliceSameOffset(const HybridBitmap<uword> &slice);
     void addOneSliceDiscardCarry(const HybridBitmap<uword> &slice);
     void addOneSliceNoSignExt(const HybridBitmap<uword> &slice);
-    void applyExsistenceBitmap(const HybridBitmap<uword> &ex);
-    
+    void applyExsistenceBitmap(const HybridBitmap<uword> &ex);    
     virtual ~BsiAttribute();
+
+    /*
+    * ------------------------Decalrations for private helper methods------------------------------
+    */
 private:
     std::vector< std::vector< uword > > bringTheBits(const std::vector<long> &array, int slices, int attRows) const;
     std::vector< std::vector< uword > > bringTheBits(const std::vector<uword> &array, int slices, int attRows) const;
@@ -109,15 +142,37 @@ protected:
      
 };
 
+/*
+* ------------------------------------ Function implementations ---------------------------------------
+* Provided for all getters and setters + the following functions
+* 
+* buildQueryAttribute
+* sliceLengthFinder
+* bringTheBits
+* buildCompressedBsiFromVector
+* buildBsiAttributeFromVector
+*
+* maj
+  XOR
+  orAndNot
+  orAnd
+  And
 
-//------------------------------------------------------------------------------------------------------
+* signMagnitudeToTwos
+  signMagnToTwos
+  TwosToSignMagnitue
+
+* addOneSliceSameOffset
+  addOneSliceDiscardCarry
+  addOneSliceNoSignExt
+  applyExsistenceBitmap
+*/
 
 /*
  * Destructor
  */
 template <class uword>
-BsiAttribute<uword>::~BsiAttribute(){
-    
+BsiAttribute<uword>::~BsiAttribute(){    
 };
 
 
@@ -175,7 +230,7 @@ void BsiAttribute<uword>::setNumberOfSlices(int s){
 }
 
 /**
- * Returns the size of the bsi (how many slices are non zeros)
+ * Returns the size of the bsi (how many slices are non zeros) ----> Really ? This just returns the number of slices, right ?
  */
 template <class uword>
 int BsiAttribute<uword>::getNumberOfSlices()const{
@@ -279,7 +334,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildQueryAttribute(long query, int ro
     if(query<0){
         uword q = std::abs(query);
         int maxsize = sliceLengthFinder(q);
-        BsiAttribute* res = new BsiSigned<uword>(maxsize);
+        BsiAttribute* res = new BsiUnsigned<uword>(maxsize);
         res->setPartitionID(partitionID);
         for(int i=0; i<=maxsize; i++){
             bool currentBit = (q&(1<<i))!=0;
@@ -345,26 +400,40 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
  * @param compressThreshold determined wether to compress the bit vetor or not
  */
 
-
+/*
+* This is the function being used to create BSI attributes from Vector in our tests
+*/
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold) const{
     uword max = std::numeric_limits<uword>::min();
+    /*
+    * 
+    bits = 8*sizeof(uword);
+    If we declare a  BsiAttribute<uint64_t> variable,unsigned long long
+    each element in the vector can fit in a 64 bit word
+    Therefore bits = 64
+    How many such words are needed to represent the sign and non-zero property of each element ?
+    If one element is represented by one bit of the sign word, the number of words needed = number of elements/number of bits per word.
+    */
     
-    int attRows = nums.size();
-    std::vector<uword> signBits(attRows/(bits)+1);
-    std::vector<uword> existBits(attRows/(bits)+1); // keep track for non-zero values
+    int numberOfElements = nums.size();
+    std::vector<uword> signBits(numberOfElements/(bits)+1);
+    std::vector<uword> existBits(numberOfElements/(bits)+1); // keep track for non-zero values
     int countOnes =0;
     int CountZeros = 0;
+    const uword one = 1;
+    //int bits = 8*sizeof(uword);
     //find max, min, and zeros.
+    //Setting sign bits and existence bits for the array of numbers 
     for (int i=0; i<nums.size(); i++){
         int offset = i%(bits);
         if(nums[i] < 0){
             nums[i] = 0 - nums[i];
-            signBits[i / (bits)] |= (1L << offset); // seting sign bit
+            signBits[i / (bits)] |= (one << offset); // seting sign bit
             countOnes++;
         }
         if(nums[i] != 0){
-            existBits[i / (bits)] |= (1L << offset); // seting one at position
+            existBits[i / (bits)] |= (one << offset); // seting one at position
         }else{
             CountZeros++;
         }
@@ -372,16 +441,17 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             max = nums[i];
         }
     }
+    //Finding the maximum length of the bit representation of the numbers
     int slices = sliceLengthFinder(max);
     BsiSigned<uword>* res = new BsiSigned<uword>(slices+1);
     res->sign.reset();
     res->sign.verbatim = true;
     
     for (typename std::vector<uword>::iterator it=signBits.begin(); it != signBits.end(); it++){
-        res->sign.addVerbatim(*it,attRows);
+        res->sign.addVerbatim(*it,numberOfElements);
     }
-    res->sign.setSizeInBits(attRows);
-    res->sign.density = countOnes/(double)attRows;
+    res->sign.setSizeInBits(numberOfElements);
+    res->sign.density = countOnes/(double)numberOfElements;
     
     double existBitDensity = (CountZeros/(double)nums.size()); // to decide whether to compress or not
     double existCompressRatio = 1-pow((1-existBitDensity), (2*bits))-pow(existBitDensity, (2*bits));
@@ -390,7 +460,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
         for(int j=0; j<existBits.size(); j++){
             bitmap.addWord(existBits[j]);
         }
-        //bitmap.setSizeInBits(attRows);
+        //bitmap.setSizeInBits(numberOfElements);
         bitmap.density=existBitDensity;
         res->setExistenceBitmap(bitmap);
     }else{
@@ -398,15 +468,16 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
         for(int j=0; j<existBits.size(); j++){
             bitmap.buffer[j] = existBits[j];
         }
-        //bitmap.setSizeInBits(attRows);
+        //bitmap.setSizeInBits(numberOfElements);
         bitmap.density=existBitDensity;
         res->setExistenceBitmap(bitmap);
     }
     
-    std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,attRows);
+    //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
+    std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
     
     for(int i=0; i<slices; i++){
-        double bitDensity = bitSlices[i][0]/(double)attRows; // the bit density for this slice
+        double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
         double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
         if(compressRatio<compressThreshold){
             //build compressed bitmap
@@ -414,7 +485,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             for(int j=1; j<bitSlices[i].size(); j++){
                 bitmap.addWord(bitSlices[i][j]);
             }
-            //bitmap.setSizeInBits(attRows);
+            //bitmap.setSizeInBits(numberOfElements);
             bitmap.density=bitDensity;
             res->addSlice(bitmap);
 
@@ -425,22 +496,22 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             bitmap.verbatim = true;
             //                std::copy(bitSlices[i].begin(), bitSlices[i].end(), bitmap.buffer.begin());
             for (typename std::vector<uword>::iterator it=bitSlices[i].begin()+1; it != bitSlices[i].end(); it++){
-                bitmap.addVerbatim(*it,attRows);
+                bitmap.addVerbatim(*it,numberOfElements);
             }
             // bitmap.buffer=Arrays.copyOfRange(bitSlices[i], 1, bitSlices[i].length);
             //bitmap.actualsizeinwords=bitSlices[i].length-1;
-            bitmap.setSizeInBits(attRows);
+            bitmap.setSizeInBits(numberOfElements);
             bitmap.density=bitDensity;
             res->addSlice(bitmap);
             
         }
     }
-    res->existenceBitmap.setSizeInBits(attRows,true);
+    res->existenceBitmap.setSizeInBits(numberOfElements,true);
     res->existenceBitmap.density=1;
     res->lastSlice=true;
     res->firstSlice=true;
-    res->twosComplement=false;
-    res->rows = attRows;
+    res->twosComplement = false;
+    res->rows = numberOfElements;
     res->is_signed = true;
     return res;
 };
@@ -450,21 +521,31 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
  * private function
  */
 template <class uword>
-std::vector< std::vector< uword > > BsiAttribute<uword>::bringTheBits(const std::vector<long> &array, int slices, int attRows) const{
-    
-    int wordsNeeded = ceil( attRows / (double)(bits));
+std::vector< std::vector< uword > > BsiAttribute<uword>::bringTheBits(const std::vector<long> &array, int slices, int numberOfElements) const{
+    //The number of words needed to represent the elements in the array
+    int wordsNeeded = ceil( numberOfElements / (double)(bits));
+    //The result of this method is a 2D vector of words
+    //Each row represents a slice
+    //Each column represents an element in the input array
+    //For example, for an input array of 66 ones
+    //Two 64bit words are needed to represent 66 numbers
+    //Since each element is a one, we need only one slice
+    //So the bitmap will be one single row of 66 bits ideally. 
+    //But in reality, the first word/0th column represents the number of elements.
+    //The second word/1st column onwards represents the actual elements
     std::vector< std::vector< uword > > bitmapDataRaw(slices,std::vector<uword>(wordsNeeded +1));
+    const uword one = 1;
     
     // one for the bit density (the first word in each slice)
     uword thisBin = 0;
-    for (int seq = 0; seq < attRows; seq++) {
+    for (int seq = 0; seq < numberOfElements; seq++) {
         int w = (seq / (bits)+1);
                 int offset = seq % (bits);
         thisBin = array[seq];
         int slice = 0;
         while (thisBin != 0 && slice<slices) {
             if ((thisBin & 1) == 1) {
-                bitmapDataRaw[slice][w] |= (1L << offset); //setting bit
+                bitmapDataRaw[slice][w] |= (one << offset); //setting bit
                 bitmapDataRaw[slice][0]++; //update bit density
             }
             thisBin >>= 1;
@@ -488,6 +569,9 @@ HybridBitmap<uword> BsiAttribute<uword>::maj(const HybridBitmap<uword> &a, const
     }
 };
 
+/*
+* XOR operation
+*/
 
 
 template <class uword>

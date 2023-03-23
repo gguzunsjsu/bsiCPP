@@ -36,6 +36,7 @@ public:
     BsiUnsigned<uword>* absScale(double range) override;
     BsiAttribute<uword>* negate() override;
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
+    BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const override;
     void multiplicationInPlace(BsiAttribute<uword> *a) override;
     long sumOfBsi()const override;
@@ -236,7 +237,7 @@ long BsiSigned<uword>::sumOfBsi() const{
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) const{
-    return sum_Horizontal(a);
+    //return sum_Horizontal(a);
     if (a->is_signed and a->twosComplement){
         return this->SUMsignToMagnitude(a);
     }else if(a->is_signed){
@@ -879,7 +880,15 @@ BsiAttribute<uword>* BsiSigned<uword>::negate(){
  */
 
 template <class uword>
+BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstantNew(int number)const {
+    BsiSigned<uword>* res = nullptr;
+    return res;
+};
+
+
+template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
+    //The result
     BsiSigned<uword>* res = nullptr;
     HybridBitmap<uword> C, S;
     bool isNegative = false;
@@ -960,10 +969,10 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
             if (res == nullptr) {
                 res = new BsiSigned<uword>();
                 HybridBitmap<uword> zeroBitmap;
-                zeroBitmap.reset();
-                zeroBitmap.verbatim = true;
+                zeroBitmap.addStreamOfEmptyWords(false, this->existenceBitmap.bufferSize());
+                //zeroBitmap.reset();
+                //zeroBitmap.verbatim = true;
                 zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
-                //                res->offset = k;
                 for (int i = 0; i < this->size; i++) {
                     res->bsi.push_back(zeroBitmap);
                 }
@@ -1152,9 +1161,12 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_compressed(cons
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = size_y +size_x;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     HybridBitmapRawIterator<uword> iterator = this->existenceBitmap.raw_iterator();
     HybridBitmapRawIterator<uword> a_iterator = a->existenceBitmap.raw_iterator();
@@ -1266,9 +1278,12 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Verbatim(const 
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = size_y +size_x;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         for(int j=0; j< size_x; j++){
@@ -1321,9 +1336,12 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Hybrid(const Bs
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = size_y +size_x;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     HybridBitmapRawIterator<uword> i = this->existenceBitmap.raw_iterator();
     BufferedRunningLengthWord<uword> &rlwi = i.next();
@@ -1395,9 +1413,12 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_Horizontal_Hybrid_other(co
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = size_y +size_x;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     HybridBitmapRawIterator<uword> i = a->existenceBitmap.raw_iterator();
     BufferedRunningLengthWord<uword> &rlwi = i.next();
@@ -1600,7 +1621,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplication_array(BsiAttribute<uword> 
 
 template <class uword>
 void BsiSigned<uword>::appendBitWords(long value){
-    
+    const uword one = 1;
     if (this->bsi.size() == 0){
         int i = 0;
         if(value <0){
@@ -1639,19 +1660,19 @@ void BsiSigned<uword>::appendBitWords(long value){
         int offset = this->getNumberOfRows()%(BsiAttribute<uword>::bits);
         if(value <0){
             value = std::abs(value);
-            this->sign.buffer[size] = this->sign.buffer.back() | (1 << offset);
+            this->sign.buffer[size] = this->sign.buffer.back() | (one << offset);
             this->sign.setSizeInBits(this->sign.sizeInBits()+1);
         }else{
             this->sign.setSizeInBits(this->sign.sizeInBits()+1);
         }
         for(int i=0; i<this->size;i++){
-            this->bsi[i].buffer[size] = this->bsi[i].buffer.back() | ((value & 1) << offset);
+            this->bsi[i].buffer[size] = this->bsi[i].buffer.back() | ((value & one) << offset);
             this->bsi[i].setSizeInBits(this->bsi[i].sizeInBits()+1);
             value = value/2;
         }
         while (value > 0){
             HybridBitmap<uword> zeroBitmap(true,size+1);
-            zeroBitmap.buffer[0] = (value & 1)<< offset;
+            zeroBitmap.buffer[0] = (value & one)<< offset;
             zeroBitmap.setSizeInBits(this->rows+1);
             this->bsi.push_back(zeroBitmap);
             value = value/2;
@@ -1824,9 +1845,12 @@ void BsiSigned<uword>::multiplicationInPlace(BsiAttribute<uword> *a){
     int size_x = size;
     int size_y = a->size;
     int size_ans = size_y +size_x;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword   * x = new uword[size_x];
+    uword   * y = new uword[size_y];
+    uword   * answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         for(int j=0; j< size_x; j++){
@@ -1995,9 +2019,12 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid(const BsiAttribute<
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = std::max(size_y,size_x) + 1;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap(true,0);
@@ -2098,9 +2125,12 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Verbatim(const BsiAttribut
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = std::max(size_y,size_x) + 1;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap(true,0);
@@ -2168,9 +2198,12 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = std::max(size_y,size_x) + 1;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap;
@@ -2274,6 +2307,10 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_compressed(const BsiAttrib
         
         const size_t nbre_literal = std::min(rlwi.getNumberOfLiteralWords(),
                                              rlwa.getNumberOfLiteralWords());
+        //To test for 10 numbers addition. All having only one buffer.
+        literal_counter = 0;
+        a_literal_counter = 0;
+
         if (nbre_literal > 0) {
             for (size_t k = 0; k < nbre_literal; ++k) {
                 for(int j=0; j< size_x; j++){
@@ -2349,9 +2386,12 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal_Hybrid_other(const BsiAttr
     int size_x = this->size;
     int size_y = a->size;
     int size_ans = std::max(size_y,size_x) + 1;
-    uword x[size_x];
-    uword y[size_y];
-    uword answer[size_ans];
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
     
     BsiSigned<uword>* res = new BsiSigned<uword>();
     HybridBitmap<uword> hybridBitmap(true,0);

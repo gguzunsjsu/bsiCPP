@@ -12,6 +12,11 @@
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
+/*
+* Testing header files
+*/
+
+#include "testBSIAttributeBuilding.h"
 
 int main(){
     
@@ -22,12 +27,21 @@ int main(){
         int range1 = 10000;
         int range2 = 10000;
         int vectorLen = 1000;
+
+
         int numberOfElementsInTheArray;
         cout << "Enter the number of elements in the array: ";
         cin >> numberOfElementsInTheArray;
+        /*
+        * int value;
+        cout << "Enter the value to be put into the array: ";
+        cin >> value;
+        */
+        
         for (int i = 0; i < numberOfElementsInTheArray; i++) {
-            array1.push_back(i);
-            array2.push_back(i);
+            
+            array1.push_back(i);           
+            array2.push_back(1);
         }
 
         //Fill in random numbers in the array
@@ -43,15 +57,19 @@ int main(){
         //Build BSIAttribute from the vector
         BsiUnsigned<uint64_t> ubsi;
         BsiAttribute<uint64_t>* bsi_1;
-        BsiAttribute<uint64_t>* bsi_2;
-        bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 1);
+        //BsiAttribute<uint64_t>* bsi_2;
+
+        bsi_1 = ubsi.buildBsiAttributeFromVector(array1,1);
         bsi_1->setPartitionID(0);
         bsi_1->setFirstSliceFlag(true);
         bsi_1->setLastSliceFlag(true);
-        bsi_2 = ubsi.buildBsiAttributeFromVector(array2, 1);
+        /*
+        * bsi_2 = ubsi.buildBsiAttributeFromVector(array2, 0);
         bsi_2->setPartitionID(0);
         bsi_2->setFirstSliceFlag(true);
         bsi_2->setLastSliceFlag(true);
+        */
+        
 
         //Print some attributes of the BSI thus built
         cout << "NUmber of slices in the first BSI attribute: " << bsi_1->getNumberOfSlices() << "\n";
@@ -66,6 +84,10 @@ int main(){
         }
         cout << "Sum of elements in array1: " << array1Sum << "\n";
         cout << "Sum of elements in the First BSI Attribute: " << bsi_1->sumOfBsi() << "\n";
+        cout << "Print the elements if the First BSI Attribute" << "\n";
+        for (int i = 0; i < array1.size(); i++) {
+            cout << "Element "<<i+1<<": "<<bsi_1->getValue(i) << "\n";
+        }
         cout << "Do you want to check again? ";
         cin >> choice;
     } while (choice == 'y');
