@@ -901,6 +901,8 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a, HybridBitmap<uword> EB, int
 template <class uword>
 BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const {
     BsiUnsigned<uword>* res = nullptr;  
+    //The result should have this->bsi.size() + sizeInBits(number) number of slices maximum
+    int slices = sliceLengthFinder(number) + this->bsi.size();
     //Declare Sum and Carry
     HybridBitmap<uword> C, S;
     int k = 0;
@@ -909,7 +911,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
         //if the last bit of the number is 1
         if ((number & 1) == 1) {
             if (res == nullptr) {
-                res = new BsiUnsigned<uword>();
+                res = new BsiUnsigned<uword>(slices + 1);
                 res->offset = k;
                 for (int i = 0; i < this->size; i++) {
                     res->bsi.push_back(this->bsi[i]);
@@ -919,12 +921,21 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
             }
             else {
                 //Move the slices of the result by k positions
-                HybridBitmap<uword> A, B;
-                A = res->bsi[k];
+                HybridBitmap<uword> A, B;                
                 B = this->bsi[0]; 
+                while (k >= res->bsi.size()) {
+                    //If k is greater than result's bsi size, A will be undefined
+                    A = new HybridBitmap<uword>();
+                    //A.addStreamOfEmptyWords(false, this->bsi[0].sizeInBits() / 64);
+                    res->bsi.push_back(A);                    
+                }
+                
+                 A = res->bsi[k];
+               
                 S = A.Xor(B);
                 C = A.And(B);
-                res->bsi[k] = S;
+                res->bsi.at(k) = S;
+                res->size = k + 1;
                 //Add the slices of the current BSI to the result
                 for (int i = 1; i < this->size; i++) {                    
                     B = this->bsi[i];

@@ -963,7 +963,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
                 B = this->bsi[0];
                 S = A.Xor(B);
                 C = A.And(B);
-                res->bsi[k] = S;
+                res->bsi.at(k) = S;
                 for (int i = 1; i < this->size; i++) {// Add the slices of this to the current res
                     B = this->bsi[i];
                     if ((i + k) >=this->size){
