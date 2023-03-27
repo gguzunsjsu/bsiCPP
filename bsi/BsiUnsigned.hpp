@@ -929,13 +929,12 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                     //A.addStreamOfEmptyWords(false, this->bsi[0].sizeInBits() / 64);
                     res->bsi.push_back(A);                    
                 }
-                
-                 A = res->bsi[k];
-               
+                res->size = k + 1;
+                A = res->bsi[k];               
                 S = A.Xor(B);
                 C = A.And(B);
-                res->bsi.at(k) = S;
-                res->size = k + 1;
+                res->bsi[k] = S;
+                
                 //Add the slices of the current BSI to the result
                 for (int i = 1; i < this->size; i++) {                    
                     B = this->bsi[i];
@@ -970,6 +969,23 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
         number >>= 1;
         k++;
     }
+
+    //Check for null slices within the result range and fill them with zeroes
+    int maxNotNull = 0;
+    for (int i = 0; i < res->bsi.size(); i++) {
+        if (res->bsi[i] != nullptr)
+            maxNotNull = i;
+    }
+    for (int i = 0; i < maxNotNull; i++) {
+        if (res->bsi[i] == nullptr) {
+            res->bsi[i] = new HybridBitmap<uword>();
+            // res.bsi[i].setSizeInBits(this.bsi[0].sizeInBits(), false);
+            res->bsi[i].addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits() / 64);
+        }
+    }
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
     
     return res;
     
