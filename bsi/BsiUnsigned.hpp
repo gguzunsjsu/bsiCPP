@@ -921,31 +921,26 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 //Move the slices of the result by k positions
                 HybridBitmap<uword> A, B;
                 A = res->bsi[k];
-                B = this->bsi[0];
-                if (A == nullptr) {
-                    //If the current bit slice in result is not defined, fill it with a stream of words
-                    A = new HybridBitmap<uword>();
-                    A.addStreamOfEmptyWords(false, this->bsi[0].sizeInBits());
-                    res->size = k + 1;
-                }
-                C = new HybridBitmap<uword>();
+                B = this->bsi[0]; 
                 S = A.Xor(B);
                 C = A.And(B);
                 res->bsi[k] = S;
                 //Add the slices of the current BSI to the result
-                for (int i = 1; i < this->size; i++) {
+                for (int i = 1; i < this->size; i++) {                    
                     B = this->bsi[i];
-                    A = res->bsi[i + k];
-                    if (A == nullptr) {
+                    if ((i + k) >= this->size) {
                         S = B.Xor(C);
                         C = B.And(C);
                         res->size++;
+                        res->bsi.push_back(S);
+                        continue;
                     }
                     else {
+                        A = res->bsi[i + k];
                         S = A.Xor(B).Xor(C);
                         C = A.And(B).Or(B.And(C)).Or(A.And(C));
                     }
-                    res->bsi[i + k] = S;
+                    res->bsi[i + k] = S;                   
                 }
                 //Add the remaining slices of the result with the Carry C
                 for (int i = this->size + k; i < res->size; i++) {
@@ -964,21 +959,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
         number >>= 1;
         k++;
     }
-
-    int maxNotNull = 0;
-    for (int i = 0; i < res->bsi.size(); i++) {
-        if (res->bsi[i] != nullptr)
-            maxNotNull = i;
-    }
-    for (int i = 0; i < maxNotNull; i++) {
-        if (res->bsi[i] == nullptr) {
-            res->bsi[i] = new HybridBitmap<uword>();            
-            res->bsi[i].addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits() / 64);
-        }
-    }
-    res->existenceBitmap = this->existenceBitmap;
-    res->rows = this->rows;
-    res->index = this->index;
+    
     return res;
     
 };
