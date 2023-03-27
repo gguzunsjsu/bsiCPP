@@ -904,47 +904,54 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
     //Declare Sum and Carry
     HybridBitmap<uword> C, S;
     int k = 0;
+    
     while (number > 0) {
-        //If the last bit of the multiplier is one
+        //if the last bit of the number is 1
         if ((number & 1) == 1) {
             if (res == nullptr) {
-                //If result is uninitialized, initialize result with the current bit slices
                 res = new BsiUnsigned<uword>();
+                res->offset = k;
                 for (int i = 0; i < this->size; i++) {
                     res->bsi.push_back(this->bsi[i]);
                 }
                 res->size = this->size;
+                k = 0;
             }
             else {
-                //The result is initialized
-                /* Move the slices of res k positions */
+                //Move the slices of the result by k positions
                 HybridBitmap<uword> A, B;
                 A = res->bsi[k];
                 B = this->bsi[0];
+                if (A == nullptr) {
+                    //If the current bit slice in result is not defined, fill it with a stream of words
+                    A = new HybridBitmap<uword>();
+                    A.addStreamOfEmptyWords(false, this->bsi[0].sizeInBits());
+                    res->size = k + 1;
+                }
+                C = new HybridBitmap<uword>();
                 S = A.Xor(B);
                 C = A.And(B);
                 res->bsi[k] = S;
-                //More processing
+                //Add the slices of the current BSI to the result
                 for (int i = 1; i < this->size; i++) {
                     B = this->bsi[i];
-                    if ((i + k) >= this->size) {
+                    A = res->bsi[i + k];
+                    if (A == nullptr) {
                         S = B.Xor(C);
                         C = B.And(C);
                         res->size++;
-                        res->bsi.push_back(S);
-                        continue;                        
                     }
                     else {
-                        A = res->bsi[i + k];
-                        S = A.Xor(B).Xor(C);                        
-                        C = A.And(B).Or(B.And(C)).Or(A.And(C));                        
+                        S = A.Xor(B).Xor(C);
+                        C = A.And(B).Or(B.And(C)).Or(A.And(C));
                     }
                     res->bsi[i + k] = S;
                 }
+                //Add the remaining slices of the result with the Carry C
                 for (int i = this->size + k; i < res->size; i++) {
                     A = res->bsi[i];
                     S = A.Xor(C);
-                    C = A.And(C);                    
+                    C = A.And(C);
                     res->bsi[i] = S;
                 }
                 if (C.numberOfOnes() > 0) {
@@ -953,21 +960,27 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 }
             }
         }
-        else {
-            if (res == nullptr) {
-                res = new BsiUnsigned<uword>();
-                HybridBitmap<uword> zeroBitmap;
-                zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
-                for (int i = 0; i < this->size; i++) {
-                    res->bsi.push_back(zeroBitmap);
-                }
-                res->size = this->size;
-            }
-        }
+        //Check for the next bit in number
         number >>= 1;
         k++;
     }
+
+    int maxNotNull = 0;
+    for (int i = 0; i < res->bsi.size(); i++) {
+        if (res->bsi[i] != nullptr)
+            maxNotNull = i;
+    }
+    for (int i = 0; i < maxNotNull; i++) {
+        if (res->bsi[i] == nullptr) {
+            res->bsi[i] = new HybridBitmap<uword>();            
+            res->bsi[i].addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits() / 64);
+        }
+    }
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
     return res;
+    
 };
 
 
