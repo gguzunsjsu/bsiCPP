@@ -1010,6 +1010,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                     res->bsi.push_back(this->bsi[i]);
                 }
                 res->size = this->size;
+                k = 0;
             }
             else {
                 //Initialize S and C
@@ -1020,7 +1021,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                     A = new HybridBitmap<uword>();                    
                     res->bsi.push_back(A);
                 }
-                res->size = k + 1;
+                res->size = res->bsi.size();
                 A = res->bsi[k];
                 S = A.Xor(B);
                 C = A.And(B);
@@ -1048,7 +1049,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 }
                 //Handle the last carry
                 if (C.numberOfOnes() > 0) {
-                    res->bsi[this->bsi.size()] = C;
+                    res->bsi.push_back(C);
                     res->size = res->bsi.size();
                 }
 
