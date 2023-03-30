@@ -1041,7 +1041,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                     res->bsi[i + k] = S;
                 }
                 //Add C to the remianing slices
-                for (int j = i + k; j < this->bsi.size(); j++) {
+                for (int j = this->size + k; j < res->bsi.size(); j++) {
                     A = res->bsi[j];
                     S = A.Xor(C);
                     C = A.And(C);
