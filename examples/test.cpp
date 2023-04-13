@@ -71,13 +71,17 @@ int main() {
         cout << "\n The BSI Multiplication with constant " << multiplier << " result :";
         cout << (validateMultiplicationByAConstant(array1, bsi_2, multiplier) == true ? "Yes" : "No");
         
-       
         
+        
+       
         /*
         * BsiAttribute<uint64_t>* bsi_3 = bsi_1->multiplyByConstant(multiplier);
         cout << "\n The BSI Multiplication with constant " << multiplier << " result :";
-        cout << (validateMultiplicationByAConstant(array1, bsi_3, multiplier) == true ? "Yes" : "No");
+        cout << (validateMultiplicationByAConstant(array1, bsi_3, multiplier) == true ? "Yes" : "No");        
         */
+        
+        
+        
         
         
         

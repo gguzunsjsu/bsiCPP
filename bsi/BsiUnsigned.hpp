@@ -1014,37 +1014,50 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
             }
             else {
                 //Initialize S and C
-                HybridBitmap<uword> A, B;
+                HybridBitmap<uword>* A, B;
                 B = this->bsi[0];
                 while (k >= res->bsi.size()) {
                     //If k is greater than result's bsi size, A will be undefined
-                    A = new HybridBitmap<uword>();                    
-                    res->bsi.push_back(A);
+                    A = new HybridBitmap<uword>(true, this->bsi[0].bufferSize());
+                    //A.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                    //A.AndInPlace(new HybridBitmap<uword>(this->bsi[0].bufferSize()));
+                    //A.addStreamOfEmptyWords(false, this->existenceBitmap.bufferSize());    
+                    //A.addStreamOfDirtyWords(this->existenceBitmap.buffer, this->existenceBitmap.bufferSize());
+                    
+                    res->bsi.push_back(*A);
                 }
                 res->size = res->bsi.size();
-                A = res->bsi[k];
-                S = A.Xor(B);
-                C = A.And(B);
+                A = &(res->bsi[k]);
+                S = A->Xor(B);
+                C = A->And(B);
                 res->bsi[k] = S;
-                //Actuual adding the slices
+                //Actual adding the slices
                 int i;
                 for (i = 1; i < this->bsi.size(); i++) {
                     B = this->bsi[i];
                     while ((i + k) >= res->bsi.size()) {
-                        A = new HybridBitmap<uword>();
-                        res->bsi.push_back(A);
+                        size_t buffersize = this->bsi[0].bufferSize();
+                        A = new HybridBitmap<uword>(true, buffersize);
+                        /*
+                        * A.setSizeInBits(this->existenceBitmap.sizeInBits(), false);                       
+                        */                        
+                        //A.addStreamOfDirtyWords(this->existenceBitmap.buffer, this->existenceBitmap.bufferSize());
+
+                        //A.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                        //A.AndInPlace(new HybridBitmap<uword>(this->bsi[0].bufferSize()));
+                        res->bsi.push_back(*A);
                     }
                     res->size = res->bsi.size();
-                    A = res->bsi[i + k];
-                    S = A.Xor(B).Xor(C);
-                    C = A.And(B).Or(B.And(C)).Or(A.And(C));
+                    A = &(res->bsi[i + k]);
+                    S = A->Xor(B).Xor(C);
+                    C = A->And(B).Or(B.And(C)).Or(A->And(C));
                     res->bsi[i + k] = S;
                 }
                 //Add C to the remianing slices
                 for (int j = this->size + k; j < res->bsi.size(); j++) {
-                    A = res->bsi[j];
-                    S = A.Xor(C);
-                    C = A.And(C);
+                    A = &(res->bsi[j]);
+                    S = A->Xor(C);
+                    C = A->And(C);
                     res->bsi[j] = S;
                 }
                 //Handle the last carry
