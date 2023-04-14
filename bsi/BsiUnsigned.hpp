@@ -1018,7 +1018,9 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 B = this->bsi[0];
                 while (k >= res->bsi.size()) {
                     //If k is greater than result's bsi size, A will be undefined
-                    A = new HybridBitmap<uword>(true, this->bsi[0].bufferSize());
+                    //A = new HybridBitmap<uword>(true, this->bsi[0].bufferSize());
+                    A = new HybridBitmap<uword>();
+                    A->padWithZeroes(this->bsi[0].sizeInBits());
                     //A.setSizeInBits(this->bsi[0].sizeInBits(), false);
                     //A.AndInPlace(new HybridBitmap<uword>(this->bsi[0].bufferSize()));
                     //A.addStreamOfEmptyWords(false, this->existenceBitmap.bufferSize());    
@@ -1028,8 +1030,8 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 }
                 res->size = res->bsi.size();
                 A = &(res->bsi[k]);
-                S = A->Xor(B);
-                C = A->And(B);
+                S = (*A).Xor(B);
+                C = (*A).And(B);
                 res->bsi[k] = S;
                 //Actual adding the slices
                 int i;
@@ -1037,7 +1039,9 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                     B = this->bsi[i];
                     while ((i + k) >= res->bsi.size()) {
                         size_t buffersize = this->bsi[0].bufferSize();
-                        A = new HybridBitmap<uword>(true, buffersize);
+                        //A = new HybridBitmap<uword>(true, buffersize);
+                        A = new HybridBitmap<uword>();
+                        A->padWithZeroes(this->bsi[0].sizeInBits());
                         /*
                         * A.setSizeInBits(this->existenceBitmap.sizeInBits(), false);                       
                         */                        
@@ -1049,15 +1053,15 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                     }
                     res->size = res->bsi.size();
                     A = &(res->bsi[i + k]);
-                    S = A->Xor(B).Xor(C);
-                    C = A->And(B).Or(B.And(C)).Or(A->And(C));
+                    S = (*A).Xor(B).Xor(C);
+                    C = (*A).And(B).Or(B.And(C)).Or((*A).And(C));
                     res->bsi[i + k] = S;
                 }
                 //Add C to the remianing slices
                 for (int j = this->size + k; j < res->bsi.size(); j++) {
                     A = &(res->bsi[j]);
-                    S = A->Xor(C);
-                    C = A->And(C);
+                    S = (*A).Xor(C);
+                    C = (*A).And(C);
                     res->bsi[j] = S;
                 }
                 //Handle the last carry
