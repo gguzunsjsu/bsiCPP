@@ -1016,16 +1016,9 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 //Initialize S and C
                 HybridBitmap<uword>* A, B;
                 B = this->bsi[0];
-                while (k >= res->bsi.size()) {
-                    //If k is greater than result's bsi size, A will be undefined
-                    //A = new HybridBitmap<uword>(true, this->bsi[0].bufferSize());
+                while (k >= res->bsi.size()) {                    
                     A = new HybridBitmap<uword>();
-                    A->padWithZeroes(this->bsi[0].sizeInBits());
-                    //A.setSizeInBits(this->bsi[0].sizeInBits(), false);
-                    //A.AndInPlace(new HybridBitmap<uword>(this->bsi[0].bufferSize()));
-                    //A.addStreamOfEmptyWords(false, this->existenceBitmap.bufferSize());    
-                    //A.addStreamOfDirtyWords(this->existenceBitmap.buffer, this->existenceBitmap.bufferSize());
-                    
+                    A->padWithZeroes(this->bsi[0].sizeInBits()); 
                     res->bsi.push_back(*A);
                 }
                 res->size = res->bsi.size();
@@ -1038,17 +1031,9 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 for (i = 1; i < this->bsi.size(); i++) {
                     B = this->bsi[i];
                     while ((i + k) >= res->bsi.size()) {
-                        size_t buffersize = this->bsi[0].bufferSize();
-                        //A = new HybridBitmap<uword>(true, buffersize);
+                        size_t buffersize = this->bsi[0].bufferSize();                       
                         A = new HybridBitmap<uword>();
-                        A->padWithZeroes(this->bsi[0].sizeInBits());
-                        /*
-                        * A.setSizeInBits(this->existenceBitmap.sizeInBits(), false);                       
-                        */                        
-                        //A.addStreamOfDirtyWords(this->existenceBitmap.buffer, this->existenceBitmap.bufferSize());
-
-                        //A.setSizeInBits(this->bsi[0].sizeInBits(), false);
-                        //A.AndInPlace(new HybridBitmap<uword>(this->bsi[0].bufferSize()));
+                        A->padWithZeroes(this->bsi[0].sizeInBits());                        
                         res->bsi.push_back(*A);
                     }
                     res->size = res->bsi.size();

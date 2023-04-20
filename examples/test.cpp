@@ -2,6 +2,7 @@
 #include "testBSIAttributeBuilding.h"
 
 #include <iostream>
+#include <chrono>
 using namespace std;
 
 #include "BsiUnsigned.hpp"
@@ -9,6 +10,11 @@ using namespace std;
 #include "BsiAttribute.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
+
+
+void MultiplyVectorByScalar(vector<long>& v, int k) {
+    transform(v.begin(), v.end(), v.begin(), [k](long& c) { return c * k; });
+}
 
 int main() {
     vector<long> array1;
@@ -44,8 +50,11 @@ int main() {
 
         BsiSigned<uint64_t> bsi;
         
-
+        auto start = chrono::high_resolution_clock::now();
         BsiAttribute<uint64_t>* bsi_1 = bsi.buildBsiAttributeFromVector(array1, compressionThreshold);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl;
         bsi_1->setPartitionID(0);
         bsi_1->setFirstSliceFlag(true);
         bsi_1->setLastSliceFlag(true);
@@ -66,26 +75,22 @@ int main() {
         int multiplier;
         cout << "\n\nEnter the number to multiply with ? ";
         cin >> multiplier;
-        
+        //Time calculation
+        start = chrono::high_resolution_clock::now();
         BsiAttribute<uint64_t>* bsi_2 = bsi_1->multiplyByConstantNew(multiplier);
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "Time to Multiply by constant the BSI Attribute: " << duration.count() << endl;
+
         cout << "\n The BSI Multiplication with constant " << multiplier << " result :";
         cout << (validateMultiplicationByAConstant(array1, bsi_2, multiplier) == true ? "Yes" : "No");
         
-        
-        
-       
-        /*
-        * BsiAttribute<uint64_t>* bsi_3 = bsi_1->multiplyByConstant(multiplier);
-        cout << "\n The BSI Multiplication with constant " << multiplier << " result :";
-        cout << (validateMultiplicationByAConstant(array1, bsi_3, multiplier) == true ? "Yes" : "No");        
-        */
-        
-        
-        
-        
-        
-        
-        
+        start = chrono::high_resolution_clock::now();
+        MultiplyVectorByScalar(array1, multiplier);
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime to Multiply by constant the Vector: " << duration.count() << endl;
+
         array1.clear();
         numberOfElementsInTheArray = 0;
         cout << "\nDo you want to continue? (n to stop) ";
@@ -97,3 +102,4 @@ int main() {
     cout << "\n\nThank you";
     return 0;
 }
+
