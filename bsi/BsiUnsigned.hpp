@@ -897,54 +897,66 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a, HybridBitmap<uword> EB, int
         return res;
     }
 };
-
-template <class uword>
+/*
+* template <class uword>
 BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const {
     BsiUnsigned<uword>* res = nullptr;  
+    //The result should have this->bsi.size() + sizeInBits(number) number of slices maximum
+    int slices = sliceLengthFinder(number) + this->bsi.size();
     //Declare Sum and Carry
     HybridBitmap<uword> C, S;
+    //Declare the offset
     int k = 0;
+    
     while (number > 0) {
-        //If the last bit of the multiplier is one
+        //if the last bit of the number is 1
         if ((number & 1) == 1) {
             if (res == nullptr) {
-                //If result is uninitialized, initialize result with the current bit slices
-                res = new BsiUnsigned<uword>();
+                res = new BsiUnsigned<uword>(slices + 1);
+                res->offset = k;
                 for (int i = 0; i < this->size; i++) {
                     res->bsi.push_back(this->bsi[i]);
                 }
-                res->size = this->size;
+                res->size = this->size;            
             }
             else {
-                //The result is initialized
-                /* Move the slices of res k positions */
-                HybridBitmap<uword> A, B;
-                A = res->bsi[k];
-                B = this->bsi[0];
+                //Move the slices of the result by k positions
+                HybridBitmap<uword> A, B;                
+                B = this->bsi[0]; 
+                while (k >= res->bsi.size()) {
+                    //If k is greater than result's bsi size, A will be undefined
+                    A = new HybridBitmap<uword>();
+                    //A.addStreamOfEmptyWords(false, this->bsi[0].sizeInBits() / 64);
+                    res->bsi.push_back(A);                    
+                }
+                res->size = k + 1;
+                A = res->bsi[k];               
                 S = A.Xor(B);
                 C = A.And(B);
                 res->bsi[k] = S;
-                //More processing
-                for (int i = 1; i < this->size; i++) {
+                
+                //Add the slices of the current BSI to the result
+                for (int i = 1; i < this->size; i++) {                    
                     B = this->bsi[i];
                     if ((i + k) >= this->size) {
                         S = B.Xor(C);
                         C = B.And(C);
                         res->size++;
                         res->bsi.push_back(S);
-                        continue;                        
+                        continue;
                     }
                     else {
                         A = res->bsi[i + k];
-                        S = A.Xor(B).Xor(C);                        
-                        C = A.And(B).Or(B.And(C)).Or(A.And(C));                        
+                        S = A.Xor(B).Xor(C);
+                        C = A.And(B).Or(B.And(C)).Or(A.And(C));
                     }
-                    res->bsi[i + k] = S;
+                    res->bsi[i + k] = S;                   
                 }
+                //Add the remaining slices of the result with the Carry C
                 for (int i = this->size + k; i < res->size; i++) {
                     A = res->bsi[i];
                     S = A.Xor(C);
-                    C = A.And(C);                    
+                    C = A.And(C);
                     res->bsi[i] = S;
                 }
                 if (C.numberOfOnes() > 0) {
@@ -953,20 +965,106 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const 
                 }
             }
         }
-        else {
-            if (res == nullptr) {
-                res = new BsiUnsigned<uword>();
-                HybridBitmap<uword> zeroBitmap;
-                zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
-                for (int i = 0; i < this->size; i++) {
-                    res->bsi.push_back(zeroBitmap);
-                }
-                res->size = this->size;
-            }
-        }
+        //Check for the next bit in number
         number >>= 1;
         k++;
     }
+
+    //Check for null slices within the result range and fill them with zeroes
+    int maxNotNull = 0;
+    for (int i = 0; i < res->bsi.size(); i++) {
+        if (res->bsi[i] != nullptr)
+            maxNotNull = i;
+    }
+    for (int i = 0; i < maxNotNull; i++) {
+        if (res->bsi[i] == nullptr) {
+            res->bsi[i] = new HybridBitmap<uword>();
+            // res.bsi[i].setSizeInBits(this.bsi[0].sizeInBits(), false);
+            res->bsi[i].addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits() / 64);
+        }
+    }
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    
+    return res;
+    
+};
+*/
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplyByConstantNew(int number)const {
+    BsiUnsigned<uword>* res = nullptr;
+    //The result should have this->bsi.size() + sizeInBits(number) number of slices maximum
+    int slices = sliceLengthFinder(number) + this->bsi.size();
+    //Declare Sum and Carry
+    HybridBitmap<uword> C, S;
+    //Declare the offset
+    int k = 0;
+    while (number > 0) {
+        if ((number & 1)== 1) {
+            //Add the slices to result
+            if (res == nullptr) {
+                res = new BsiUnsigned<uword>(slices + 1);
+                res->offset = k;
+                for (int i = 0; i < this->size; i++) {
+                    res->bsi.push_back(this->bsi[i]);
+                }
+                res->size = this->size;
+                k = 0;
+            }
+            else {
+                //Initialize S and C
+                HybridBitmap<uword>* A, B;
+                B = this->bsi[0];
+                while (k >= res->bsi.size()) {                    
+                    A = new HybridBitmap<uword>();
+                    A->padWithZeroes(this->bsi[0].sizeInBits()); 
+                    res->bsi.push_back(*A);
+                }
+                res->size = res->bsi.size();
+                A = &(res->bsi[k]);
+                S = (*A).Xor(B);
+                C = (*A).And(B);
+                res->bsi[k] = S;
+                //Actual adding the slices
+                int i;
+                for (i = 1; i < this->bsi.size(); i++) {
+                    B = this->bsi[i];
+                    while ((i + k) >= res->bsi.size()) {
+                        size_t buffersize = this->bsi[0].bufferSize();                       
+                        A = new HybridBitmap<uword>();
+                        A->padWithZeroes(this->bsi[0].sizeInBits());                        
+                        res->bsi.push_back(*A);
+                    }
+                    res->size = res->bsi.size();
+                    A = &(res->bsi[i + k]);
+                    S = (*A).Xor(B).Xor(C);
+                    C = (*A).And(B).Or(B.And(C)).Or((*A).And(C));
+                    res->bsi[i + k] = S;
+                }
+                //Add C to the remianing slices
+                for (int j = this->size + k; j < res->bsi.size(); j++) {
+                    A = &(res->bsi[j]);
+                    S = (*A).Xor(C);
+                    C = (*A).And(C);
+                    res->bsi[j] = S;
+                }
+                //Handle the last carry
+                if (C.numberOfOnes() > 0) {
+                    res->bsi.push_back(C);
+                    res->size = res->bsi.size();
+                }
+
+            }
+
+        }//If the current bit position of the multiplier is one
+        number = number >> 1;
+        k++;
+
+    }//While loop end for number greater than zero
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
     return res;
 };
 

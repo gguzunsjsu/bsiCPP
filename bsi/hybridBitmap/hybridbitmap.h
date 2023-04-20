@@ -40,22 +40,32 @@ public:
     /**
      * @param buffersize :allocates the buffer size with all zero values
      */
-    HybridBitmap(size_t buffersize) : buffer(buffersize, 0), sizeinbits(0), lastRLW(0) {}
+    HybridBitmap(size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize* wordinbits), lastRLW(0) { 
+        //cout << "Constructor HybridBitmap(size_t buffersize) is called\n"; 
+    }
 
-    HybridBitmap(bool verbatim) : buffer(1, 0), sizeinbits(0), lastRLW(0), verbatim(verbatim) {}
+    HybridBitmap(bool verbatim) : buffer(1, 0), sizeinbits(0), lastRLW(0), verbatim(verbatim) { 
+        //cout << "Constructor HybridBitmap(bool verbatim) is called\n"; 
+    }
 
-    HybridBitmap(bool verbatim, size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize*wordinbits), lastRLW(0), verbatim(verbatim) {}
+    HybridBitmap(bool verbatim, size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize*wordinbits), lastRLW(0), verbatim(verbatim) {
+        //cout << "Constructor HybridBitmap(bool verbatim, size_t buffersize) is called\n"; 
+    }
     
     HybridBitmap(const HybridBitmap &other)
     : buffer(other.buffer), sizeinbits(other.sizeinbits),
-    lastRLW(other.lastRLW),verbatim(other.verbatim), density(other.density) {}
+    lastRLW(other.lastRLW),verbatim(other.verbatim), density(other.density) {
+        //cout << "Constructor HybridBitmap(const HybridBitmap &other) is called\n"; 
+    }
 
     /**
      * Move constructor.
      */
     HybridBitmap(HybridBitmap &&other)
     : buffer(other.buffer), sizeinbits(other.sizeinbits),
-    lastRLW(other.lastRLW),verbatim(other.verbatim), density(other.density)  {}
+    lastRLW(other.lastRLW),verbatim(other.verbatim), density(other.density)  {
+        //cout << "Constructor HybridBitmap(HybridBitmap &&other) is called\n"; 
+    }
 
 
 //    static HybridBitmap bitmapOf(size_t n, ...) {
@@ -394,7 +404,7 @@ public:
         return answer;
     }
     HybridBitmap Xor(const HybridBitmap &a) const {
-        HybridBitmap answer;
+        HybridBitmap answer = new HybridBitmap(this);
         Xor(a, answer);
         return answer;
     }

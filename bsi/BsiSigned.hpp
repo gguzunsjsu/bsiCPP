@@ -882,7 +882,32 @@ BsiAttribute<uword>* BsiSigned<uword>::negate(){
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstantNew(int number)const {
     BsiSigned<uword>* res = nullptr;
+    /*
+    *  HybridBitmap<uword> C, S;
     return res;
+    int k = 0;
+    while (number > 0) {
+        if ((number & 1) == 1) {
+            //If the last bit is set
+            if (res == nullptr) {
+                //Initialize the result
+                res = new BsiSigned();
+                res->offset = k;
+                for (int i = 0; i < this.size; i++) {
+                    res.bsi[i] = this.bsi[i];
+                }
+                res->size = this.size;
+                k = 0;
+            }
+            else {
+            }
+        }
+        number >>= 1;
+        k++;    
+    }
+    */
+    return res;
+   
 };
 
 
@@ -938,7 +963,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
                 B = this->bsi[0];
                 S = A.Xor(B);
                 C = A.And(B);
-                res->bsi[k] = S;
+                res->bsi.at(k) = S;
                 for (int i = 1; i < this->size; i++) {// Add the slices of this to the current res
                     B = this->bsi[i];
                     if ((i + k) >=this->size){

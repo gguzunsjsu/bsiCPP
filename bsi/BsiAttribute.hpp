@@ -443,7 +443,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     }
     //Finding the maximum length of the bit representation of the numbers
     int slices = sliceLengthFinder(max);
-    BsiSigned<uword>* res = new BsiSigned<uword>(slices+1);
+    BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
     res->sign.reset();
     res->sign.verbatim = true;
     
