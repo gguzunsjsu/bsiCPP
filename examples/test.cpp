@@ -18,6 +18,15 @@ void MultiplyVectorByScalar(vector<long>& v, int k) {
 }
 
 int main() {
+
+    //Create an instance of the testBSI class
+    testBSI<uint64_t>* test = new testBSI<uint64_t>(10);
+    test->buildBSIAttribute();
+    cout << "BSI Attribute building valid ? " << validateBSIWithArray(test->array, test->bsi_attribute);
+    test->multiplyByConstant();
+    //test->sumOfTwoBSIVectors();
+    cout << "\n\nThank you";
+    return 0;
     /*
    
     vector<long> array1;
@@ -102,12 +111,10 @@ int main() {
     } while (ch != 'n' && ch != 'N');
     *
     */
-    //Create an instance of the testBSI class
-    testBSI<uint64_t>* test = new testBSI<uint64_t>(10);
-    test->buildBSIAttribute();
-    cout<<"BSI Attribute building valid ? "<<validateBSIWithArray(test->array, test->bsi_attribute);
-    test->multiplyByConstant();
-    cout << "\n\nThank you";
-    return 0;
+
+
+
+
+  
 }
 
