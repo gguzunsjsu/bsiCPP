@@ -106,6 +106,7 @@ int main() {
     testBSI<uint64_t>* test = new testBSI<uint64_t>(10);
     test->buildBSIAttribute();
     cout<<"BSI Attribute building valid ? "<<validateBSIWithArray(test->array, test->bsi_attribute);
+    test->multiplyByConstant();
     cout << "\n\nThank you";
     return 0;
 }
