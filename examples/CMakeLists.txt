@@ -4,7 +4,7 @@ file(GLOB SOURCES
     "testBSIAttributeBuilding.h"
     "testBSIAttributeBuilding.cpp"
     "test.cpp"
-    "testBSI.cpp"
+    "testBSI.hpp"
 )
 add_executable(tests ${SOURCES})
 add_executable(example example.cpp)
