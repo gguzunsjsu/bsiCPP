@@ -1,5 +1,6 @@
 
 #include "testBSIAttributeBuilding.h"
+#include "testBSI.hpp"
 
 #include <iostream>
 #include <chrono>
@@ -17,6 +18,8 @@ void MultiplyVectorByScalar(vector<long>& v, int k) {
 }
 
 int main() {
+    /*
+   
     vector<long> array1;
     char ch;
     do {
@@ -58,8 +61,8 @@ int main() {
         bsi_1->setPartitionID(0);
         bsi_1->setFirstSliceFlag(true);
         bsi_1->setLastSliceFlag(true);
-        /*
-        *  BsiAttribute<uint64_t>* bsi_2 = bsi.buildBsiAttributeFromVector(array1, compressionThreshold);
+        
+        BsiAttribute<uint64_t>* bsi_2 = bsi.buildBsiAttributeFromVector(array1, compressionThreshold);
         bsi_2->setPartitionID(0);
         bsi_2->setFirstSliceFlag(true);
         bsi_2->setLastSliceFlag(true);
@@ -69,7 +72,7 @@ int main() {
             sumArray.push_back(array1[i] * 2);
         }
         cout << "Sum of two BSI instances is valid ? " << validateBSIWithArray(sumArray, bsi_3);
-        */
+        
        
         
         int multiplier;
@@ -97,8 +100,12 @@ int main() {
         cin >> ch;
 
     } while (ch != 'n' && ch != 'N');
-    
-
+    *
+    */
+    //Create an instance of the testBSI class
+    testBSI<uint64_t>* test = new testBSI<uint64_t>(10);
+    test->buildBSIAttribute();
+    cout<<"BSI Attribute building valid ? "<<validateBSIWithArray(test->array, test->bsi_attribute);
     cout << "\n\nThank you";
     return 0;
 }
