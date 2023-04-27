@@ -19,11 +19,13 @@ void MultiplyVectorByScalar(vector<long>& v, int k) {
 
 int main() {
 
-    //Create an instance of the testBSI class
-    testBSI<uint64_t>* test = new testBSI<uint64_t>(10);
+    //Create an instance of the testBSI class for numbers in the range
+
+    testBSI<uint64_t>* test = new testBSI<uint64_t>(100000);
     test->buildBSIAttribute();
     cout << "BSI Attribute building valid ? " << validateBSIWithArray(test->array, test->bsi_attribute);
     test->multiplyByConstant();
+    test->sumOfBSIVectorElements();
     //test->sumOfTwoBSIVectors();
     cout << "\n\nThank you";
     return 0;
