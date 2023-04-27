@@ -18,8 +18,8 @@ void MultiplyVectorByScalar(vector<long>& v, int k) {
 }
 
 int main() {
-
-    //Create an instance of the testBSI class for numbers in the range    
+    /*
+    *  //Create an instance of the testBSI class for numbers in the range    
     testBSI<uint64_t>* test = new testBSI<uint64_t>(100000);
     test->buildBSIAttribute();
     cout << "BSI Attribute building valid ? " << validateBSIWithArray(test->array, test->bsi_attribute);
@@ -30,8 +30,16 @@ int main() {
     testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100000);
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->vectorMultiplicationOfBSI();
+    */ 
+    
+
+    //Testing sumOf BSI
+    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+    testVectorMultiplication->buildBSIAttribute();
+    testVectorMultiplication->sumOfBSIVectorElements();
     cout << "\n\nThank you";
     return 0;
+
     /*
    
     vector<long> array1;
