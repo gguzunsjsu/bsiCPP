@@ -47,7 +47,7 @@ public:
         cin >> randomChoice;
         if (randomChoice == 2) {
             for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
-                this->array.push_back(i % this->range);
+                this->array.push_back((i+1)% this->range);
             }
         }
         else {
@@ -125,6 +125,41 @@ public:
         }
         BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplication(bsi2);
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v,bsi3 ) << "\n";
+        cout << "Validated successfully vector multiplication" << endl;
+
+    }
+    void testBSI<uword>::vectorMultiplicationOfBSIWithUserInput() {
+        vector<long> array1;
+        long number;
+        int randomChoice;
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers ? ";
+        cin >> randomChoice;
+        
+        if (randomChoice == 2) {
+            cout << "Enter the numbers : \n";
+            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                cin >> number;
+                array1.push_back(number % this->range);
+            }
+        }
+        else {
+            cout << "\nInitializing the array with random numbers\n";
+            //Fill in random numbers in the array        
+            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                array1.push_back(std::rand() % this->range);
+            }
+        }
+        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        bsi2->setPartitionID(0);
+        bsi2->setFirstSliceFlag(true);
+        bsi2->setLastSliceFlag(true);
+        //Try vector multiplication with C++ - For now square of numbers
+        vector<long> v;
+        for (long i = 0; i < this->array.size(); ++i) {
+            v.push_back(this->array[i] * array1[i]);
+        }
+        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplication(bsi2);
+        cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Validated successfully vector multiplication" << endl;
 
     }
