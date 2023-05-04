@@ -43,11 +43,19 @@ public:
         cout << "Enter the number of elements in the array: ";
         cin >> this->numberOfElementsInTheArray;
         int randomChoice;
-        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. preset numbers ? ";
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. preset numbers \n 3. user input? ";
         cin >> randomChoice;
         if (randomChoice == 2) {
             for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
                 this->array.push_back((i+1)% this->range);
+            }
+        }
+        else if (randomChoice == 3) {
+            long number;
+            cout << "\nEnter the numbers : \n";
+            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                cin >> number;
+                this->array.push_back(number % this->range);
             }
         }
         else {
@@ -64,7 +72,7 @@ public:
         this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl;
+        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl<<endl;
         this->bsi_attribute->setPartitionID(0);
         this->bsi_attribute->setFirstSliceFlag(true);
         this->bsi_attribute->setLastSliceFlag(true);
