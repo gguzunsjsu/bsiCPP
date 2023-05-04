@@ -1,0 +1,12 @@
+# ninja log v5
+1	409	1682622983697291721	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	f12d46db7529054e
+3	719	1682624510755286380	examples/CMakeFiles/tests.dir/test.cpp.o	206fa6ee88881d8e
+720	770	1682624510810213137	examples/tests	55ccc8dae405e7d
+2	531	1683227012709611058	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	f12d46db7529054e
+7	458	1683227273805027126	examples/CMakeFiles/tests.dir/test.cpp.o	206fa6ee88881d8e
+460	582	1683227273931252598	examples/tests	55ccc8dae405e7d
+13	479	1683227491346160006	examples/CMakeFiles/tests.dir/test.cpp.o	206fa6ee88881d8e
+482	520	1683227491389034450	examples/tests	55ccc8dae405e7d
+2	554	1683227867811161868	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	f12d46db7529054e
+2	411	1683227877966385181	examples/CMakeFiles/tests.dir/test.cpp.o	206fa6ee88881d8e
+413	461	1683227878018283139	examples/tests	55ccc8dae405e7d

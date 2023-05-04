@@ -799,7 +799,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildCompressedBsiFromVector(std::vect
         bitmap.density=existBitDensity;
         res->setExistenceBitmap(bitmap);
     }
-    std::vector<std::vector<uword>> bitSlices = bringTheBits(nums,slices,attRows);
+    std::vector<std::vector<uword> > bitSlices = bringTheBits(nums,slices,attRows);
     for(int i=0; i<slices; i++){
         double bitDensity = bitSlices[i][0]/(double)attRows; // the bit density for this slice
         double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
