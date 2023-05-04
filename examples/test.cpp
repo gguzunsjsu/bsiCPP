@@ -18,8 +18,9 @@ using namespace std;
 //}
 
 int main() {
-    //Create an instance of the testBSI class for numbers in the range    
-    testBSI<uint64_t>* test = new testBSI<uint64_t>(100000);
+    //Create an instance of the testBSI class for numbers in the range  
+    /*
+    * testBSI<uint64_t>* test = new testBSI<uint64_t>(100000);
     test->buildBSIAttribute();
     cout << "BSI Attribute building valid ? " << validateBSIWithArray(test->array, test->bsi_attribute);
     test->multiplyByConstant();
@@ -29,6 +30,8 @@ int main() {
     testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100000);
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->vectorMultiplicationOfBSI();
+    */
+    
     
     
 
@@ -39,11 +42,11 @@ int main() {
     testVectorMultiplication->sumOfBSIVectorElements();
     */
    
-    /*
-    *testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+   
+    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
-    */
+    
     
 
     cout << "\n\nThank you";
