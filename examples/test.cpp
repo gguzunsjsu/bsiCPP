@@ -13,9 +13,9 @@ using namespace std;
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
 
-void MultiplyVectorByScalar(vector<long>& v, int k) {
-    transform(v.begin(), v.end(), v.begin(), [k](long& c) { return c * k; });
-}
+//void MultiplyVectorByScalar(vector<long>& v, int k) {
+//    transform(v.begin(), v.end(), v.begin(), [k](long& c) { return c * k; });
+//}
 
 int main() {
     //Create an instance of the testBSI class for numbers in the range    

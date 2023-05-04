@@ -37,7 +37,7 @@ public:
     }
 
     //Member functions
-    void testBSI<uword>::buildBSIAttribute() {
+    void buildBSIAttribute() {
 
 
         cout << "Enter the number of elements in the array: ";
@@ -71,7 +71,7 @@ public:
         
 
     }
-    void testBSI<uword>::multiplyByConstant() {
+    void multiplyByConstant() {
         int multiplier;
         cout << "\n\nEnter the number to multiply with ? ";
         cin >> multiplier;
@@ -83,7 +83,7 @@ public:
         cout << "Multiplication by constant correct ? " << validateMultiplicationByAConstant(this->array, result, multiplier) <<"\n";
 
     }
-    void testBSI<uword>::sumOfTwoBSIVectors() {       
+    void sumOfTwoBSIVectors() {
         //For simple testing, lets test the addition of the BSI Attribute with each other
         BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
         bsi2->setPartitionID(0);
@@ -97,7 +97,7 @@ public:
         }
         cout << "Sum of two BSI instances is correct ? " << validateBSIWithArray(sumArray, result)<<"\n";
     }
-    void testBSI<uword>::sumOfBSIVectorElements() {
+    void sumOfBSIVectorElements() {
         //Time to add elements in the BSI
         auto start = chrono::high_resolution_clock::now();
         auto sum = this->bsi_attribute->sumOfBsi();
@@ -113,7 +113,7 @@ public:
 
 
     }
-    void testBSI<uword>::vectorMultiplicationOfBSI() {
+    void vectorMultiplicationOfBSI() {
         BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
@@ -128,7 +128,7 @@ public:
         cout << "Validated successfully vector multiplication" << endl;
 
     }
-    void testBSI<uword>::vectorMultiplicationOfBSIWithUserInput() {
+    void vectorMultiplicationOfBSIWithUserInput() {
         vector<long> array1;
         long number;
         int randomChoice;
