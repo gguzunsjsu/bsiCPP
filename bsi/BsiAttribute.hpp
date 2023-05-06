@@ -7,13 +7,11 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <vector>
 #include <cmath>
 #include "hybridBitmap/hybridbitmap.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <bitset>
 #include <algorithm>
 
@@ -113,6 +111,9 @@ public:
     BsiAttribute* buildBsiAttributeFromArray(uword array[], long max, long min, long firstRowID, double compressThreshold);
     BsiAttribute<uword>* buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold)const;
     BsiAttribute<uword>* buildCompressedBsiFromVector(std::vector<long> nums, double compressThreshold) const;
+    BsiAttribute<uword> *
+    buildBsiVector(std::vector<long> decimalVector, int vectorLength, long min, long max, long firstRowID,
+                   double compressThreshold) const;
     
     HybridBitmap<uword> maj(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
 
@@ -139,7 +140,9 @@ private:
     std::vector< std::vector< uword > > bringTheBits(const std::vector<uword> &array, int slices, int attRows) const;
 protected:
     int sliceLengthFinder(uword value)const;
-     
+
+
+
 };
 
 /*
@@ -401,6 +404,27 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
  */
 
 /*
+* Creates a bsi-vector from an array
+*/
+template <class uword>
+BsiAttribute<uword>* BsiAttribute<uword>::buildBsiVector(std::vector<long> decimalVector, int vectorLength, long minVal, long maxVal, long firstRowID, double compressThreshold) const {
+    int numSlices =  sliceLengthFinder(std::max(std::abs(minVal),std::abs(maxVal))); //number of slices to encode the vector (number of bits for the highest value)
+
+    if(minVal<0){
+        BsiSigned<uword>* res = new BsiSigned<uword>(numSlices+1, vectorLength, firstRowID);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(decimalVector,numSlices,vectorLength);
+        for(int i=0; i<(numSlices+1); i++){
+
+        }
+
+    }
+
+
+
+}
+
+
+/*
 * This is the function being used to create BSI attributes from Vector in our tests
 */
 template <class uword>
@@ -479,7 +503,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     for(int i=0; i<slices; i++){
         double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
         double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
-        if(compressRatio<compressThreshold){
+        if(compressRatio<compressThreshold && compressRatio!=0 ){
             //build compressed bitmap
             HybridBitmap<uword> bitmap;
             for(int j=1; j<bitSlices[i].size(); j++){

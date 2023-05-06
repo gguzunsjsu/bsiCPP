@@ -1,7 +1,9 @@
 #include <iostream>
 #include <array>
 #include <chrono>
+#if __has_include(<format>)
 #include <format>
+#endif
 
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"

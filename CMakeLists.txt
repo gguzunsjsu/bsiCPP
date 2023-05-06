@@ -5,9 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 cmake_minimum_required(VERSION 3.17...3.21 FATAL_ERROR)
-#set(CMAKE_CXX_STANDARD 11)
-#et(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(CMAKE_MACOSX_RPATH OFF)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MACOSX_RPATH OFF)
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)

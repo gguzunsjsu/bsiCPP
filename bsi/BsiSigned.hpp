@@ -121,7 +121,7 @@ BsiSigned<uword>::BsiSigned(int maxSize) {
 template <class uword>
 BsiSigned<uword>::BsiSigned(int maxSize, int numOfRows) {
     this->size = 0;
-    this->signe =true;
+    this->is_signed =true;
     this->bsi.reserve(maxSize);
     this->rows = numOfRows;
 }
@@ -134,7 +134,7 @@ BsiSigned<uword>::BsiSigned(int maxSize, int numOfRows) {
 template <class uword>
 BsiSigned<uword>::BsiSigned(int maxSize, int numOfRows, long partitionID) {
     this->size = 0;
-    this->signe =true;
+    this->is_signed =true;
     this->bsi.reserve(maxSize);
     this->index=partitionID;
     this->rows = numOfRows;
@@ -151,7 +151,7 @@ BsiSigned<uword>::BsiSigned(int maxSize, int numOfRows, long partitionID) {
 template <class uword>
 BsiSigned<uword>::BsiSigned(int maxSize, long numOfRows, long partitionID, HybridBitmap<uword> ex) {
     this->size = 0;
-    this->signe =true;
+    this->is_signed =true;
     this->bsi.reserve(maxSize);
     this->existenceBitmap = ex;
     this->index=partitionID;

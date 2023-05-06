@@ -1800,7 +1800,8 @@ int makeEqualLength(std::vector<uword> &x, std::vector<uword> &y) {
 
 template <class uword>
 BsiAttribute<uword>* BsiUnsigned<uword>::multiplication(BsiAttribute<uword> *a)const{
-    BsiAttribute<uword>* res = multiplyWithBsiHorizontal(a,3);
+   BsiAttribute<uword>* res = multiplyWithBsiHorizontal(a,3);
+
     int size = res->bsi.size();
     for(int i=0; i<size; i++){
         res->bsi[i].density = res->bsi[i].numberOfOnes()/(double)res->getNumberOfRows();
