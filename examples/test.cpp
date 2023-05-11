@@ -36,16 +36,18 @@ int main() {
     
 
     //Testing sumOf BSI
-    /*
-    *  testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
-    testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->sumOfBSIVectorElements();
-    */
-   
-   
+    
     testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
     testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
+    testVectorMultiplication->dotProductForTesting();
+    
+   
+    /*
+    * testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+    testVectorMultiplication->buildBSIAttribute();
+    testVectorMultiplication->dotProductForTesting();
+    */
+    
     
     
 
