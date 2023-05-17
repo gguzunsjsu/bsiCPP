@@ -14,6 +14,7 @@
 #include <vector>
 #include <bitset>
 #include <algorithm>
+#include <thread>
 
 
 template <class uword = uint64_t> class BsiUnsigned;
@@ -136,6 +137,7 @@ public:
     * ------------------------Decalrations for private helper methods------------------------------
     */
 private:
+    void bringTheBitsHelper(const std::vector<long> &array, int slice, int numberOfElements, std::vector<std::vector<uword>> &bitmapDataRaw) const;
     std::vector< std::vector< uword > > bringTheBits(const std::vector<long> &array, int slices, int attRows) const;
     std::vector< std::vector< uword > > bringTheBits(const std::vector<uword> &array, int slices, int attRows) const;
 protected:
@@ -541,41 +543,74 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
 };
 
 
+/**
+ * function to be parallelised for bringTheBits
+ * 
+ * For each slice we do the following:
+ * Create offsetter, which is a number with only one bit as 1 and rest are all 0. The bit that is set to 1 represents the slice being worked on
+ * 
+ * For each element in the array, we calculate which word we are working on (w) and which position the element is in the array (offset)
+ * if the element has the bit at the slice set to 1 we OR the 1 in the result and increment the count of 1s.
+*/
+template <class uword> 
+void BsiAttribute<uword>::bringTheBitsHelper(const std::vector<long> &array, int slice, int numberOfElements,
+                                            std::vector< std::vector< uword > > &bitmapDataRaw) const{
+    const uword one = 1;
+    uword offsetter = (one << slice);
+
+    for(int seq=0; seq<numberOfElements; seq++) {
+        uword thisBin = array[seq];
+
+        // the following calculations are done over and over and see if the results can be saved somewhere
+        int w = (seq / (bits) + 1);
+        int offset = seq % (bits);
+
+        //update if one
+        //ToDo confirm the AND operation is effecient enough
+        if( (thisBin & offsetter) == offsetter) {
+            bitmapDataRaw[slice][w] |= (one << offset);
+            bitmapDataRaw[slice][0]++;
+        }
+    }
+}
+
 /*
- * private function
+ * Private Function
+
+    Example:
+    If input array is {4, 5, 6}
+    In binary it would be: {100, 101, 110}
+    For each slice (column-wise we want the binary representation and the number of 1s present)
+                Therefore: {1 0 0,
+                            1 0 1,   ^
+                            1 1 0}   |
+Representation (upwards):   7 4 2
+                    1s:     3 1 1
+    Binary representation is taken from last element to first, the rightmost-bit is the first row of the result
+
+    For input {4, 5, 6} we get the result {{1, 2}, {1, 4}, {3, 7}} (each row is {number of 1s, number from binary counting from down to up})
+
+
+    This function works by creating the result matrix (as we already know the size) and then working on each slice in threads (use -pthread while compiling if it doesnt work for you)
  */
 template <class uword>
 std::vector< std::vector< uword > > BsiAttribute<uword>::bringTheBits(const std::vector<long> &array, int slices, int numberOfElements) const{
     //The number of words needed to represent the elements in the array
     int wordsNeeded = ceil( numberOfElements / (double)(bits));
-    //The result of this method is a 2D vector of words
-    //Each row represents a slice
-    //Each column represents an element in the input array
-    //For example, for an input array of 66 ones
-    //Two 64bit words are needed to represent 66 numbers
-    //Since each element is a one, we need only one slice
-    //So the bitmap will be one single row of 66 bits ideally. 
-    //But in reality, the first word/0th column represents the number of elements.
-    //The second word/1st column onwards represents the actual elements
+    //output
     std::vector< std::vector< uword > > bitmapDataRaw(slices,std::vector<uword>(wordsNeeded +1));
-    const uword one = 1;
-    
-    // one for the bit density (the first word in each slice)
-    uword thisBin = 0;
-    for (int seq = 0; seq < numberOfElements; seq++) {
-        int w = (seq / (bits)+1);
-                int offset = seq % (bits);
-        thisBin = array[seq];
-        int slice = 0;
-        while (thisBin != 0 && slice<slices) {
-            if ((thisBin & 1) == 1) {
-                bitmapDataRaw[slice][w] |= (one << offset); //setting bit
-                bitmapDataRaw[slice][0]++; //update bit density
-            }
-            thisBin >>= 1;
-            slice++;
-        }
+
+    //multithread
+    std::vector<std::thread> helperThreads;
+    for(int slice=0; slice<slices; slice++) {
+        //std::ref is a wrapper around reference variables to make the compiler happy
+        helperThreads.push_back( std::thread(&BsiAttribute::bringTheBitsHelper, this, std::ref(array), slice, numberOfElements, std::ref(bitmapDataRaw)) );
     }
+
+    for(int slice=0; slice<slices; slice++) {
+        helperThreads[slice].join();
+    }
+
     return bitmapDataRaw;
 };
 
