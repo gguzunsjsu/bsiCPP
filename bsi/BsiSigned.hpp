@@ -25,7 +25,9 @@ public:
      */
     
     HybridBitmap<uword> topKMax(int k) override;
+    HybridBitmap<uword> topKMaxNeg(int k);
     HybridBitmap<uword> topKMin(int k) override;
+    HybridBitmap<uword> topKMinPos(int k);
     BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
@@ -123,6 +125,8 @@ BsiSigned<uword>::BsiSigned(int maxSize, int numOfRows) {
     this->size = 0;
     this->is_signed =true;
     this->bsi.reserve(maxSize);
+    this->existenceBitmap.setSizeInBits(numOfRows, true);
+    this->existenceBitmap.density = 1;
     this->rows = numOfRows;
 }
 
@@ -136,6 +140,8 @@ BsiSigned<uword>::BsiSigned(int maxSize, int numOfRows, long partitionID) {
     this->size = 0;
     this->is_signed =true;
     this->bsi.reserve(maxSize);
+    this->existenceBitmap.setSizeInBits(numOfRows, true);
+    this->existenceBitmap.density = 1;
     this->index=partitionID;
     this->rows = numOfRows;
 }
@@ -155,7 +161,6 @@ BsiSigned<uword>::BsiSigned(int maxSize, long numOfRows, long partitionID, Hybri
     this->bsi.reserve(maxSize);
     this->existenceBitmap = ex;
     this->index=partitionID;
-    
     this->rows = numOfRows;
 }
 
@@ -176,9 +181,43 @@ template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     
     HybridBitmap<uword> topK, SE, X;
-    HybridBitmap<uword> G;
-    G.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
+    topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInWords());
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
+    int n = 0;
+    for (int i = this->size - 1; i >= 0; i--) {
+        SE = E.And(this->bsi[i]);
+        X = SE.Or(topK);
+        n = X.numberOfOnes();
+        if (n > k) {
+            E = SE;
+        }
+        if (n < k) {
+            topK = X;
+            E = E.andNot(this->bsi[i]);
+        }
+        if (n == k) {
+            E = SE;
+            break;
+        }
+    }
+    topK = topK.Or(E);
+    if(n<k){
+        topK = topK.Or(topKMaxNeg(k-n));
+    }
+    //n = topK.numberOfOnes();
+    return topK;
+};
+
+/*
+ * topKMin used for find k min values from bsi and return postions bitmap.
+ */
+
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
+    HybridBitmap<uword> topK, SE, X;
+    HybridBitmap<uword> G;
+    G.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInWords());
+    HybridBitmap<uword> E = this->existenceBitmap.And(this->sign); //considers only negative values
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
@@ -197,24 +236,85 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
         }
     }
     if(n<k){
-        //todo add negative numbers here (topKMin abs)
+        topK = topKMinPos(k-n);
     }
     n = G.numberOfOnes();
-    topK = G.Or(E);
+    topK = topK.Or(G.Or(E));
     return topK;
 };
 
 /*
- * topKMin used for find k min values from bsi and return postions bitmap. NOT IMPLEMENTED YET
+ * topKMinPos used for find k min values from bsi and return postions bitmap. Same as BsiUnsigned topKMin
  */
 
 template <class uword>
-HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
+HybridBitmap<uword> BsiSigned<uword>::topKMinPos(int k){
+    HybridBitmap<uword> topK, SNOT, X;
+    HybridBitmap<uword> G;
+    HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); // considers only positive numbers
+    G.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    //E.setSizeInBits(this.bsi[0].sizeInBits(),true);
+    //E.density=1;
+    int n = 0;
 
-    
-    HybridBitmap<uword> h;
-    std::cout<<k<<std::endl;
-    return h;
+    for (int i = this->size - 1; i >= 0; i--) {
+        SNOT = E.andNot(this->bsi[i]);
+        X = G.Or(SNOT); //Maximum
+        n = X.numberOfOnes();
+        if (n > k) {
+            E = SNOT;
+        }
+        else if (n < k) {
+            G = X;
+            E = E.And(this->bsi[i]);
+        }
+        else {
+            E = SNOT;
+            break;
+        }
+    }
+    //        n = G.cardinality();
+    topK = G.Or(E); //with ties
+    // topK = OR(G, E.first(k - n+ 1)); //Exact number of topK
+
+    return topK;
+};
+
+/*
+ * topKMaxNeg used for find k max values that are negative from bsi and return postions bitmap.
+ */
+
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
+    HybridBitmap<uword> topK, SNOT, X;
+    HybridBitmap<uword> G;
+    HybridBitmap<uword> E = this->existenceBitmap.And(this->sign); // considers only negative numbers
+    G.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    //E.setSizeInBits(this.bsi[0].sizeInBits(),true);
+    //E.density=1;
+    int n = 0;
+
+    for (int i = this->size - 1; i >= 0; i--) {
+        SNOT = E.andNot(this->bsi[i]);
+        X = G.Or(SNOT); //Maximum
+        n = X.numberOfOnes();
+        if (n > k) {
+            E = SNOT;
+        }
+        else if (n < k) {
+            G = X;
+            E = E.And(this->bsi[i]);
+        }
+        else {
+            E = SNOT;
+            break;
+        }
+    }
+    //        n = G.cardinality();
+    topK = G.Or(E); //with ties
+    // topK = OR(G, E.first(k - n+ 1)); //Exact number of topK
+
+    return topK;
 };
 
 /*
@@ -772,9 +872,9 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsigned( BsiAttribute<uword>* a)const{
 
 
 /*
- *  SUMsignToMagnitude takes bsiAttribute as signeMagnitude form perform sumation operation and
- *  return bsiAttribute as signeMagnitude.
- *  signeMagnitude: sign bit is stored separate and only magnitude is stored in bsi.
+ *  SUMsignToMagnitude takes bsiAttribute as signMagnitude form perform sumation operation and
+ *  return bsiAttribute as signMagnitude.
+ *  signMagnitude: sign bit is stored separate and only magnitude is stored in bsi.
  */
 
 template <class uword>
@@ -840,7 +940,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
 
 
 /*
- *  twosToSignMagnitude is converting Two'sCompliment form into signeMagnitude form
+ *  twosToSignMagnitude is converting Two'sCompliment form into signMagnitude form
  */
 template <class uword>
 void  BsiSigned<uword>::twosToSignMagnitude(BsiAttribute<uword>* a) const{

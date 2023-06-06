@@ -851,6 +851,11 @@ public:
      */
     inline size_t sizeInBits() const { return sizeinbits; }
 
+    /*
+     * Return the size in words of this bitmap
+     */
+    inline size_t sizeInWords() const { return sizeInBits()/sizeof(uword); }
+
     /**
      * Return the size of the buffer in bytes. This
      * is equivalent to the storage cost, minus some overhead.
