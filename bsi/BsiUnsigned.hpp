@@ -1415,30 +1415,33 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyBSI(BsiAttribute<uword> *unbsi)
         res->bsi.push_back(unbsi->bsi[0].And(this->bsi[i]));
     }
     res->size = this->size;
+
     k = 1;
     for (int it=1; it<unbsi->size; it++) {
         /* Move the slices of res k positions */
-        //HybridBitmap<uword> A, B;
-        //A = res->bsi[k];
-        //B = this->bsi[0];
+//        HybridBitmap<uword> A, B;
+//        A = res->bsi[k];
+//        B = this->bsi[0];
         S=res->bsi[k];
         S.XorInPlace(this->bsi[0]);
         C = res->bsi[k].And(this->bsi[0]);
         FS = unbsi->bsi[it].And(S);
         //res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-        res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-//                res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
+//        res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+                //res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
+        res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
 
         for (int i = 1; i < this->size; i++) {// Add the slices of this to the current res
-            //B = this->bsi[i];
+//            B = this->bsi[i];
             if ((i + k) < res->size){
-                //A = res->bsi[i + k];
+//                A = res->bsi[i + k];
                 S=res->bsi[i + k];
                 S.XorInPlace(this->bsi[i]);
                 S.XorInPlace(C);
-                //C = res->bsi[i + k].maj(this->bsi[i], C);
-                C.majInPlace(res->bsi[i + k],this->bsi[i]);
-                //C = A.And(B).Or(B.And(C)).Or(A.And(C));
+//                C = res->bsi[i + k].maj(this->bsi[i], C);
+//                C.majInPlace(res->bsi[i + k],this->bsi[i]);
+//                C = A.And(B).Or(B.And(C)).Or(A.And(C));
+                C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
 
             } else {
                 S=this->bsi[i];
@@ -1450,9 +1453,12 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyBSI(BsiAttribute<uword> *unbsi)
                 res->bsi.push_back(FS);
             }
             FS = unbsi->bsi[it].And(S);
-            //res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
-            res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+//            res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
+//            res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
+//            res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             //res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
+            res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
+
         }
         for (int i = this->size + k; i < res->size; i++) {// Add the remaining slices of res with the Carry C
             S = res->bsi[i];
@@ -1460,8 +1466,10 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyBSI(BsiAttribute<uword> *unbsi)
             C.AndInPlace(res->bsi[i]);
 //            C = res->bsi[i].And(C);
             FS = unbsi->bsi[it].And(S);
-            //res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-            res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+//            res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+//            res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
+//            res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
         }
         if (C.numberOfOnes() > 0) {
             res->bsi.push_back(unbsi->bsi[it].And(C)); // Carry bit
@@ -1469,7 +1477,6 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyBSI(BsiAttribute<uword> *unbsi)
         }
         k++;
     }
-    
  
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
@@ -1766,6 +1773,9 @@ BsiAttribute<uword>*  BsiUnsigned<uword>::multiplyWithBsiHorizontal(const BsiAtt
              b[j] = unbsi->bsi[j].getWord(i);
         }
         this->multiply(a,b,answer);         //perform multiplication on one word
+//        this->multiplyBSI(a);         //perform multiplication on one word
+//        this->multiplyWithBSI(b);         //perform multiplication on one word
+
         for(int j=0; j< answer.size() ; j++){
             res->bsi[j].addVerbatim(answer[j]);
         }
