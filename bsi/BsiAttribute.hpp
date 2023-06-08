@@ -143,7 +143,7 @@ private:
     std::vector< std::vector< uword > > bringTheBits(const std::vector<uword> &array, int slices, int attRows) const;
 protected:
     int sliceLengthFinder(uword value)const;
-
+    int sliceLengthFinder(long value)const;
 
 
 };
@@ -402,6 +402,14 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
 }
 
 /*
+ * One liner for finding required slices for storing value
+ */
+template <class uword>
+int BsiAttribute<uword>::sliceLengthFinder(long value) const{
+    return 64 - std::countl_zero((unsigned long)value); // todo replace 64 with const
+}
+
+/*
  * Used for converting vector into BSI
  * @param compressThreshold determined wether to compress the bit vetor or not
  */
@@ -432,7 +440,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiVector(std::vector<long> decim
 */
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold) const{
-    uword max = std::numeric_limits<uword>::min();
+    const int MAXLONGLENGTH = 64;
+    int slices = 0;
     /*
     * 
     bits = 8*sizeof(uword);
@@ -445,7 +454,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     int numberOfElements = nums.size();
     std::vector<uword> signBits(numberOfElements/(bits)+1);
     std::vector<uword> existBits(numberOfElements/(bits)+1); // keep track for non-zero values
-    int countOnes =0;
+    int countOnes = 0;
     int CountZeros = 0;
     const uword one = 1;
     //int bits = 8*sizeof(uword);
@@ -463,12 +472,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
         }else{
             CountZeros++;
         }
-        if(nums[i] > max){
-            max = nums[i];
-        }
+        slices = sliceLengthFinder(nums[i]); //Finding the maximum length of the bit representation of the numbers
     }
-    //Finding the maximum length of the bit representation of the numbers
-    int slices = sliceLengthFinder(max);
 
     BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
     res->sign.reset();
@@ -545,7 +550,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
 
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold) const{
-    uword max = std::numeric_limits<uword>::min();
+    const int MAXLONGLENGTH = 64;
+    int slices = 0;
     /*
     *
     bits = 8*sizeof(uword);
@@ -577,23 +583,11 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
         }else{
             CountZeros++;
         }
-        if(nums[i] > max){
-            max = nums[i];
-        }
         min = std::min(min,nums[i]);
+        slices = std::max(slices,sliceLengthFinder(nums[i])); //Finding the maximum length of the bit representation of the numbers
     }
-    //Finding the maximum length of the bit representation of the numbers
-    int slices = sliceLengthFinder(max);
 
-    BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
-    res->sign.reset();
-    res->sign.verbatim = true;
-
-    for (typename std::vector<uword>::iterator it=signBits.begin(); it != signBits.end(); it++){
-        res->sign.addVerbatim(*it,numberOfElements);
-    }
-    res->sign.setSizeInBits(numberOfElements);
-    res->sign.density = countOnes/(double)numberOfElements;
+    BsiAttribute* res;
     if (min < 0) {
         res = new BsiSigned<uword>(slices+1);
         res->sign.reset();

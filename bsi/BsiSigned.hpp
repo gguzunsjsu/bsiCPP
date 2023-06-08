@@ -181,6 +181,7 @@ template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     
     HybridBitmap<uword> topK, SE, X;
+    std::cout << this->existenceBitmap.sizeInBits() << "\n";
     topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInWords());
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
     int n = 0;
