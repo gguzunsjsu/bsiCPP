@@ -440,10 +440,9 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiVector(std::vector<long> decim
 */
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold) const{
-    const int MAXLONGLENGTH = 64;
-    int slices = 0;
+    uword max = std::numeric_limits<uword>::min();
     /*
-    * 
+    *
     bits = 8*sizeof(uword);
     If we declare a  BsiAttribute<uint64_t> variable,unsigned long long
     each element in the vector can fit in a 64 bit word
@@ -451,30 +450,34 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     How many such words are needed to represent the sign and non-zero property of each element ?
     If one element is represented by one bit of the sign word, the number of words needed = number of elements/number of bits per word.
     */
+
     int numberOfElements = nums.size();
     std::vector<uword> signBits(numberOfElements/(bits)+1);
     std::vector<uword> existBits(numberOfElements/(bits)+1); // keep track for non-zero values
-    int countOnes = 0;
+    int countOnes =0;
     int CountZeros = 0;
     const uword one = 1;
     //int bits = 8*sizeof(uword);
     //find max, min, and zeros.
-    //Setting sign bits and existence bits for the array of numbers 
+    //Setting sign bits and existence bits for the array of numbers
     for (int i=0; i<nums.size(); i++){
         int offset = i%(bits);
         if(nums[i] < 0){
             nums[i] = 0 - nums[i];
-            signBits[i / (bits)] |= (one << offset); // setting sign bit
+            signBits[i / (bits)] |= (one << offset); // seting sign bit
             countOnes++;
         }
         if(nums[i] != 0){
-            existBits[i / (bits)] |= (one << offset); // setting one at position
+            existBits[i / (bits)] |= (one << offset); // seting one at position
         }else{
             CountZeros++;
         }
-        slices = sliceLengthFinder(nums[i]); //Finding the maximum length of the bit representation of the numbers
+        if(nums[i] > max){
+            max = nums[i];
+        }
     }
-
+    //Finding the maximum length of the bit representation of the numbers
+    int slices = sliceLengthFinder(max);
     BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
     res->sign.reset();
     res->sign.verbatim = true;
@@ -484,7 +487,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     }
     res->sign.setSizeInBits(numberOfElements);
     res->sign.density = countOnes/(double)numberOfElements;
-    
+
     double existBitDensity = (CountZeros/(double)nums.size()); // to decide whether to compress or not
     double existCompressRatio = 1-pow((1-existBitDensity), (2*bits))-pow(existBitDensity, (2*bits));
     if(existCompressRatio >= compressThreshold){
@@ -504,10 +507,10 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
         bitmap.density=existBitDensity;
         res->setExistenceBitmap(bitmap);
     }
-    
+
     //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
     std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
-    
+
     for(int i=0; i<slices; i++){
         double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
         double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
@@ -535,7 +538,6 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             bitmap.setSizeInBits(numberOfElements);
             bitmap.density=bitDensity;
             res->addSlice(bitmap);
-            
         }
     }
     res->existenceBitmap.setSizeInBits(numberOfElements,true);

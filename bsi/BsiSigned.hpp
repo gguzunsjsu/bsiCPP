@@ -202,6 +202,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
         }
     }
     topK = topK.Or(E);
+    n = topK.numberOfOnes();
     if(n<k){
         topK = topK.Or(topKMaxNeg(k-n));
     }
