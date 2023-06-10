@@ -573,6 +573,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     //int bits = 8*sizeof(uword);
     //find max, min, and zeros.
     //Setting sign bits and existence bits for the array of numbers
+    std::cout << "bits: " << bits << "\n";
     for (int i=0; i<nums.size(); i++){
         int offset = i%(bits);
         if(nums[i] < 0){
@@ -616,12 +617,14 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
         res->setExistenceBitmap(bitmap);
     }else{
         HybridBitmap<uword> bitmap(true,existBits.size());
+        std::cout << "existbits size: " << existBits.size() << "\n";
         for(int j=0; j<existBits.size(); j++){
             bitmap.buffer[j] = existBits[j];
         }
         //bitmap.setSizeInBits(numberOfElements);
         bitmap.density=existBitDensity;
         res->setExistenceBitmap(bitmap);
+        std::cout << "after setting existence bitmap to existbits, bsi existence bitmap size in bits: " << res->existenceBitmap.sizeInBits() << "\n";
     }
 
     //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
@@ -694,7 +697,7 @@ void BsiAttribute<uword>::bringTheBitsHelper(const std::vector<long> &array, int
         //ToDo confirm the AND operation is effecient enough
         if( (thisBin & offsetter) == offsetter) {
             bitmapDataRaw[slice][w] |= (one << offset);
-            bitmapDataRaw[slice][0]++;
+            bitmapDataRaw[slice][0]++; // count number of ones in this slice
         }
     }
 }
