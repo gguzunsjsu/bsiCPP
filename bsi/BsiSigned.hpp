@@ -183,7 +183,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     HybridBitmap<uword> topK, SE, X;
     std::cout << this->existenceBitmap.sizeInBits() << "\n";
     topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInWords());
-    HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
+    HybridBitmap<uword> E = HybridBitmap<uword>(this->existenceBitmap.andNot(this->sign)); //considers only positive values
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);

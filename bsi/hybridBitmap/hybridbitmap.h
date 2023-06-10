@@ -285,6 +285,20 @@ public:
     std::vector<size_t> toArray() const;
 
 
+    /*
+     * Keep n ones in bitmap and make everything else 0
+     * */
+    void first(int n) {
+        int ones = 0;
+        int offset = 0;
+        while (ones < n) {
+            if (((1 << offset) & this->buffer[offset]) == 1) {
+                ones ++;
+            }
+        }
+        this->buffer.erase(this->buffer.begin()+offset,this->buffer.end());
+    }
+
     /**
      * computes the logical and with another bitmap
      * answer goes into container

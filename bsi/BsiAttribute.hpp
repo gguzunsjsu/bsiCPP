@@ -404,6 +404,7 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
 /*
  * One liner for finding required slices for storing value
  */
+//todo check which slicelengthfinder implementation is faster
 template <class uword>
 int BsiAttribute<uword>::sliceLengthFinder(long value) const{
     return 64 - std::countl_zero((unsigned long)value); // todo replace 64 with const
@@ -550,6 +551,10 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     return res;
 };
 
+/*
+ * Check if the array has any signed numbers to know whether to build BsiSigned or BsiUnsigned
+ * */
+
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold) const{
     const int MAXLONGLENGTH = 64;
@@ -563,7 +568,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     How many such words are needed to represent the sign and non-zero property of each element ?
     If one element is represented by one bit of the sign word, the number of words needed = number of elements/number of bits per word.
     */
-    long min = std::numeric_limits<uword>::max();
+    long min = 0;
     int numberOfElements = nums.size();
     std::vector<uword> signBits(numberOfElements/(bits)+1);
     std::vector<uword> existBits(numberOfElements/(bits)+1); // keep track for non-zero values
@@ -573,7 +578,6 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     //int bits = 8*sizeof(uword);
     //find max, min, and zeros.
     //Setting sign bits and existence bits for the array of numbers
-    std::cout << "bits: " << bits << "\n";
     for (int i=0; i<nums.size(); i++){
         int offset = i%(bits);
         if(nums[i] < 0){
@@ -617,14 +621,12 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
         res->setExistenceBitmap(bitmap);
     }else{
         HybridBitmap<uword> bitmap(true,existBits.size());
-        std::cout << "existbits size: " << existBits.size() << "\n";
         for(int j=0; j<existBits.size(); j++){
             bitmap.buffer[j] = existBits[j];
         }
         //bitmap.setSizeInBits(numberOfElements);
         bitmap.density=existBitDensity;
         res->setExistenceBitmap(bitmap);
-        std::cout << "after setting existence bitmap to existbits, bsi existence bitmap size in bits: " << res->existenceBitmap.sizeInBits() << "\n";
     }
 
     //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result

@@ -171,22 +171,23 @@ BsiUnsigned<uword>::BsiUnsigned(int maxSize, long numOfRows, long partitionID, H
 template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::topKMax(int k){
     HybridBitmap<uword> topK, SE, X;
-    HybridBitmap<uword> G;
-    HybridBitmap<uword> E;
-    G.setSizeInBits(this->bsi[0].sizeInBits(),false);
-    E.setSizeInBits(this->bsi[0].sizeInBits(),true);
-    E.density=1;
+    //HybridBitmap<uword> G;
+    HybridBitmap<uword> E = HybridBitmap<uword>(this->existenceBitmap);
+    std::cout<< "bsi[0].sizeinbits: " << this->bsi[0].sizeInBits() << "\n";
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    //E.setSizeInBits(this->bsi[0].sizeInBits(),true);
+    //E.density=1;
     
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
-        X = G.Or(SE);
+        X = topK.Or(SE);
         n = X.numberOfOnes();
         if (n > k) {
             E = SE;
         }
         if (n < k) {
-            G = X;
+            topK = X;
             E = E.andNot(this->bsi[i]);
         }
         if (n == k) {
@@ -194,9 +195,9 @@ HybridBitmap<uword> BsiUnsigned<uword>::topKMax(int k){
             break;
         }
     }
-    n = G.numberOfOnes();
-    topK = G.Or(E);
-    // topK = OR(G, E.first(k - n+ 1));
+    n = topK.numberOfOnes();
+    E.first(k - n+ 1);
+    topK = topK.Or(E);
     
     return topK;
 };
