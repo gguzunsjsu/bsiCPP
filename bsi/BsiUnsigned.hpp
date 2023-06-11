@@ -172,12 +172,11 @@ template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::topKMax(int k){
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
-    HybridBitmap<uword> E = HybridBitmap<uword>(this->existenceBitmap);
-    std::cout<< "bsi[0].sizeinbits: " << this->bsi[0].sizeInBits() << "\n";
+    HybridBitmap<uword> E;
     topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
-    //E.setSizeInBits(this->bsi[0].sizeInBits(),true);
-    //E.density=1;
-    
+    E.setSizeInBits(this->bsi[0].sizeInBits(),true);
+    E.density=1;
+
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
@@ -196,9 +195,10 @@ HybridBitmap<uword> BsiUnsigned<uword>::topKMax(int k){
         }
     }
     n = topK.numberOfOnes();
-    E.first(k - n+ 1);
+    E.first(k - n);
     topK = topK.Or(E);
-    
+    // topK = OR(G, E.first(k - n+ 1));
+
     return topK;
 };
 

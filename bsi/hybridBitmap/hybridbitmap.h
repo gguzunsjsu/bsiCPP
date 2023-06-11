@@ -289,14 +289,45 @@ public:
      * Keep n ones in bitmap and make everything else 0
      * */
     void first(int n) {
-        int ones = 0;
-        int offset = 0;
-        while (ones < n) {
-            if (((1 << offset) & this->buffer[offset]) == 1) {
-                ones ++;
+        const int bits = 8*sizeof(buffer[0]);
+        if (verbatim) {
+            int ones = numberOfOnes();
+            int offset = 0;
+            while (ones > n) {
+                if (buffer[offset/bits] & (1 << offset%bits)) {
+                    ones --;
+                    this->buffer[offset/bits] = this->buffer[offset/bits] & ((1 << (offset%bits)) - 1);
+                }
+                offset ++;
+            }
+        } else {
+            int extra_ones = numberOfOnes()-n;
+            size_t tot(0);
+            size_t pointer(0);
+            while (extra_ones > 0 && pointer < buffer.size()) {
+                RunningLengthWord<uword> rlw(buffer[pointer]);
+                if (rlw.getRunningBit()) {
+                    int num_ones_in_rlw = rlw.getRunningLength() * wordinbits;
+                    int length_to_delete = std::min(extra_ones,num_ones_in_rlw);
+                    extra_ones -= length_to_delete;
+                    rlw.setRunningLength((num_ones_in_rlw - length_to_delete)/wordinbits);
+
+                    // todo if the remaining ones fit into 1 word, turn next word into literal word and delete 1's
+                }
+                ++pointer;
+                for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
+                    int offset = 0;
+                    while (extra_ones > 0 && offset < bits) {
+                        if (buffer[pointer] && (1 << offset)) {
+                            extra_ones --;
+                        }
+                        offset ++;
+                    }
+                    buffer[pointer] = buffer[pointer] & ((1 << (offset+1)) - 1);
+                    ++pointer;
+                }
             }
         }
-        this->buffer.erase(this->buffer.begin()+offset,this->buffer.end());
     }
 
     /**
