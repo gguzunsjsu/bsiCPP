@@ -27,6 +27,7 @@ public:
     
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMin(int k) override;
+    HybridBitmap<uword> topKMaxWithTieBreaker(int k);
     BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
@@ -170,6 +171,45 @@ BsiUnsigned<uword>::BsiUnsigned(int maxSize, long numOfRows, long partitionID, H
  */
 template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::topKMax(int k){
+    HybridBitmap<uword> topK, SE, X;
+    //HybridBitmap<uword> G;
+    HybridBitmap<uword> E;
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    E.setSizeInBits(this->bsi[0].sizeInBits(),true);
+    E.density=1;
+
+    int n = 0;
+    for (int i = this->size - 1; i >= 0; i--) {
+        SE = E.And(this->bsi[i]);
+        X = topK.Or(SE);
+        n = X.numberOfOnes();
+        if (n > k) {
+            E = SE;
+        }
+        if (n < k) {
+            topK = X;
+            E = E.andNot(this->bsi[i]);
+        }
+        if (n == k) {
+            E = SE;
+            break;
+        }
+    }
+    n = topK.numberOfOnes();
+    E.first(k - n);
+    topK = topK.Or(E);
+    // topK = OR(G, E.first(k - n+ 1));
+
+    return topK;
+};
+
+/*
+ * Uses tie breaker to choose the first k values (from least significant)
+ * if there are >k values
+ * */
+
+template <class uword>
+HybridBitmap<uword> BsiUnsigned<uword>::topKMaxWithTieBreaker(int k){
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
     HybridBitmap<uword> E;

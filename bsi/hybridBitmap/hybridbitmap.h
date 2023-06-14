@@ -302,7 +302,6 @@ public:
             }
         } else {
             int extra_ones = numberOfOnes()-n;
-            size_t tot(0);
             size_t pointer(0);
             while (extra_ones > 0 && pointer < buffer.size()) {
                 RunningLengthWord<uword> rlw(buffer[pointer]);
