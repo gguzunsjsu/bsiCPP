@@ -580,6 +580,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     //Setting sign bits and existence bits for the array of numbers
     for (int i=0; i<nums.size(); i++){
         int offset = i%(bits);
+        min = std::min(min,nums[i]);
         if(nums[i] < 0){
             nums[i] = 0 - nums[i];
             signBits[i / (bits)] |= (one << offset); // setting sign bit
@@ -590,7 +591,6 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
         }else{
             CountZeros++;
         }
-        min = std::min(min,nums[i]);
         slices = std::max(slices,sliceLengthFinder(nums[i])); //Finding the maximum length of the bit representation of the numbers
     }
 

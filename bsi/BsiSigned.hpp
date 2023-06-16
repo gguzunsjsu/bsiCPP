@@ -179,15 +179,17 @@ BsiSigned<uword>::BsiSigned(int maxSize, long numOfRows, long partitionID, Hybri
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
-    
     HybridBitmap<uword> topK, SE, X;
-    std::cout << this->existenceBitmap.sizeInBits() << "\n";
-    topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInWords());
-    HybridBitmap<uword> E = HybridBitmap<uword>(this->existenceBitmap.andNot(this->sign)); //considers only positive values
+    //HybridBitmap<uword> G;
+    HybridBitmap<uword> E;
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    E.setSizeInBits(this->bsi[0].sizeInBits(),true);
+    E.density=1;
+
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
-        X = SE.Or(topK);
+        X = topK.Or(SE);
         n = X.numberOfOnes();
         if (n > k) {
             E = SE;
@@ -201,12 +203,9 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
             break;
         }
     }
-    topK = topK.Or(E);
     n = topK.numberOfOnes();
-    if(n<k){
-        topK = topK.Or(topKMaxNeg(k-n));
-    }
-    //n = topK.numberOfOnes();
+    topK = topK.Or(E);
+
     return topK;
 };
 
@@ -217,31 +216,31 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
     HybridBitmap<uword> topK, SE, X;
-    HybridBitmap<uword> G;
-    G.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInWords());
+    //HybridBitmap<uword> G;
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
     HybridBitmap<uword> E = this->existenceBitmap.And(this->sign); //considers only negative values
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
-        X = SE.Or(G);
+        X = topK.Or(SE);
         n = X.numberOfOnes();
         if (n > k) {
             E = SE;
         }
         if (n < k) {
-            G = X;
-            E = E.andNot(this->bsi[i]);
+            topK = X;
+            E = (E.andNot(this->bsi[i])).And(this->sign);
         }
         if (n == k) {
             E = SE;
             break;
         }
     }
+    topK = topK.Or(E);
+    n = topK.numberOfOnes();
     if(n<k){
-        topK = topKMinPos(k-n);
+        topK = topK.Or(topKMinPos(k-n));
     }
-    n = G.numberOfOnes();
-    topK = topK.Or(G.Or(E));
     return topK;
 };
 
