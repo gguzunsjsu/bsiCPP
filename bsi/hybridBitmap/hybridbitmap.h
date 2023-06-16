@@ -3820,6 +3820,11 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
             }
             lastrlwa += rlwa.getNumberOfLiteralWords() + 1;
             if(lastrlwa >= a.bufferSize()){
+                // fill container with the rest of words in this
+                for (; i < buffer.size(); i++) {
+                    container.add(buffer[i]);
+                    i++;
+                }
                 break;
             }
             rlwa = (a.buffer[lastrlwa]);
@@ -3847,9 +3852,15 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
             }
             lastrlw += rlw.getNumberOfLiteralWords() + 1;
             if(lastrlw >= bufferSize()){
+                // fill container with the rest of words in a
+                for (; i < a.bufferSize(); i++) {
+                    container.add(a.buffer[i]);
+                    i++;
+                }
                 break;
             }
-            rlw = (a.buffer[lastrlw]);
+            rlw = (buffer[lastrlw]);
+            //rlw = (a.buffer[lastrlw]);
         }
     }
     container.sizeinbits = std::max(sizeinbits, a.sizeinbits);

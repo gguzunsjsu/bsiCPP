@@ -196,9 +196,7 @@ HybridBitmap<uword> BsiUnsigned<uword>::topKMax(int k){
         }
     }
     n = topK.numberOfOnes();
-    E.first(k - n);
     topK = topK.Or(E);
-    // topK = OR(G, E.first(k - n+ 1));
 
     return topK;
 };
