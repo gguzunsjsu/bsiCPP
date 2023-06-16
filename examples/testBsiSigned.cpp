@@ -13,14 +13,14 @@ int main() {
     int k = 2;
 
     //--- preset array ---
-    vector<long> array{-1,4,4};
+    //vector<long> array{-1,-4,4};
 
     //--- randomize array ---
-    /*vector<long> array;
+    vector<long> array;
     srand(time(0));
     for (int i=0; i<len; i++) {
-        array.push_back(std::rand()%range);
-    }*/
+        array.push_back(std::rand()%range-range/2);
+    }
 
     //--- buildBSI ---
     bsi = build.buildBsiAttributeFromVectorSigned(array,0.5);
@@ -40,7 +40,6 @@ int main() {
             cout << bsi->getValue(i) << " ";
         }
     }
-    cout << "\n";
     sort(topkmax_vector.begin(),topkmax_vector.end(),greater<long>());
 
     //--- verify accuracy ---
@@ -55,7 +54,7 @@ int main() {
         j++;
     }
     if (correct) {
-        cout << "correct" << "\n";
+        cout << "\n" << "correct" << "\n";
     }
 
     //--- topKMin ---

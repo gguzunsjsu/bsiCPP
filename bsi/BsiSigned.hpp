@@ -181,10 +181,8 @@ template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
-    HybridBitmap<uword> E;
     topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
-    E.setSizeInBits(this->bsi[0].sizeInBits(),true);
-    E.density=1;
+    HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
 
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
@@ -196,21 +194,23 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
         }
         if (n < k) {
             topK = X;
-            E = E.andNot(this->bsi[i]);
+            E = E.andNot(this->bsi[i]).andNot(this->sign);
         }
         if (n == k) {
             E = SE;
             break;
         }
     }
-    n = topK.numberOfOnes();
     topK = topK.Or(E);
-
+    n = topK.numberOfOnes();
+    if(n<k){
+        topK = topK.Or(topKMaxNeg(k-n));
+    }
     return topK;
 };
 
 /*
- * topKMin used for find k min values from bsi and return postions bitmap.
+ * topKMin used for find k min values from bsi and return positions bitmap.
  */
 
 template <class uword>
@@ -245,29 +245,29 @@ HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
 };
 
 /*
- * topKMinPos used for find k min values from bsi and return postions bitmap. Same as BsiUnsigned topKMin
+ * topKMinPos used for find k min values from bsi and return positions bitmap. Same as BsiUnsigned topKMin
  */
 
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMinPos(int k){
     HybridBitmap<uword> topK, SNOT, X;
-    HybridBitmap<uword> G;
+    //HybridBitmap<uword> G;
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); // considers only positive numbers
-    G.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
     //E.setSizeInBits(this.bsi[0].sizeInBits(),true);
     //E.density=1;
     int n = 0;
 
     for (int i = this->size - 1; i >= 0; i--) {
         SNOT = E.andNot(this->bsi[i]);
-        X = G.Or(SNOT); //Maximum
+        X = topK.Or(SNOT); //Maximum
         n = X.numberOfOnes();
         if (n > k) {
             E = SNOT;
         }
         else if (n < k) {
-            G = X;
-            E = E.And(this->bsi[i]);
+            topK = X;
+            E = E.And(this->bsi[i]).andNot(this->sign);
         }
         else {
             E = SNOT;
@@ -275,36 +275,36 @@ HybridBitmap<uword> BsiSigned<uword>::topKMinPos(int k){
         }
     }
     //        n = G.cardinality();
-    topK = G.Or(E); //with ties
+    topK = topK.Or(E); //with ties
     // topK = OR(G, E.first(k - n+ 1)); //Exact number of topK
 
     return topK;
 };
 
 /*
- * topKMaxNeg used for find k max values that are negative from bsi and return postions bitmap.
+ * topKMaxNeg used for find k max values that are negative from bsi and return positions bitmap.
  */
 
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
     HybridBitmap<uword> topK, SNOT, X;
-    HybridBitmap<uword> G;
+    //HybridBitmap<uword> G;
     HybridBitmap<uword> E = this->existenceBitmap.And(this->sign); // considers only negative numbers
-    G.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
     //E.setSizeInBits(this.bsi[0].sizeInBits(),true);
     //E.density=1;
     int n = 0;
 
     for (int i = this->size - 1; i >= 0; i--) {
         SNOT = E.andNot(this->bsi[i]);
-        X = G.Or(SNOT); //Maximum
+        X = topK.Or(SNOT); //Maximum
         n = X.numberOfOnes();
         if (n > k) {
             E = SNOT;
         }
         else if (n < k) {
-            G = X;
-            E = E.And(this->bsi[i]);
+            topK = X;
+            E = E.And(this->bsi[i]).And(this->sign);
         }
         else {
             E = SNOT;
@@ -312,7 +312,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
         }
     }
     //        n = G.cardinality();
-    topK = G.Or(E); //with ties
+    topK = topK.Or(E); //with ties
     // topK = OR(G, E.first(k - n+ 1)); //Exact number of topK
 
     return topK;
