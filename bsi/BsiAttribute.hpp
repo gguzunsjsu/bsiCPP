@@ -98,6 +98,7 @@ public:
     virtual BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *a) const=0;
+    virtual long dotProduct(BsiAttribute<uword>* a) const = 0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
 
     virtual BsiAttribute<uword>* negate()=0;

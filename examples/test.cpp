@@ -37,9 +37,9 @@ int main() {
 
     //Testing sumOf BSI
     
-    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(10000);
     testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->dotProductForTesting();
+    testVectorMultiplication->dotProductForTestingNew();
     
    
     /*

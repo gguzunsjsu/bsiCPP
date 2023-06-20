@@ -38,6 +38,7 @@ public:
     BsiAttribute<uword>* negate() override;
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
     BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
+    long dotProduct(BsiAttribute<uword>* unbsi) const override;
     bool append(long value) override;
     
     /*
@@ -1476,6 +1477,142 @@ BsiAttribute<uword>* BsiUnsigned<uword>::multiplyBSI(BsiAttribute<uword> *unbsi)
     res->index = this->index;
     return res;
 };
+/*
+This method was written to try out the dot product operation
+Dot product would basically be multiplication of two vectors
+Followed by the scalar sum of the resulting vector
+*/
+template <class uword>
+long BsiUnsigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const{
+    //Dot product for verbatim bitmaps
+    std::cout << "Let's try to do dot product\n";
+    // Initialize the necessary vectors
+    // res = new BsiUnsigned<uint64_t>();
+    HybridBitmap<uint64_t> hybridBitmap;
+    hybridBitmap.reset();
+    hybridBitmap.verbatim = true;
+    /*
+    for (int j = 0; j < this->size + bsi3->size; j++)
+    {
+        res->addSlice(hybridBitmap);
+    }
+    */
+
+    int size_a = this->size;
+    int size_b = unbsi->size;
+    std::vector<uint64_t> a(size_a);
+    std::vector<uint64_t> b(size_b);
+    std::vector<uint64_t> answer(size_a + size_b);
+    long dotProductSum = 0;
+    int ansSize = a.size();
+    // For each word in the BSI buffer
+    for (int bu = 0; bu < this->bsi[0].bufferSize(); bu++)
+    {
+        // For each slice, get the decimal representations added into an array
+        for (int j = 0; j < this->size; j++)
+        {
+            a[j] = this->bsi[j].getWord(bu); // fetching one word
+        }
+        for (int j = 0; j < unbsi->size; j++)
+        {
+            b[j] = unbsi->bsi[j].getWord(bu);
+        }
+        // Multiply the two vectors and take their running sum
+        // For {1,2,3,4,5} => {21, 6, 24}}
+        for (int i = 0; i < a.size(); i++)
+        {
+            answer[i] = a[i] & b[0];
+        }
+        for (int i = a.size(); i < b.size() + a.size(); i++)
+        {
+            answer[i] = 0;
+        }
+        //{21,4,16,0,0,0}
+        uint64_t S, C, FS;
+        int k = 1;
+        // For each value in the second vector
+        for (int it = 1; it < b.size(); it++)
+        {
+            S = answer[k] ^ a[0];
+            C = answer[k] & a[0];
+            FS = S & b[it];
+            answer[k] = (~b[it] & answer[k]) | (b[it] & FS);
+            //{21,0,16,0,0,0}
+            // Second iteration of loop via b
+            //{21,0,2,4,0,0}
+            for (int i = 1; i < a.size(); i++)
+            {
+                // What happens here
+                if ((i + k) < ansSize)
+                {
+                    S = answer[i + k] ^ a[i] ^ C;
+                    C = (answer[i + k] & a[i]) | (a[i] & C) | (answer[i + k] & C);
+                }
+                else
+                {
+                    S = a[i] ^ C;
+                    C = a[i] & C;
+                    FS = S & b[it];
+                    ansSize++;
+                    answer[ansSize - 1] = FS;
+                }
+                FS = b[it] & S;
+                answer[i + k] = (~b[it] & answer[i + k]) | (b[it] & FS);
+                //{21,0,18,0,0,0}
+                //{21,0,18,4,0,0}
+                // Second iteration of loop via b
+                //{21,0,2,20,0,0}
+                //{21,0,2,20,24,0}
+            }
+            // When does this even become a usecase
+            // When there is extra to be calculated?
+            for (int i = a.size() + k; i < ansSize; i++)
+            {
+                S = answer[i] ^ C;
+                C = answer[i] & C;
+                FS = b[it] & S;
+                answer[k] = (~b[it] & answer[k]) | (b[it] & FS);
+                ;
+            }
+            if (C > 0)
+            {
+                ansSize++;
+                answer[ansSize - 1] = b[it] & C;
+            }
+            k++;
+        } // End of loop via size of b
+        // So we have the answer for one buffer in ans
+        // Add it as a slice to our result
+        /*
+        for (int j = 0; j < ans.size(); j++)
+        {
+            res->bsi[j].addVerbatim(answer[j]);
+        }
+        */
+        // Get the number of ones in each element of the answer vector and sum it
+        for (auto n = 0; n < answer.size(); n++)
+        {
+            long temp = countOnes(answer[n]) * (1 << n);
+            dotProductSum += temp;
+        }
+    }
+    // Finally we have the result in res
+    //{21,0,2,20,24,0}
+    return dotProductSum;
+};
+/*
+* int countOnes(int n)
+{
+    int count = 0;
+    while (n != 0)
+    {
+        n = n & (n - 1); // remove the rightmost 1-bit from n
+        count++;
+    }
+    return count;
+}
+*/
+
 
 
 

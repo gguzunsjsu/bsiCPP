@@ -63,6 +63,7 @@ public:
     BsiAttribute<uword>* multiplication_Horizontal(const BsiAttribute<uword> *a) const;
     BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const override;
     BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *unbsi)const override;
+    long dotProduct(BsiAttribute<uword>* unbsi) const override;
     
     
     BsiAttribute<uword>* sum_Horizontal_Hybrid(const BsiAttribute<uword> *a) const;
@@ -1905,7 +1906,10 @@ void BsiSigned<uword>::multiplicationInPlace(BsiAttribute<uword> *a){
 /*
  * multiplicationInPlace perfom a = b * c using modified booth's algorithm
  */
-
+template <class uword>
+long BsiSigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const {
+    return 1;
+}
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyBSI(BsiAttribute<uword> *a) const{

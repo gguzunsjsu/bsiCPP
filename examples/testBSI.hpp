@@ -183,6 +183,61 @@ public:
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Done with multiplication" << endl;
     }
+    long dotProductForTestingNew() {
+        vector<long> array1;
+        long number;
+        int randomChoice;
+        cout << "We are in the method to test dot product of two vectors represented as bsis\n";
+        cout << "Enter the numbers in the new vector: \n";
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers ? ";
+        cin >> randomChoice;
+
+        if (randomChoice == 2)
+        {
+            cout << "Enter the numbers : \n";
+            for (int i = 0; i < this->numberOfElementsInTheArray; i++)
+            {
+                cin >> number;
+                array1.push_back(number % this->range);
+            }
+        }
+        else
+        {
+            cout << "\nInitializing the array with random numbers\n";
+            // Fill in random numbers in the array
+            for (int i = 0; i < this->numberOfElementsInTheArray; i++)
+            {
+                array1.push_back(std::rand() % this->range);
+            }
+        }
+        // Build the BSI attribute for this
+        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        bsi2->setPartitionID(0);
+        bsi2->setFirstSliceFlag(true);
+        bsi2->setLastSliceFlag(true);
+        // Validate the build of the BSI attribute
+        cout << "BSI Attribute building is correct ? " << validateBSIWithArray(array1, bsi2) << "\n";
+        cout << "Let's try to do dot product\n";
+        auto start = chrono::high_resolution_clock::now();
+        long result =  this->bsi_attribute->dotProduct(bsi2);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime for dot product for the BSI Attribute: " << duration.count() << endl;
+        cout << "Result: " << result << endl;
+        start = chrono::high_resolution_clock::now();
+        long resultFromVectors = vectorDotProduct(this->array, array1);
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime for dot product for the vectors: " << duration.count() << endl;
+        cout << "Result from vectors : " << resultFromVectors << endl;
+        return result;
+    }
+    long vectorDotProduct(vector<long> vector_a, vector<long> vector_b) {
+        long product = 0;
+        for (int i = 0; i < this->numberOfElementsInTheArray; i++)
+            product = product + vector_a[i] * vector_b[i];
+        return product;
+    }
     long dotProductForTesting()
     {
         vector<long> array1;
@@ -320,7 +375,8 @@ public:
             // Get the number of ones in each element of the answer vector and sum it
             for (auto n = 0; n < answer.size(); n++)
             {
-                dotProductSum += (countOnes(answer[n]) << (n));
+                long temp = countOnes(answer[n]) * (1<<n);
+                dotProductSum += temp;
             }
         }
         // Finally we have the result in res
