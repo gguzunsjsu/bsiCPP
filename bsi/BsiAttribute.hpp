@@ -124,9 +124,11 @@ public:
     HybridBitmap<uword> orAnd(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> And(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
    
-    BsiAttribute* signMagnToTwos(int bits);
+    BsiAttribute* signMagnitudeToTwos(int bits)const;
     BsiAttribute* TwosToSignMagnitude();
-    void signMagnitudeToTwos(int bits);
+    void signMagnitudeToTwosInPlace(int bits);
+
+    HybridBitmap<uword> topKMaxPositive(int k);
 
     void addOneSliceSameOffset(const HybridBitmap<uword> &slice);
     void addOneSliceDiscardCarry(const HybridBitmap<uword> &slice);
@@ -806,13 +808,45 @@ HybridBitmap<uword> BsiAttribute<uword>::And(const HybridBitmap<uword> &a, const
     }
 };
 
+/**
+ * topKMaxPositive takes bsi with only positive numbers and finds the positions of the top k
+*/
 
+template <class uword>
+HybridBitmap<uword> BsiAttribute<uword>::topKMaxPositive(int k){
+    HybridBitmap<uword> topK, SE, X;
+    //HybridBitmap<uword> G;
+    topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
+    //topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
+
+    int n = 0;
+    for (int i = this->size - 1; i >= 0; i--) {
+        SE = E.And(this->bsi[i]);
+        X = topK.Or(SE);
+        n = X.numberOfOnes();
+        if (n > k) {
+            E = SE;
+        }
+        if (n < k) {
+            topK = X;
+            E = E.andNot(this->bsi[i]).andNot(this->sign);
+        }
+        if (n == k) {
+            E = SE;
+            break;
+        }
+    }
+    topK = topK.Or(E);
+    n = topK.numberOfOnes();
+    return topK;
+};
 
 /*
  *
  */
 template <class uword>
-void BsiAttribute<uword>::signMagnitudeToTwos(int bits){
+void BsiAttribute<uword>::signMagnitudeToTwosInPlace(int bits){
     int i=0;
     for(i=0; i<getNumberOfSlices(); i++){
         bsi[i]=bsi[i].Xor(sign);
@@ -831,7 +865,7 @@ void BsiAttribute<uword>::signMagnitudeToTwos(int bits){
 
 
 template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::signMagnToTwos(int bit_limit){
+BsiAttribute<uword>* BsiAttribute<uword>::signMagnitudeToTwos(int bit_limit)const{
     BsiAttribute* res = new BsiSigned<uword>();
     res->twosComplement=true;
     int i=0;

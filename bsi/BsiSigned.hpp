@@ -23,7 +23,7 @@ public:
     /*
      Declaring Override Functions
      */
-    
+    HybridBitmap<uword> topKMaxSignMagnitude(int k);
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMaxNeg(int k);
     HybridBitmap<uword> topKMin(int k) override;
@@ -49,7 +49,7 @@ public:
      */
     void addSliceWithOffset(HybridBitmap<uword> slice, int sliceOffset);
     BsiAttribute<uword>* SUMunsigned(BsiAttribute<uword>* a)const;
-    BsiAttribute<uword>* SUMsigned(BsiAttribute<uword>* a)const;
+    BsiAttribute<uword> * SUMsigned(BsiAttribute<uword>* a)const;
     BsiAttribute<uword>* SUMsignToMagnitude(BsiAttribute<uword>* a)const;
     void twosToSignMagnitude( BsiAttribute<uword>* a)const;
     BsiAttribute<uword>* multiplyWithBsiHorizontal(const BsiAttribute<uword> *a) const;
@@ -169,19 +169,42 @@ BsiSigned<uword>::BsiSigned(int maxSize, long numOfRows, long partitionID, Hybri
  Defining Override Functions --------------------------------------------------------------------------------------
  */
 
+/**
+ * topKMax with Two's Complement form makes all elements positive by adding
+ */
+
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
+    // convert to twos complement
+    BsiAttribute<uword>* twosComplement = this->signMagnitudeToTwos(this->bits+1);
+
+    // add buffer to make all elements positive
+    uword min = 0;
+    for (int i=0; i<this->size; i++) {
+        if (this->getValue(i) < min) {
+            min = this->getValue(i);
+        }
+    }
+
+    twosComplement->SUM(min);
+
+    // run unsigned topkmax
+    return twosComplement->topKMaxPositive(k);
+};
 
 /**
  * Computes the top-K tuples in a bsi-attribute.
  * @param k - the number in top-k
  * @return a bitArray containing the top-k tuples
  *
- * TokMAx is Compatible with bsi's SignMagnitude Form not Two'sComplement form
+ * TopKMax is compatible with bsi's SignMagnitude form not Two's Complement form
  */
 template <class uword>
-HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
+HybridBitmap<uword> BsiSigned<uword>::topKMaxSignMagnitude(int k){
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
-    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
+    //topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
 
     int n = 0;
@@ -339,10 +362,8 @@ long BsiSigned<uword>::sumOfBsi() const{
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) const{
     //return sum_Horizontal(a);
-    if (a->is_signed and a->twosComplement){
-        return this->SUMsignToMagnitude(a);
-    }else if(a->is_signed){
-        return this->SUMsignToMagnitude(a);
+    if (a->is_signed || this->is_signed){
+        return this->SUMsigned(a);
     }
     else{
         return this->SUMunsigned(a);
@@ -432,7 +453,7 @@ BsiAttribute<uword>* BsiSigned<uword>::convertToTwos(int bits){
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.addStreamOfEmptyWords(false,this->existenceBitmap.bufferSize());
     int i=0;
-    for(i=0; i<this->getNumberOfSlices(); i++){
+    for(; i<this->getNumberOfSlices(); i++){
         res.addSlice(this->bsi[i].logicalxor(this->sign));
     }
     while(i<bits){
@@ -728,7 +749,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMunsigned(BsiAttribute<uword>* a)const{
  */
 
 template <class uword>
-BsiAttribute<uword>* BsiSigned<uword>::SUMsigned( BsiAttribute<uword>* a)const{
+BsiAttribute<uword> * BsiSigned<uword>::SUMsigned( BsiAttribute<uword>* a) const{
     
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
@@ -773,7 +794,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsigned( BsiAttribute<uword>* a)const{
     p=p-thisIndex;
     int minSP = std::min(s, p);
     
-    if(minSP<=0){ // one of the BSI attributes is exausted
+    if(minSP<=0){ // one of the BSI attributes is exhausted
         HybridBitmap<uword> CC;
         for(int j=aIndex; j<a->size;j++){
             if(this->lastSlice){ // operate with the sign slice if contains the last slice

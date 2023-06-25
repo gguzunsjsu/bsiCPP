@@ -4317,6 +4317,9 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
             } else {
                 //container.addStreamOfEmptyWords(false, a.rlw.getRunningLength());
                 for (j = 0; j < runLength; j++) {
+                    if (i >= bufferSize()) {
+                        break;
+                    }
                     container.buffer.push_back(buffer[i]);
                     i++;
                 }
@@ -4334,7 +4337,7 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
     } else { // a is verbatim
         container.buffer.reserve(a.bufferSize());
         ConstRunningLengthWord<uword>  rlw(buffer[0]);
-         size_t lastrlw = 0;
+        size_t lastrlw = 0;
         
         while (i < a.bufferSize()) {
             runLength=rlw.getRunningLength();
@@ -4346,6 +4349,9 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
             } else {
                 //container.addStreamOfEmptyWords(false, a.rlw.getRunningLength());
                 for (j = 0; j < runLength; j++) {
+                    if (i >= a.bufferSize()) {
+                        break;
+                    }
                     container.buffer.push_back(a.buffer[i]);
                     i++;
                 }

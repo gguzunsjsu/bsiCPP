@@ -8,27 +8,26 @@ using namespace std;
 int main() {
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    int len = 100;
-    int range = 1000;
+    int len = 1000;
+    int range = 10000;
     int k = 2;
 
     //--- preset array ---
-    //vector<long> array{-1,-4,4};
-
+    vector<long> array{-1,1};
     //--- randomize array ---
-    vector<long> array;
+    /*vector<long> array;
     srand(time(0));
     for (int i=0; i<len; i++) {
         array.push_back(std::rand()%range-range/2);
-    }
+    }*/
 
     //--- buildBSI ---
+    sort(array.begin(),array.end());
     bsi = build.buildBsiAttributeFromVectorSigned(array,0.5);
     for (int i=0; i<array.size(); i++) {
-        cout << bsi->getValue(i) << " ";
+        cout << bsi->getValue(i) << ", ";
     }
     cout << endl;
-    sort(array.begin(),array.end());
 
     //--- topKMax ---
     HybridBitmap<uint64_t> topkmax = bsi->topKMax(k);
@@ -40,6 +39,7 @@ int main() {
             cout << bsi->getValue(i) << " ";
         }
     }
+    cout << "array length: " << topkmax_vector.size() << "\n";
     sort(topkmax_vector.begin(),topkmax_vector.end(),greater<long>());
 
     //--- verify accuracy ---
@@ -67,6 +67,7 @@ int main() {
             cout << bsi->getValue(i) << " ";
         }
     }
+    cout << "array length: " << topkmin_vector.size() << "\n";
     sort(topkmin_vector.begin(),topkmin_vector.end());
 
     //--- verify accuracy ---
