@@ -870,11 +870,13 @@ BsiAttribute<uword>* BsiAttribute<uword>::signMagnitudeToTwos(int bit_limit)cons
     res->twosComplement=true;
     int i=0;
     for(i=0; i<getNumberOfSlices(); i++){
-        res->bsi[i]=bsi[i].Xor(sign);
+        res->addSlice(bsi[i].Xor(sign));
     }
     while(i<bit_limit){
         res->addSlice(sign);
-        i++;}
+        i++;
+    }
+    // operation: add 1 if number was negative
     if(firstSlice){
         res->addOneSliceSameOffset(sign);
     }

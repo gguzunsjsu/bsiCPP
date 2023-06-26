@@ -13,7 +13,7 @@ int main() {
     int k = 2;
 
     //--- preset array ---
-    vector<long> array{-1,1};
+    vector<long> array{-2,2};
     //--- randomize array ---
     /*vector<long> array;
     srand(time(0));

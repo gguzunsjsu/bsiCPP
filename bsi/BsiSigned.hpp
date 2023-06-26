@@ -179,14 +179,14 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     BsiAttribute<uword>* twosComplement = this->signMagnitudeToTwos(this->bits+1);
 
     // add buffer to make all elements positive
-    uword min = 0;
+    long min = 0;
     for (int i=0; i<this->size; i++) {
         if (this->getValue(i) < min) {
             min = this->getValue(i);
         }
     }
 
-    twosComplement->SUM(min);
+    twosComplement = twosComplement->SUM(-min);
 
     // run unsigned topkmax
     return twosComplement->topKMaxPositive(k);
@@ -383,61 +383,67 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     int intSize =  BsiAttribute<uword>::sliceLengthFinder(abs_a);
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.addStreamOfEmptyWords(false,this->existenceBitmap.bufferSize());
-    BsiAttribute<uword>* res=new BsiSigned<uword>(std::max((int)this->size, intSize)+1);
+    BsiAttribute<uword>* res = new BsiSigned<uword>(std::max((int)this->size, intSize)+1);
     
     HybridBitmap<uword> C;
     //int minSP = std::min(this->size, intSize); was not used
     HybridBitmap<uword> allOnes;
     allOnes.setSizeInBits(this->bsi[0].sizeInBits());
-    allOnes.density=1;
-    if ((a&1)==0){
-        res->bsi[0]=this->bsi[0];
+    allOnes.density = 1;
+
+    // if a is positive
+    if ((a&1) == 0){
+        res->addSlice(this->bsi[0]);
         C = zeroBitmap;
     }
     else{
-        res->bsi[0]=this->bsi[0].Not();
-        C=this->bsi[0];
+        res->addSlice(this->bsi[0].Not());
+        C = this->bsi[0];
     }
+
     res->size++;
+
     int i;
-    for(i=1;i<this->size;i++){
-        if((a&(1<<i))!=0){
-            res->bsi[i]=C.logicalxornot(this->bsi[i]);
+    for(i=1; i<this->size; i++){
+        if((a&(1<<i)) != 0){
+            res->addSlice(C.logicalxornot(this->bsi[i]));
             //res.bsi[i] = C.xor(this.bsi[i].NOT());
-            C=this->bsi[i].logicalor(C);
+            C = this->bsi[i].logicalor(C);
         }else{
-            res->bsi[i]=this->bsi[i].logicalxor(C);
-            C=this->bsi[i].logicaland(C);
+            res->addSlice(this->bsi[i].logicalxor(C));
+            C = this->bsi[i].logicaland(C);
         }
         res->size++;
     }
-    if(intSize>this->size){
-        while (i<intSize){
-            if((a&(1<<i))!=0){
-                res->bsi[i]=C.logicalxornot(this->bsi[this->size-1]);
+    if(intSize > this->size){
+        while (i < intSize){
+            if((a&(1<<i)) != 0){
+                res->addSlice(C.logicalxornot(this->bsi[this->size-1]));
                 C=this->bsi[this->size-1].logicalor(C);
             }else{
-                res->bsi[i]=C.logicalxor(this->bsi[this->size-1]);
+                res->addSlice(C.logicalxor(this->bsi[this->size-1]));
                 C=this->bsi[this->size-1].logicaland(C);
             }
             res->size++;
             i++;
         }
     }
-    if(this->lastSlice && C.numberOfOnes()>0 ){
-        if(a>0){
-            res->addSlice(this->sign.logicalandnot(C));
+    if (!this->twosComplement) {
+        if(this->lastSlice && C.numberOfOnes()>0 ){
+            if(a>0){
+                res->addSlice(this->sign.logicalandnot(C));
+            }else{
+                res->addSlice(this->XOR(C,allOnes,this->sign));
+            }
         }else{
-            res->addSlice(this->XOR(C,allOnes,this->sign));
+            res->addSlice(C);
         }
-    }else{
-        res->addSlice(C);
+        res->twosComplement=false;
     }
     res->sign = res->bsi[res->size-1];
     res->firstSlice=this->firstSlice;
     res->lastSlice=this->lastSlice;
     res->existenceBitmap = this->existenceBitmap;
-    res->twosComplement=false;
     return res;
 };
 
