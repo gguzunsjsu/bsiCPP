@@ -186,7 +186,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
         }
     }
 
-    twosComplement = twosComplement->SUM(-min);
+    twosComplement = twosComplement->SUM(-min+1);
 
     // run unsigned topkmax
     return twosComplement->topKMaxPositive(k);

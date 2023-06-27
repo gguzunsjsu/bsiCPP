@@ -3972,8 +3972,8 @@ void HybridBitmap<uword>::inPlaceXorVerbatim(const HybridBitmap &a){
 template <class uword>
 void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitmap &container)const {
     int j = 0;
-    int i=0;
-    container.verbatim=false;
+    int i = 0;
+    container.verbatim = false;
     
 
     if (verbatim) { // this is verbatim
@@ -4005,6 +4005,10 @@ void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitm
             }
             lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
             if(lastrlwa >= a.bufferSize()){
+                for (; i < buffer.size(); i++) {
+                    container.add(buffer[i]);
+                    i++;
+                }
                 break;
             }
             rlwa = (a.buffer[lastrlwa]);

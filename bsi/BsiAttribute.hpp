@@ -867,9 +867,10 @@ void BsiAttribute<uword>::signMagnitudeToTwosInPlace(int bits){
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::signMagnitudeToTwos(int bit_limit)const{
     BsiAttribute* res = new BsiSigned<uword>();
-    res->twosComplement=true;
+    res->setExistenceBitmap(this->existenceBitmap);
+    res->twosComplement = true;
     int i=0;
-    for(i=0; i<getNumberOfSlices(); i++){
+    for(; i<getNumberOfSlices(); i++){
         res->addSlice(bsi[i].Xor(sign));
     }
     while(i<bit_limit){
