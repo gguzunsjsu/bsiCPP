@@ -53,8 +53,10 @@ int main() {
         }
         j++;
     }
-    if (correct) {
+    if (correct && topkmax_vector.size() >= k) {
         cout << "\n" << "correct" << "\n";
+    } else {
+        cout << "\n" << "incorrect" << "\n";
     }
 
     //--- topKMin ---
@@ -81,8 +83,10 @@ int main() {
         }
         i++;
     }
-    if (correct) {
+    if (correct && topkmin_vector.size() >= k) {
         cout << "\n" << "correct" << "\n";
+    } else {
+        cout << "\n" << "incorrect" << "\n";
     }
     array.clear();
     return 0;

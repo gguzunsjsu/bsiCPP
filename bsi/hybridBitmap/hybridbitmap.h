@@ -2460,6 +2460,9 @@ size_t HybridBitmap<uword>::addStreamOfNegatedDirtyWords(const uword *v,
     return wordadded;
 }
 template <class uword>size_t HybridBitmap<uword>::addEmptyWord(const bool v) {
+    if (buffer.size() == 0) {
+        buffer.push_back(0);
+    }
     RunningLengthWord<uword> lastRunningLengthWord(buffer[lastRLW]);
     const bool noliteralword =
             (lastRunningLengthWord.getNumberOfLiteralWords() == 0);
@@ -3324,7 +3327,7 @@ template <class uword>
 void HybridBitmap<uword>::andNotVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const {
     container.buffer.reserve(bufferSize());
     container.verbatim = false;
-    container.density=density*(1-a.density);
+    container.density = density*(1 - a.density);
     for (int i = 0; i < bufferSize(); i++) {
         container.add(buffer[i] & ~a.buffer[i]);
     }
@@ -3334,7 +3337,7 @@ void HybridBitmap<uword>::andNotVerbatimCompress(const HybridBitmap &a, HybridBi
 
 template <class uword>
 void HybridBitmap<uword>::andNot(const HybridBitmap &a, HybridBitmap &container) const {
-    container.density=density*(1-a.density);
+    container.density = density*(1 - a.density);
     //container.sizeinbits=this.sizeinbits;
     if (verbatim && a.verbatim) {
         //if(container.density<andThreshold){

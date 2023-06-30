@@ -23,7 +23,7 @@ public:
     /*
      Declaring Override Functions
      */
-    HybridBitmap<uword> topKMaxSignMagnitude(int k);
+    HybridBitmap<uword> topKMaxTwosComplement(int k);
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMaxNeg(int k);
     HybridBitmap<uword> topKMin(int k) override;
@@ -174,7 +174,7 @@ BsiSigned<uword>::BsiSigned(int maxSize, long numOfRows, long partitionID, Hybri
  */
 
 template <class uword>
-HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
+HybridBitmap<uword> BsiSigned<uword>::topKMaxTwosComplement(int k){
     // convert to twos complement
     BsiAttribute<uword>* twosComplement = this->signMagnitudeToTwos(this->bits+1);
 
@@ -197,10 +197,11 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
  * @param k - the number in top-k
  * @return a bitArray containing the top-k tuples
  *
- * TopKMax is compatible with bsi's SignMagnitude form not Two's Complement form
+ * TopKMax is compatible with bsi's SignMagnitude form not Two's Complement form.
+ * Tries to find top k max positive, then checks negative numbers
  */
 template <class uword>
-HybridBitmap<uword> BsiSigned<uword>::topKMaxSignMagnitude(int k){
+HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
     topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
