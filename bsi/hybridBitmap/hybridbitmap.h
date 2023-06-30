@@ -1831,7 +1831,7 @@ std::vector<size_t> HybridBitmap<uword>::toArray() const {
 template <class uword>
 void HybridBitmap<uword>::logicalnot(HybridBitmap &x) const {
     x.reset();
-    x.density=1-density;
+    x.density = 1-density;
     if (verbatim){
         x.verbatim = true;
         for(int i=0; i < bufferSize(); i++){
@@ -2658,6 +2658,8 @@ void HybridBitmap<uword>::logicalxor(const HybridBitmap &a,
     container.buffer.push_back(0);
     if (RESERVEMEMORY)
         container.buffer.reserve(buffer.size() + a.buffer.size());
+    container.density = density*(1-a.density)+a.density*(1-density); // todo: calculate density (this line was temporarily copied from Xor)
+
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
     if (!(i.hasNext() and j.hasNext())) { // hopefully this never happens...
@@ -2750,7 +2752,7 @@ template <class uword>
 void HybridBitmap<uword>::logicaland(const HybridBitmap &a,
                                      HybridBitmap &container) const {
     container.reset();
-    container.density=density*a.density;
+    container.density = density*a.density;
     container.buffer.push_back(0);
     
     if (RESERVEMEMORY)
@@ -3135,7 +3137,7 @@ void HybridBitmap<uword>::shiftRowWithCarry(const HybridBitmap &this_bitmap, Hyb
 
 template <class uword>
 void HybridBitmap<uword>::And(const HybridBitmap &a, HybridBitmap &container) const {
-    container.density=density*a.density;
+    container.density = density*a.density;
     if (verbatim && a.verbatim) {
         //if(container.density<andThreshold){
         if(std::min(density, a.density)<andThreshold){
@@ -4480,13 +4482,11 @@ void HybridBitmap<uword>::xorHybridCompress(const HybridBitmap &a, HybridBitmap 
 template <class uword>
 void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &container)const {
     container.reset();
-    container.verbatim=true;
-    container.density=density*(1-a.density)+a.density*(1-density);
+    container.verbatim = true;
+    container.density = density*(1-a.density)+a.density*(1-density);
     int j = 0;
-    int i=0;
-    int runLength=0;
-    
-    
+    int i = 0;
+    int runLength = 0;
     
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
@@ -4562,8 +4562,8 @@ template <class uword>
 void HybridBitmap<uword>::inPlaceXorHybrid(const HybridBitmap &a) {
 
     int j = 0;
-    int i=0;
-    int runLength=0;
+    int i = 0;
+    int runLength = 0;
 
     if (verbatim) { // this is verbatim
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
@@ -4571,7 +4571,7 @@ void HybridBitmap<uword>::inPlaceXorHybrid(const HybridBitmap &a) {
         //a.rlw = new RunningLengthWord(a.buffer, 0);
 
         while (i < bufferSize()) {
-            runLength=(int) rlwa.getRunningLength();
+            runLength = (int) rlwa.getRunningLength();
             if (rlwa.getRunningBit()) { // fill of ones
                 for (j = 0; j < runLength; j++) {
                     //container.buffer.push_back(~(buffer[i]));
@@ -4582,10 +4582,10 @@ void HybridBitmap<uword>::inPlaceXorHybrid(const HybridBitmap &a) {
                     i=i+runLength;
             }
             for( j=0; j<rlwa.getNumberOfLiteralWords(); j++){
-                buffer[i]=buffer[i]^(a.buffer[lastrlwa+j+1]);
+                buffer[i] = buffer[i]^(a.buffer[lastrlwa+j+1]);
                 i++;
             }
-            lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
+            lastrlwa += rlwa.getNumberOfLiteralWords()+1;
             if(lastrlwa >= a.bufferSize()){
                 break;
             }
@@ -4632,8 +4632,8 @@ void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &cont
     container.verbatim=true;
     container.density=density*(a.density)+(1-a.density)*(1-density);
     int j = 0;
-    int i=0;
-    int runLength=0;
+    int i = 0;
+    int runLength = 0;
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
@@ -4788,13 +4788,17 @@ void HybridBitmap<uword>::add(const long newdata) {
     add(newdata, wordinbits);
 }
 
-
+/**
+ * Returns compressed
+ */
 template <class uword>
 void HybridBitmap<uword>::logicalxornot(const HybridBitmap &a, HybridBitmap &container) const{
     container.reset();
     container.buffer.push_back(0);
     if (RESERVEMEMORY)
         container.buffer.reserve(buffer.size() + a.buffer.size());
+    container.density = density*(a.density)+(1-a.density)*(1-density); //todo: calculate density (this line was temporarily copied from xorNotHybrid)
+
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
     if (!(i.hasNext() and j.hasNext())) { // hopefully this never happens...

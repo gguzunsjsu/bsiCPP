@@ -391,7 +391,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     allOnes.setSizeInBits(this->bsi[0].sizeInBits());
     allOnes.density = 1;
 
-    // if a is positive
+    // if a has 0 in the least significant bit, set carry to 0
     if ((a&1) == 0){
         res->addSlice(this->bsi[0]);
         C = zeroBitmap;
@@ -403,9 +403,9 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
 
     res->size++;
 
-    int i;
-    for(i=1; i<this->size; i++){
-        if((a&(1<<i)) != 0){
+    int i = 1;
+    for(; i<this->size; i++){
+        if((a & (1<<i)) != 0){
             res->addSlice(C.logicalxornot(this->bsi[i]));
             //res.bsi[i] = C.xor(this.bsi[i].NOT());
             C = this->bsi[i].logicalor(C);

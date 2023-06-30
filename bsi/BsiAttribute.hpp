@@ -869,11 +869,11 @@ BsiAttribute<uword>* BsiAttribute<uword>::signMagnitudeToTwos(int bit_limit)cons
     BsiAttribute* res = new BsiSigned<uword>();
     res->setExistenceBitmap(this->existenceBitmap);
     res->twosComplement = true;
-    int i=0;
-    for(; i<getNumberOfSlices(); i++){
+    int i = 0;
+    for(; i < getNumberOfSlices(); i++){
         res->addSlice(bsi[i].Xor(sign));
     }
-    while(i<bit_limit){
+    while(i < bit_limit){
         res->addSlice(sign);
         i++;
     }
