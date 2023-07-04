@@ -166,7 +166,9 @@ public:
         for (long i = 0; i < this->array.size(); ++i) {
             v.push_back(this->array[i] * array1[i]);
         }
-        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplication(bsi2);
+//        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplication(bsi2);
+        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplyBSI(bsi2);
+
 
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Validated successfully vector multiplication" << endl;

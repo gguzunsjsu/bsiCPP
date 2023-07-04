@@ -1,6 +1,7 @@
 
 #include "testBSIAttributeBuilding.h"
 #include "testBSI.hpp"
+#include "benchmarking.h"
 
 #include <iostream>
 #include <chrono>
@@ -46,8 +47,10 @@ int main() {
     testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
-    
-    
+
+//    benchmarking<uint64_t>* testVectorMultiplication = new benchmarking<uint64_t>(100);
+//    testVectorMultiplication->buildBSIAttribute();
+//    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
 
     cout << "\n\nThank you";
     return 0;
