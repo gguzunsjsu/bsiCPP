@@ -37,20 +37,24 @@ int main() {
     
 
     //Testing sumOf BSI
-    /*
-    *  testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
-    testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->sumOfBSIVectorElements();
-    */
-   
-   
-    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
-    testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
+
+//    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+//    testVectorMultiplication->buildBSIAttribute();
+//    testVectorMultiplication->sumOfBSIVectorElements();
+
+
+//    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+//    testVectorMultiplication->buildBSIAttribute();
+//    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
 
 //    benchmarking<uint64_t>* testVectorMultiplication = new benchmarking<uint64_t>(100);
 //    testVectorMultiplication->buildBSIAttribute();
 //    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
+
+    // zipf
+
+    testBSI<uint64_t>* testZIPF = new testBSI<uint64_t>();
+    testZIPF->zipf();
 
     cout << "\n\nThank you";
     return 0;

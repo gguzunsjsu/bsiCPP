@@ -4,6 +4,7 @@
 #include "BsiSigned.hpp"
 #include "BsiAttribute.hpp"
 #include "testBSIAttributeBuilding.h"
+#include "testZIPF.h"
 #include <iostream>
 #include <chrono>
 #include <numeric>
@@ -173,6 +174,49 @@ public:
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Validated successfully vector multiplication" << endl;
 
+    }
+
+    void zipf(){
+        auto arrays = readFile();
+        std::vector<long> array1 = arrays.first;
+        std::vector<long> array2 = arrays.second;
+
+        cout << "Enter the compression threshold: ";
+        cin >> this->compressionThreshold;
+        cout << "The number of elements in array: " << array1.size() << "\n";
+
+        auto start = chrono::high_resolution_clock::now();
+        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl<<endl;
+        this->bsi_attribute->setPartitionID(0);
+        this->bsi_attribute->setFirstSliceFlag(true);
+        this->bsi_attribute->setLastSliceFlag(true);
+
+        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array2, this->compressionThreshold);
+        bsi2->setPartitionID(0);
+        bsi2->setFirstSliceFlag(true);
+        bsi2->setLastSliceFlag(true);
+
+        start = chrono::high_resolution_clock::now();
+        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplyBSI(bsi2);
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime for multiplication of elements for the BSI Attribute: " << duration.count() << endl;
+
+        //Try vector multiplication with C++
+        vector<long> v;
+        start = chrono::high_resolution_clock::now();
+        for (long i = 0; i < array1.size(); ++i) {
+            v.push_back(array1[i] * array2[i]);
+        }
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "Time to multiply vectors in the C++ standard vector: " << duration.count() << endl;
+
+        cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
+        cout << "Validated successfully vector multiplication" << endl;
     }
 
 };
