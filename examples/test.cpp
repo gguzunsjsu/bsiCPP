@@ -1,7 +1,6 @@
 
 #include "testBSIAttributeBuilding.h"
 #include "testBSI.hpp"
-#include "benchmarking.h"
 
 #include <iostream>
 #include <chrono>
