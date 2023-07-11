@@ -202,6 +202,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxTwosComplement(int k){
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
+    //return topKMaxTwosComplement(k);
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
     topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
@@ -209,7 +210,27 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
 
     int n = 0;
+    // debugging
+    std::vector<long> topkmax_vector;
+    std::vector<long> e_vector;
+
     for (int i = this->size - 1; i >= 0; i--) {
+
+        // debugging
+        for (int j=0; j<topK.sizeInBits(); j++) {
+            if (topK.get(j)) {
+                topkmax_vector.push_back(this->getValue(j));
+            }
+        }
+        sort(topkmax_vector.begin(),topkmax_vector.end(),std::less<long>());
+        for (int j=0; j<E.sizeInBits(); j++) {
+            if (E.get(j)) {
+                e_vector.push_back(this->getValue(j));
+            }
+        }
+        sort(e_vector.begin(),e_vector.end(),std::less<long>());
+        //
+
         SE = E.And(this->bsi[i]);
         X = topK.Or(SE);
         n = X.numberOfOnes();
@@ -224,9 +245,27 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
             E = SE;
             break;
         }
+        topkmax_vector.clear();
+        e_vector.clear();
     }
     topK = topK.Or(E);
     n = topK.numberOfOnes();
+
+    // debugging
+    for (int j=0; j<topK.sizeInBits(); j++) {
+        if (topK.get(j)) {
+            topkmax_vector.push_back(this->getValue(j));
+        }
+    }
+    sort(topkmax_vector.begin(),topkmax_vector.end(),std::less<long>());
+    for (int j=0; j<E.sizeInBits(); j++) {
+        if (E.get(j)) {
+            e_vector.push_back(this->getValue(j));
+        }
+    }
+    sort(e_vector.begin(),e_vector.end(),std::less<long>());
+    //
+
     if(n<k){
         topK = topK.Or(topKMaxNeg(k-n));
     }
