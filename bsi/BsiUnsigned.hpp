@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "BsiAttribute.hpp"
+#include <cmath>
 
 template <class uword>
 class BsiUnsigned : public BsiAttribute<uword>{
@@ -39,6 +40,7 @@ public:
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
     BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
+    long dot(BsiAttribute<uword>* unbsi) const override;
     bool append(long value) override;
     
     /*
@@ -2070,6 +2072,38 @@ BsiAttribute<uword>* BsiUnsigned<uword>::peasantMultiply(BsiUnsigned &unbsi) con
 
 };
 
+
+
+
+
+
+
+
+/*
+ * Dot product of two BSIs. Builds the sum aggregator directly, without the resulting vector.
+ */
+
+template <class uword>
+long BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
+    long res =0;
+
+    for(int j=0; j<unbsi->size; j++){
+        for (int i = 0; i < this->size; i++) {
+            //HybridBitmap t = unbsi->bsi[j].And(this->bsi[i]);
+            //int count = t.numberOfOnes();
+            //res = res+count*(2<<(j+i));
+            if(j==0 && i==0)
+                res = res + unbsi->bsi[j].And(this->bsi[i]).numberOfOnes();
+            else
+                res = res + unbsi->bsi[j].And(this->bsi[i]).numberOfOnes()*(2<<(j+i-1));
+        }
+    }
+    return res;
+};
+
+
+
+
 template <class uword>
 void BsiUnsigned<uword>::reset(){
     this->bsi.clear();
@@ -2135,6 +2169,8 @@ bool BsiUnsigned<uword>::append(long value){
     }
     this->rows++;
     return true;
-};
+}
+
+
 
 #endif /* BsiUnsigned_hpp */

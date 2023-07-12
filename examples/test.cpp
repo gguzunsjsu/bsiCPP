@@ -1,6 +1,7 @@
 
 #include "testBSIAttributeBuilding.h"
 #include "testBSI.hpp"
+//#include "benchmarking.h"
 
 #include <iostream>
 #include <chrono>
@@ -36,20 +37,21 @@ int main() {
     
 
     //Testing sumOf BSI
-    
-    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(10000);
+    /*
+    *  testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+    testVectorMultiplication->buildBSIAttribute();
+    testVectorMultiplication->sumOfBSIVectorElements();
+    */
+   
+   
+    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->dotProductForTestingNew();
-    
-   
-    /*
-    * testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
-    testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->dotProductForTesting();
-    */
-    
-    
-    
+    //testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
+
+//    benchmarking<uint64_t>* testVectorMultiplication = new benchmarking<uint64_t>(100);
+//    testVectorMultiplication->buildBSIAttribute();
+//    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
 
     cout << "\n\nThank you";
     return 0;

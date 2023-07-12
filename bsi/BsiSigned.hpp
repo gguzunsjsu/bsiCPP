@@ -64,6 +64,7 @@ public:
     BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const override;
     BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *unbsi)const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
+    long dot(BsiAttribute<uword>* unbsi) const override;
     
     
     BsiAttribute<uword>* sum_Horizontal_Hybrid(const BsiAttribute<uword> *a) const;
@@ -1908,6 +1909,14 @@ void BsiSigned<uword>::multiplicationInPlace(BsiAttribute<uword> *a){
  */
 template <class uword>
 long BsiSigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const {
+    return 1;
+}
+
+/*
+ * dot perfom a = b dot c
+ */
+template <class uword>
+long BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
     return 1;
 }
 

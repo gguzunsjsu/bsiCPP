@@ -218,18 +218,22 @@ public:
         // Validate the build of the BSI attribute
         cout << "BSI Attribute building is correct ? " << validateBSIWithArray(array1, bsi2) << "\n";
         cout << "Let's try to do dot product\n";
+
         auto start = chrono::high_resolution_clock::now();
-        long result =  this->bsi_attribute->dotProduct(bsi2);
+        long resultFromVectors = vectorDotProduct(this->array, array1);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime for dot product for the BSI Attribute: " << duration.count() << endl;
-        cout << "Result: " << result << endl;
-        start = chrono::high_resolution_clock::now();
-        long resultFromVectors = vectorDotProduct(this->array, array1);
-        stop = chrono::high_resolution_clock::now();
-        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "\nTime for dot product for the vectors: " << duration.count() << endl;
         cout << "Result from vectors : " << resultFromVectors << endl;
+
+
+        start = chrono::high_resolution_clock::now();
+        long result =  this->bsi_attribute->dot(bsi2);
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime for dot product for the BSI Attribute: " << duration.count() << endl;
+        cout << "Result: " << result << endl;
+
         return result;
     }
     long vectorDotProduct(vector<long> vector_a, vector<long> vector_b) {
