@@ -40,32 +40,56 @@ public:
     //Member functions
     void buildBSIAttribute() {
 
+        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows1M_skew_card16/rows1M_skew2_card16.txt");
+        std::string line;
+        while (std::getline(inputFile, line)) {
+            std::stringstream ss(line);
+            std::string token;
 
-        cout << "Enter the number of elements in the array: ";
-        cin >> this->numberOfElementsInTheArray;
-        int randomChoice;
-        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. preset numbers \n 3. user input? ";
-        cin >> randomChoice;
-        if (randomChoice == 2) {
-            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
-                this->array.push_back((i+1)% this->range);
+            while (std::getline(ss, token, ',')) {
+                // Convert the token to an integer and add it to the respective array
+                if (!token.empty()) {
+                    int num = std::stoi(token);
+                    this->array.push_back(num);
+
+                    // Read the next token for the second array
+                    if (std::getline(ss, token, ',')) {
+                        int num2 = std::stoi(token);
+//                        array2.push_back(num2);
+                    }
+                }
             }
         }
-        else if (randomChoice == 3) {
-            long number;
-            cout << "\nEnter the numbers : \n";
-            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
-                cin >> number;
-                this->array.push_back(number % this->range);
-            }
-        }
-        else {
-            cout << "\nInitializing the array with random numbers\n";
-            //Fill in random numbers in the array        
-            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
-                this->array.push_back(std::rand() % this->range);
-            }
-        }
+//        std::cout << "Array 1: ";
+//        for (const auto& num : this->array) {
+//            std::cout << num << " " << std::endl;
+//        }
+//        std::cout << this->array.size() << std::endl;
+//        cout << "Enter the number of elements in the array: ";
+//        cin >> this->numberOfElementsInTheArray;
+//        int randomChoice;
+//        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. preset numbers \n 3. user input? ";
+//        cin >> randomChoice;
+//        if (randomChoice == 2) {
+//            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+//                this->array.push_back((i+1)% this->range);
+//            }
+//        }
+//        else if (randomChoice == 3) {
+//            long number;
+//            cout << "\nEnter the numbers : \n";
+//            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+//                cin >> number;
+//                this->array.push_back(number % this->range);
+//            }
+//        }
+//        else {
+//            cout << "\nInitializing the array with random numbers\n";
+//            //Fill in random numbers in the array
+//            for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+//                this->array.push_back(std::rand() % this->range);
+//            }
+//        }
         cout << "Enter the compression threshold: ";
         cin >> this->compressionThreshold;
         cout << "The number of elements in array: " << this->array.size() << "\n";
@@ -177,39 +201,60 @@ public:
     }
 
     void zipf(){
-        auto arrays = readFile();
-        std::vector<long> array1 = arrays.first;
-        std::vector<long> array2 = arrays.second;
+        vector<long> array2;
+        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100_skew1_card16.txt");
+        std::string line;
+        while (std::getline(inputFile, line)) {
+            std::stringstream ss(line);
+            std::string token;
 
-        cout << "Enter the compression threshold: ";
-        cin >> this->compressionThreshold;
-        cout << "The number of elements in array: " << array1.size() << "\n";
+            while (std::getline(ss, token, ',')) {
+                // Convert the token to an integer and add it to the respective array
+                if (!token.empty()) {
+                    int num = std::stoi(token);
+//                    array1.push_back(num);
 
-        auto start = chrono::high_resolution_clock::now();
-        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
-        auto stop = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl<<endl;
-        this->bsi_attribute->setPartitionID(0);
-        this->bsi_attribute->setFirstSliceFlag(true);
-        this->bsi_attribute->setLastSliceFlag(true);
+                    // Read the next token for the second array
+                    if (std::getline(ss, token, ',')) {
+                        int num2 = std::stoi(token);
+                        array2.push_back(num2);
+                    }
+                }
+            }
+        }
+//        auto arrays = readFile();
+//        this->array = arrays.first;
+//        std::vector<long> array2 = arrays.second;
+
+//        cout << "Enter the compression threshold: ";
+//        cin >> this->compressionThreshold;
+//        cout << "The number of elements in array: " << this->array.size() << "\n";
+
+//        auto start = chrono::high_resolution_clock::now();
+//        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+//        auto stop = chrono::high_resolution_clock::now();
+//        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+//        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl<<endl;
+//        this->bsi_attribute->setPartitionID(0);
+//        this->bsi_attribute->setFirstSliceFlag(true);
+//        this->bsi_attribute->setLastSliceFlag(true);
 
         BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array2, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
 
-        start = chrono::high_resolution_clock::now();
+        auto start = chrono::high_resolution_clock::now();
         BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplyBSI(bsi2);
-        stop = chrono::high_resolution_clock::now();
-        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "\nTime for multiplication of elements for the BSI Attribute: " << duration.count() << endl;
 
         //Try vector multiplication with C++
         vector<long> v;
         start = chrono::high_resolution_clock::now();
-        for (long i = 0; i < array1.size(); ++i) {
-            v.push_back(array1[i] * array2[i]);
+        for (long i = 0; i < this->array.size(); ++i) {
+            v.push_back(this->array[i] * array2[i]);
         }
         stop = chrono::high_resolution_clock::now();
         duration = chrono::duration_cast<chrono::microseconds>(stop - start);
@@ -218,7 +263,26 @@ public:
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Validated successfully vector multiplication" << endl;
     }
+    void zipf_multiplyByConstant() {
+        int multiplier;
+        cout << "\n\nEnter the number to multiply with ? ";
+        cin >> multiplier;
+        auto start = chrono::high_resolution_clock::now();
+        BsiAttribute<uint64_t>* result = this->bsi_attribute->multiplyByConstantNew(multiplier);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime for Multiplication By Constant for the BSI Attribute: " << duration.count() << endl;
+        vector<long> v;
+        start = chrono::high_resolution_clock::now();
+        for (long i = 0; i < this->array.size(); ++i) {
+            v.push_back(this->array[i] * multiplier);
+        }
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "Time to multiply by constant in the C++ standard vector: " << duration.count() << endl;
+        cout << "Multiplication by constant correct ? " << validateMultiplicationByAConstant(this->array, result, multiplier) <<"\n";
+
+    }
 
 };
-
 #endif

@@ -6,7 +6,7 @@
 #include <vector>
 
 std::pair<std::vector<long>, std::vector<long>>  readFile() {
-    std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows10k_skew_card16/rows10k_skew1_card16.txt");
+    std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100k_skew1_card16.txt");
     std::vector<long> array1;
     std::vector<long> array2;
 
