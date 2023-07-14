@@ -40,7 +40,7 @@ public:
     //Member functions
     void buildBSIAttribute() {
 
-        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows1M_skew_card16/rows1M_skew2_card16.txt");
+        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100_skew1_card16.txt");
         std::string line;
         while (std::getline(inputFile, line)) {
             std::stringstream ss(line);
@@ -200,7 +200,7 @@ public:
 
     }
 
-    void zipf(){
+    void zipf_multiplyBSI(){
         vector<long> array2;
         std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100_skew1_card16.txt");
         std::string line;
