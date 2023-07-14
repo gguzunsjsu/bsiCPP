@@ -54,8 +54,8 @@ int main() {
 
     testBSI<uint64_t>* testZIPF = new testBSI<uint64_t>();
     testZIPF->buildBSIAttribute();
-    testZIPF->zipf_multiplyByConstant();
-//    testZIPF->zipf_multiplyBSI();
+//    testZIPF->zipf_multiplyByConstant();
+    testZIPF->zipf_multiplyBSI();
 
     cout << "\n\nThank you";
     return 0;

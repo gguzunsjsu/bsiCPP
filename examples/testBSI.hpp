@@ -40,7 +40,7 @@ public:
     //Member functions
     void buildBSIAttribute() {
 
-        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100_skew1_card16.txt");
+        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100k_skew1_card16.txt");
         std::string line;
         while (std::getline(inputFile, line)) {
             std::stringstream ss(line);
@@ -202,7 +202,7 @@ public:
 
     void zipf_multiplyBSI(){
         vector<long> array2;
-        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100_skew1_card16.txt");
+        std::ifstream inputFile("/Users/akankshajoshi/Documents/RA/new/bsiCPP/examples/generated_data/rows_skew1_card16/rows100k_skew1_card16.txt");
         std::string line;
         while (std::getline(inputFile, line)) {
             std::stringstream ss(line);
@@ -222,42 +222,33 @@ public:
                 }
             }
         }
-//        auto arrays = readFile();
-//        this->array = arrays.first;
-//        std::vector<long> array2 = arrays.second;
-
-//        cout << "Enter the compression threshold: ";
-//        cin >> this->compressionThreshold;
-//        cout << "The number of elements in array: " << this->array.size() << "\n";
-
-//        auto start = chrono::high_resolution_clock::now();
-//        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
-//        auto stop = chrono::high_resolution_clock::now();
-//        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-//        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl<<endl;
-//        this->bsi_attribute->setPartitionID(0);
-//        this->bsi_attribute->setFirstSliceFlag(true);
-//        this->bsi_attribute->setLastSliceFlag(true);
 
         BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array2, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
 
-        auto start = chrono::high_resolution_clock::now();
-        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplyBSI(bsi2);
-        auto stop = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime for multiplication of elements for the BSI Attribute: " << duration.count() << endl;
+        long total = 0;
+        BsiAttribute<uint64_t>* bsi3;
+        for(int i =0; i<5;i++){
+            auto start = chrono::high_resolution_clock::now();
+            bsi3 = this->bsi_attribute->multiplyBSI(bsi2);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+//        cout<< "total time: "<<total<<endl;
+        double average = total/5;
+        cout << "\nTime for multiplication of elements for the BSI Attribute: " << average << endl;
 
         //Try vector multiplication with C++
         vector<long> v;
-        start = chrono::high_resolution_clock::now();
+        auto start = chrono::high_resolution_clock::now();
         for (long i = 0; i < this->array.size(); ++i) {
             v.push_back(this->array[i] * array2[i]);
         }
-        stop = chrono::high_resolution_clock::now();
-        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "Time to multiply vectors in the C++ standard vector: " << duration.count() << endl;
 
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
@@ -267,18 +258,24 @@ public:
         int multiplier;
         cout << "\n\nEnter the number to multiply with ? ";
         cin >> multiplier;
-        auto start = chrono::high_resolution_clock::now();
-        BsiAttribute<uint64_t>* result = this->bsi_attribute->multiplyByConstantNew(multiplier);
-        auto stop = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime for Multiplication By Constant for the BSI Attribute: " << duration.count() << endl;
+        long total = 0;
+        BsiAttribute<uint64_t> *result;
+        for(int i =0; i<5;i++) {
+            auto start = chrono::high_resolution_clock::now();
+            result = this->bsi_attribute->multiplyByConstantNew(multiplier);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+        double average = total/5;
+        cout << "\nTime for Multiplication By Constant for the BSI Attribute: " << average << endl;
         vector<long> v;
-        start = chrono::high_resolution_clock::now();
+        auto start = chrono::high_resolution_clock::now();
         for (long i = 0; i < this->array.size(); ++i) {
             v.push_back(this->array[i] * multiplier);
         }
-        stop = chrono::high_resolution_clock::now();
-        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "Time to multiply by constant in the C++ standard vector: " << duration.count() << endl;
         cout << "Multiplication by constant correct ? " << validateMultiplicationByAConstant(this->array, result, multiplier) <<"\n";
 
