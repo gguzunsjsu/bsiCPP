@@ -2080,7 +2080,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::peasantMultiply(BsiUnsigned &unbsi) con
 
 
 /*
- * Dot product of two BSIs. Builds the sum aggregator directly, without the resulting vector.
+ * Dot product of two BSIs. Builds the sum aggregator directly, without the resulting multiplication vector.
  */
 
 template <class uword>
@@ -2089,9 +2089,6 @@ long BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
 
     for(int j=0; j<unbsi->size; j++){
         for (int i = 0; i < this->size; i++) {
-            //HybridBitmap t = unbsi->bsi[j].And(this->bsi[i]);
-            //int count = t.numberOfOnes();
-            //res = res+count*(2<<(j+i));
             if(j==0 && i==0)
                 res = res + unbsi->bsi[j].And(this->bsi[i]).numberOfOnes();
             else

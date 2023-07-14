@@ -228,6 +228,13 @@ public:
 
 
         start = chrono::high_resolution_clock::now();
+        long resultbsi2 =  this->bsi_attribute->dotProduct(bsi2);
+        stop = chrono::high_resolution_clock::now();
+        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime for dot product via multiplication, horizontal split and no compression for the BSI Attribute: " << duration.count() << endl;
+        cout << "Result: " << resultbsi2 << endl;
+
+        start = chrono::high_resolution_clock::now();
         long result =  this->bsi_attribute->dot(bsi2);
         stop = chrono::high_resolution_clock::now();
         duration = chrono::duration_cast<chrono::microseconds>(stop - start);
