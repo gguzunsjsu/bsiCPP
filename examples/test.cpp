@@ -49,6 +49,7 @@ int main() {
     testVectorMultiplication->dotProductForTestingNew();
     //testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
 
+
 //    benchmarking<uint64_t>* testVectorMultiplication = new benchmarking<uint64_t>(100);
 //    testVectorMultiplication->buildBSIAttribute();
 //    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();

@@ -6,7 +6,7 @@ file(GLOB SOURCES
     "test.cpp"
     "testBSI.hpp"
 )
-add_executable(tests ${SOURCES} zipf.h)
+add_executable(tests ${SOURCES} zipf.h zipf2.h)
 add_executable(example example.cpp)
 
 target_link_libraries(example PUBLIC bsi)

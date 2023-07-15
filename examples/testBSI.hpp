@@ -7,7 +7,14 @@
 #include <iostream>
 #include <chrono>
 #include <numeric>
+#include <stdlib.h>
+#include <stdio.h>
 #include "zipf.h"
+
+//----- Constants -----------------------------------------------------------
+
+#define  FALSE          0       // Boolean false
+#define  TRUE           1       // Boolean true
 
 using namespace std;
 /*
@@ -246,6 +253,7 @@ public:
                 cout << "\nZIPF: choose a real number between 0 and 5 for the zipf skew: ";
                 cin >> s;
                 cout << "\nInitializing the array with random ZIPF SKEWED numbers\n";
+
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 zipf_distribution<> zipf(this->range, s);
@@ -262,7 +270,7 @@ public:
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
         // Validate the build of the BSI attribute
-        cout << "BSI Attribute building is correct ? " << validateBSIWithArray(array1, bsi2) << "\n";
+        //cout << "BSI Attribute building is correct ? " << validateBSIWithArray(array1, bsi2) << "\n";
         cout << "Let's try to do dot product\n";
 
         auto start = chrono::high_resolution_clock::now();
@@ -289,12 +297,15 @@ public:
 
         return result;
     }
+
     long vectorDotProduct(vector<long> vector_a, vector<long> vector_b) {
         long product = 0;
         for (int i = 0; i < this->numberOfElementsInTheArray; i++)
             product = product + vector_a[i] * vector_b[i];
         return product;
     }
+
+
     long dotProductForTesting()
     {
         vector<long> array1;
