@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <chrono>
-using namespace std;
 
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
@@ -42,7 +41,8 @@ int main() {
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->sumOfBSIVectorElements();
     */
-   
+
+
    
     testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(1000);
     testVectorMultiplication->buildBSIAttribute();

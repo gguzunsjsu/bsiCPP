@@ -7,6 +7,7 @@
 #include <iostream>
 #include <chrono>
 #include <numeric>
+#include "zipf.h"
 
 using namespace std;
 /*
@@ -23,6 +24,7 @@ public:
     BsiSigned<uword> signed_bsi;
     BsiAttribute<uword> *bsi_attribute;
     int numberOfElementsInTheArray;
+    int maxValue;
 
     // Constructors
 
@@ -42,6 +44,10 @@ public:
         cout << "Enter the number of elements in the array: ";
         cin >> this->numberOfElementsInTheArray;
         int randomChoice;
+        cout << "Enter the Max value: ";
+        cin >> this->maxValue;
+        this->range=this->maxValue;
+
         cout << "Do you want to initialize the array with \n 1. random numbers \n 2. preset numbers \n 3. user input? ";
         cin >> randomChoice;
         if (randomChoice == 2)
@@ -64,11 +70,35 @@ public:
         else
         {
             cout << "\nInitializing the array with random numbers\n";
-            // Fill in random numbers in the array
-            for (int i = 0; i < this->numberOfElementsInTheArray; i++)
-            {
-                this->array.push_back(std::rand() % this->range);
+            int distribution;
+            cout << "Choose your distribution \n 1. Uniform \n 2. Skewed zipf distribution ";
+            cin >> distribution;
+            if(distribution==1){
+                cout << "\nInitializing the array with random UNIFORM numbers\n";
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++)
+                {
+                    this->array.push_back(std::rand() % this->range);
+                }
             }
+            else{
+                double s =1.0;
+                cout << "\nZIPF: choose a real number between 0 and 5 for the zipf skew: ";
+                cin >> s;
+                cout << "\nInitializing the array with random ZIPF SKEWED numbers\n";
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                zipf_distribution<> zipf(this->range, s);
+
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++)
+                {
+                    this->array.push_back(zipf(gen)-1);
+                }
+
+            }
+
+            // Fill in random numbers in the array
+
+
         }
         cout << "Enter the compression threshold: ";
         cin >> this->compressionThreshold;
@@ -201,15 +231,31 @@ public:
                 array1.push_back(number % this->range);
             }
         }
-        else
-        {
+        else {
             cout << "\nInitializing the array with random numbers\n";
-            // Fill in random numbers in the array
-            for (int i = 0; i < this->numberOfElementsInTheArray; i++)
-            {
-                array1.push_back(std::rand() % this->range);
+            int distribution;
+            cout << "Choose your distribution \n 1. Uniform \n 2. Skewed zipf distribution ";
+            cin >> distribution;
+            if (distribution == 1) {
+                cout << "\nInitializing the array with random UNIFORM numbers\n";
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                    array1.push_back(std::rand() % this->range);
+                }
+            } else {
+                double s = 1.0;
+                cout << "\nZIPF: choose a real number between 0 and 5 for the zipf skew: ";
+                cin >> s;
+                cout << "\nInitializing the array with random ZIPF SKEWED numbers\n";
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                zipf_distribution<> zipf(this->range, s);
+
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                    array1.push_back(zipf(gen) - 1);
+                }
             }
         }
+        cout << "\nDONE!\n";
         // Build the BSI attribute for this
         BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);

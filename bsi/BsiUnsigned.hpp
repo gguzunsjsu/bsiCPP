@@ -2075,10 +2075,6 @@ BsiAttribute<uword>* BsiUnsigned<uword>::peasantMultiply(BsiUnsigned &unbsi) con
 
 
 
-
-
-
-
 /*
  * Dot product of two BSIs. Builds the sum aggregator directly, without the resulting multiplication vector.
  */
@@ -2097,6 +2093,25 @@ long BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
     }
     return res;
 };
+
+//template <class uword>
+//long BsiUnsigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const{
+//    //long res =0;
+//    long res = (this->bsi[0].And(unbsi->bsi[0])).numberOfOnes();
+//    for (int i=1; i<unbsi->size; i++){
+//        res = res + (this->bsi[0].And(unbsi->bsi[i])).numberOfOnes()*(2<<(i-1));
+//    }
+//    for (int i=1; i<this->size; i++){
+//        res = res + (this->bsi[i].And(unbsi->bsi[0])).numberOfOnes()*(2<<(i-1));
+//    }
+//
+//    for (int i=1; i<this->size; i++){
+//        for (int j=1; j<unbsi->size; j++){
+//            res = res + (this->bsi[i].And(unbsi->bsi[j])).numberOfOnes()*(2<<(j+i-1));
+//        }
+//    }
+//    return res;
+//};
 
 
 
