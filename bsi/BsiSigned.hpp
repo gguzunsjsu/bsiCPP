@@ -23,7 +23,6 @@ public:
     /*
      Declaring Override Functions
      */
-    HybridBitmap<uword> topKMaxTwosComplement(int k);
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMaxNeg(int k);
     HybridBitmap<uword> topKMin(int k) override;
@@ -47,6 +46,10 @@ public:
     /*
      Declaring Other Functions
      */
+    HybridBitmap<uword> topKMaxTwosComplement(int k);
+    HybridBitmap<uword> topKMaxTemporary(int k);
+    std::vector<long> positionsToVector(HybridBitmap<uword> positions);
+
     void addSliceWithOffset(HybridBitmap<uword> slice, int sliceOffset);
     BsiAttribute<uword>* SUMunsigned(BsiAttribute<uword>* a)const;
     BsiAttribute<uword> * SUMsigned(BsiAttribute<uword>* a)const;
@@ -202,7 +205,6 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxTwosComplement(int k){
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
-    //return topKMaxTwosComplement(k);
     HybridBitmap<uword> topK, SE, X;
     //HybridBitmap<uword> G;
     topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
@@ -210,67 +212,72 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
 
     int n = 0;
-    // debugging
-    std::vector<long> topkmax_vector;
-    std::vector<long> e_vector;
-
     for (int i = this->size - 1; i >= 0; i--) {
-
-        // debugging
-        for (int j=0; j<topK.sizeInBits(); j++) {
-            if (topK.get(j)) {
-                topkmax_vector.push_back(this->getValue(j));
-            }
-        }
-        sort(topkmax_vector.begin(),topkmax_vector.end(),std::less<long>());
-        for (int j=0; j<E.sizeInBits(); j++) {
-            if (E.get(j)) {
-                e_vector.push_back(this->getValue(j));
-            }
-        }
-        sort(e_vector.begin(),e_vector.end(),std::less<long>());
-        //
-
         SE = E.And(this->bsi[i]);
         X = topK.Or(SE);
+        //x_vector = positionsToVector(X);
         n = X.numberOfOnes();
         if (n > k) {
             E = SE;
         }
         if (n < k) {
             topK = X;
-            E = E.andNot(this->bsi[i]).andNot(this->sign);
+            E = E.andNot(this->bsi[i]);
         }
         if (n == k) {
             E = SE;
             break;
         }
-        topkmax_vector.clear();
-        e_vector.clear();
     }
     topK = topK.Or(E);
     n = topK.numberOfOnes();
-
-    // debugging
-    for (int j=0; j<topK.sizeInBits(); j++) {
-        if (topK.get(j)) {
-            topkmax_vector.push_back(this->getValue(j));
-        }
-    }
-    sort(topkmax_vector.begin(),topkmax_vector.end(),std::less<long>());
-    for (int j=0; j<E.sizeInBits(); j++) {
-        if (E.get(j)) {
-            e_vector.push_back(this->getValue(j));
-        }
-    }
-    sort(e_vector.begin(),e_vector.end(),std::less<long>());
-    //
 
     if(n<k){
         topK = topK.Or(topKMaxNeg(k-n));
     }
     return topK;
 };
+/**
+ * Return the array of values that a positions HybridBitmap refers to
+*/
+template <class uword>
+std::vector<long> BsiSigned<uword>::positionsToVector(HybridBitmap<uword> positions) {
+    std::vector<long> res;
+    if (positions.isVerbatim()) {
+        for (int j=0; j<positions.sizeInBits(); j++) {
+            if (positions.get(j)) {
+                res.push_back(this->getValue(j));
+            }
+        }
+    } else {
+        int m = 0;
+        HybridBitmapRawIterator<uword> j = positions.raw_iterator();
+        while (j.hasNext()) {
+            BufferedRunningLengthWord<uword> &rlw = j.next();
+            if (rlw.getRunningBit()) {
+                for (int l=0; l<rlw.getRunningLength(); l++) {
+                    res.push_back(this->getValue(m));
+                    m++;
+                }
+            }
+            for (size_t l=0; l<rlw.getNumberOfLiteralWords(); l++) {
+                uword word = rlw.getLiteralWordAt(l);
+                int count = 0;
+                while (word > 0) {
+                    if (word&1) {
+                        res.push_back(this->getValue(m));
+                    }
+                    word = word >> 1;
+                    m++;
+                    count ++;
+                }
+                m += 64-count;
+            }
+        }
+    }
+    sort(res.begin(),res.end(),std::less<long>());
+    return res;
+}
 
 /*
  * topKMin used for find k min values from bsi and return positions bitmap.
@@ -330,7 +337,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMinPos(int k){
         }
         else if (n < k) {
             topK = X;
-            E = E.And(this->bsi[i]).andNot(this->sign);
+            E = E.And(this->bsi[i]);
         }
         else {
             E = SNOT;
