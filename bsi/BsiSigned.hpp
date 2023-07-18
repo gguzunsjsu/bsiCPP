@@ -299,7 +299,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
         }
         if (n < k) {
             topK = X;
-            E = (E.andNot(this->bsi[i])).And(this->sign);
+            E = (E.andNot(this->bsi[i]));//.And(this->sign);
         }
         if (n == k) {
             E = SE;
@@ -374,7 +374,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
         }
         else if (n < k) {
             topK = X;
-            E = E.And(this->bsi[i]).And(this->sign);
+            E = E.And(this->bsi[i]);//.And(this->sign);
         }
         else {
             E = SNOT;

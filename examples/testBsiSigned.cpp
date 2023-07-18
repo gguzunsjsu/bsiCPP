@@ -12,7 +12,7 @@ void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array);
 void processAndRun(string filename);
 int main() {
     string filenames[] = {"rows1k_skew1_card16_neg",
-                          "rows1M_skew1_card16_neg",
+                          //"rows1M_skew1_card16_neg",
                           "rows10k_skew0.5_card16_neg",
                           "rows10k_skew0_card16_neg",
                           "rows10k_skew1.5_card16_neg",
