@@ -288,11 +288,18 @@ public:
         cout << "\nTime for dot product via multiplication, horizontal split and no compression for the BSI Attribute: " << duration.count() << endl;
         cout << "Result: " << resultbsi2 << endl;
 
-        start = chrono::high_resolution_clock::now();
-        long result =  this->bsi_attribute->dot(bsi2);
-        stop = chrono::high_resolution_clock::now();
-        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime for dot product for the BSI Attribute: " << duration.count() << endl;
+        // Take average time of 5 runs
+        long total = 0;
+        long result;
+        for(int i =0; i<5;i++) {
+            auto start = chrono::high_resolution_clock::now();
+            result = this->bsi_attribute->dot(bsi2);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+        double average = total/5;
+        cout << "\nAverage Time for dot product for the BSI Attribute: " << average << endl;
         cout << "Result: " << result << endl;
 
         return result;
