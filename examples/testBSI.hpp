@@ -4,6 +4,7 @@
 #include "BsiSigned.hpp"
 #include "BsiAttribute.hpp"
 #include "testBSIAttributeBuilding.h"
+#include <fstream>
 #include <iostream>
 #include <chrono>
 #include <numeric>
