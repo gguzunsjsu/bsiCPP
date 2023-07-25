@@ -470,9 +470,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             signBits[i / (bits)] |= (one << offset); // seting sign bit
             countOnes++;
         }
-        if(nums[i] != 0){
-            existBits[i / (bits)] |= (one << offset); // seting one at position
-        }else{
+        existBits[i / (bits)] |= (one << offset); // seting one at position
+        if(nums[i] == 0){
             CountZeros++;
         }
         if(nums[i] > max){
@@ -588,9 +587,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
             signBits[i / (bits)] |= (one << offset); // setting sign bit
             countOnes++;
         }
-        if(nums[i] != 0){
-            existBits[i / (bits)] |= (one << offset); // setting one at position
-        }else{
+        existBits[i / (bits)] |= (one << offset); // seting one at position
+        if(nums[i] == 0){
             CountZeros++;
         }
         slices = std::max(slices,sliceLengthFinder(nums[i])); //Finding the maximum length of the bit representation of the numbers

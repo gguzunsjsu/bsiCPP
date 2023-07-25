@@ -12,7 +12,7 @@ void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array);
 void processAndRun(string filename);
 int main() {
     string filenames[] = {"rows1k_skew1_card16_neg",
-                          //"rows1M_skew1_card16_neg",
+                          "rows1M_skew1_card16_neg",
                           "rows10k_skew0.5_card16_neg",
                           "rows10k_skew0_card16_neg",
                           "rows10k_skew1.5_card16_neg",
@@ -22,10 +22,11 @@ int main() {
                           "rows10k_skew2_card16_neg",
                           "rows100_skew1_card16_neg",
                           "rows100k_skew1_card16_neg"};
-    //ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/rows10k_skew0_card16_neg");
+    //rows10k_skew0_card16_neg;
     for (string filename: filenames) {
         processAndRun(filename);
     }
+    //processAndRun("rows10k_skew2_card16_neg");
 
     return 0;
 }
@@ -33,14 +34,17 @@ void processAndRun(string filename) {
     cout << filename << "\n";
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    int k = 5000;
+    int k = 5;
     vector<long> array;
 
     //--- read file ---
     string line;
     ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/"+filename);
     while (getline(file, line)) {
-        array.push_back(stol(line.substr(0,line.size()-1)));
+        long el = stol(line.substr(0, line.size() - 1));
+        if (el != 0) {
+            array.push_back(el);
+        }
     }
     file.close();
     if (array.size() < k) {
@@ -53,8 +57,12 @@ void processAndRun(string filename) {
     //--- test runtimes ---
     //runQuickSort(array);
     sort(array.begin(),array.end());
+    /*for (int el: array) {
+        cout << el << " ";
+    }
+    cout << "\n";*/
     runTopKMax(k,bsi,array);
-    runTopKMin(k,bsi,array);
+    //runTopKMin(k,bsi,array);
 
     array.clear();
 }
@@ -136,12 +144,13 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
             cout << j << "\n";
             break;
         }
+        //cout << topkmax_vector[j] << " " << array[array.size()-j-1] << "\n";
         j++;
     }
     if (correct && topkmax_vector.size() >= k) {
-        cout << "\n" << "correct" << "\n";
+        cout << "correct" << "\n\n";
     } else {
-        cout << "\n" << "incorrect" << "\n";
+        cout << "incorrect" << "\n\n";
     }
 }
 void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
@@ -172,13 +181,14 @@ void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
     while (i<topkmin_vector.size()) {
         if (topkmin_vector[i] != array[i]) {
             correct = false;
+            cout << i << "\n";
             break;
         }
         i++;
     }
     if (correct && topkmin_vector.size() >= k) {
-        cout << "\n" << "correct" << "\n";
+        cout << "correct" << "\n\n";
     } else {
-        cout << "\n" << "incorrect" << "\n";
+        cout << "incorrect" << "\n\n";
     }
 }

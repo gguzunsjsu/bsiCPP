@@ -3876,8 +3876,8 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
 template <class uword>
 void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap &container) const {
     int j = 0;
-    int i=0;
-    container.density=density*a.density;
+    int i = 0;
+    container.density = density*a.density;
     
     if (verbatim) { // this is verbatim
         container.buffer.reserve(a.bufferSize());
@@ -3926,16 +3926,16 @@ void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap 
                 }
             } else {
                 container.addStreamOfEmptyWords(false, rlw.getRunningLength());
-                i+=rlw.getRunningLength();
+                i += rlw.getRunningLength();
             }
 
-            for( j=0; j<rlw.getNumberOfLiteralWords(); j++){
+            for(j=0; j<rlw.getNumberOfLiteralWords(); j++){
 
                 container.add(a.buffer[i] & buffer[lastrlw + j + 1]);
                 //container.setbits+=Long.bitCount(newdata);
                 i++;
             }
-            lastrlw +=rlw.getNumberOfLiteralWords()+1;
+            lastrlw += rlw.getNumberOfLiteralWords()+1;
             if(lastrlw >= bufferSize()){
                 break;
             }

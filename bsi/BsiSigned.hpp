@@ -210,13 +210,21 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
     //topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
     HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
-
+    /*std::cout << "\n";
+    for (int i=0; i<this->rows; i++) {
+        if (this->getValue(i) == 0){
+            std::cout << this->sign.get(i) << " " << this->existenceBitmap.get(i) << "\n";
+        }
+    }*/
     int n = 0;
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
         X = topK.Or(SE);
-        //x_vector = positionsToVector(X);
         n = X.numberOfOnes();
+        /*std::vector<long> topK_vector = positionsToVector(topK);
+        std::vector<long> e_vector = positionsToVector(E);
+        std::vector<long> se_vector = positionsToVector(SE);
+        std::vector<long> x_vector = positionsToVector(X);*/
         if (n > k) {
             E = SE;
         }
@@ -228,10 +236,18 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
             E = SE;
             break;
         }
+        /*topK_vector.clear();
+        e_vector.clear();
+        se_vector.clear();
+        x_vector.clear();*/
     }
     topK = topK.Or(E);
     n = topK.numberOfOnes();
 
+    /*std::vector<long> topK_vector = positionsToVector(topK);
+    std::vector<long> e_vector = positionsToVector(E);
+    std::vector<long> se_vector = positionsToVector(SE);
+    std::vector<long> x_vector = positionsToVector(X);*/
     if(n<k){
         topK = topK.Or(topKMaxNeg(k-n));
     }
@@ -299,7 +315,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
         }
         if (n < k) {
             topK = X;
-            E = (E.andNot(this->bsi[i]));//.And(this->sign);
+            E = E.andNot(this->bsi[i]);
         }
         if (n == k) {
             E = SE;
@@ -374,7 +390,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
         }
         else if (n < k) {
             topK = X;
-            E = E.And(this->bsi[i]);//.And(this->sign);
+            E = E.And(this->bsi[i]);
         }
         else {
             E = SNOT;
