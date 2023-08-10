@@ -3575,13 +3575,13 @@ void HybridBitmap<uword>::XorInPlace(const HybridBitmap &a ) {
         //if(container.density>orThreshold){
         if(std::max(density, a.density)>orThreshold){
             //inPlaceLogicalxorDecompress(a);
-            std::cout<<"inPlaceLogicalxorDecompress";
+//            std::cout<<"inPlaceLogicalxorDecompress";
         }else{
             //container.buffer.reserve(bufferSize() + a.bufferSize());
             //inPlaceLogicalxor(a);
             this->reset();
             logicalxor(a, *this);
-            std::cout<<"inPlaceLogicalxor";
+//            std::cout<<"inPlaceLogicalxor";
 
 
         }
