@@ -380,7 +380,6 @@ public:
             int ntz = 0;
             long data = 0;
             int pos = 0;
-            std::cout<< sizeInWords() << "\n";
             for (int i = 0; i < this->sizeInWords(); i++) {
                 data = buffer[i];
                 while (data != 0) {

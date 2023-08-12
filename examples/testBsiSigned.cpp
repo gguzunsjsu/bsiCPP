@@ -25,10 +25,10 @@ int main() {
     //rows10k_skew0_card16_neg
     //rows10k_skew2_card16_neg
     //rows1M_skew1_card16_neg
-    /*for (string filename: filenames) {
+    for (string filename: filenames) {
         processAndRun(filename);
-    }*/
-    processAndRun("signed_testcase");
+    }
+    //processAndRun("signed_testcase");
 
     return 0;
 }
@@ -36,7 +36,7 @@ void processAndRun(string filename) {
     cout << filename << "\n";
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    int k = 5;
+    int k = 50000;
     vector<long> array;
 
     //--- read file ---
@@ -61,8 +61,8 @@ void processAndRun(string filename) {
         cout << el << " ";
     }
     cout << "\n";*/
-    runTopKMax(k,bsi,array);
-    //runTopKMin(k,bsi,array);
+    //runTopKMax(k,bsi,array);
+    runTopKMin(k,bsi,array);
 
     array.clear();
 }
@@ -121,27 +121,27 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time += duration.count();
     }
     cout << "Time for topKMax: " << time/5 << "\n";
-    cout << "topkmax number of ones: " << topkmax.numberOfOnes() << "\n";
-    vector<long> topkmax_vector;
+    vector<long> topkmax_vector = bsi->positionsToVector(topkmax);
     //cout << "topkmax number of ones: " << topkmax.numberOfOnes() << "\n";
-    for (int i=0; i<topkmax.sizeInBits(); i++) {
+    /*for (int i=0; i<topkmax.sizeInBits(); i++) {
         if (topkmax.get(i)) {
             topkmax_vector.push_back(bsi->getValue(i));
             //cout << bsi->getValue(i) << " ";
         }
-    }
+    }*/
 
     cout << "array length: " << topkmax_vector.size() << "\n";
     sort(topkmax_vector.begin(),topkmax_vector.end(),greater<long>());
+    sort(array.begin(),array.end(),greater<long>());
 
     //--- verify accuracy ---
     int j = 0;
     bool correct = true;
     while (j<topkmax_vector.size()) {
-        //cout << topkmax_vector[j] << " " << array[array.size()-j-1] << "\n";
-        if (topkmax_vector[j] != array[array.size()-j-1]) {
+        //cout << topkmax_vector[j] << " " << array[j] << "\n";
+        if (topkmax_vector[j] != array[j]) {
             correct = false;
-            cout << j << "\n";
+            //cout << j << "\n";
             //break;
         }
         j++;

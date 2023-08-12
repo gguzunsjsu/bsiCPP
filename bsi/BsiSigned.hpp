@@ -244,10 +244,10 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     topK = topK.Or(E);
     n = topK.numberOfOnes();
 
-    std::vector<int> topK_vector = topK.positionsToVector();
-    std::vector<int> e_vector = E.positionsToVector();
-    std::vector<int> se_vector = SE.positionsToVector();
-    std::vector<int> x_vector = X.positionsToVector();
+    //std::vector<int> topK_vector = topK.positionsToVector();
+    //std::vector<int> e_vector = E.positionsToVector();
+    //std::vector<int> se_vector = SE.positionsToVector();
+    //std::vector<int> x_vector = X.positionsToVector();
     if(n<k){
         topK = topK.Or(topKMaxNeg(k-n));
     }
