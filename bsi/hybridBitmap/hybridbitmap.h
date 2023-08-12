@@ -328,6 +328,143 @@ public:
             }
         }
     }
+    /**
+    * return number of trailing zeros in binary representation using binary search
+    */
+    int numberOfTrailingZeros(long v) {
+        int c;
+        if (v & 0x1) {
+            return 0;
+        }
+        else
+        {
+            c = 1;
+            if ((v & 0xffffffff) == 0)
+            {
+                v >>= 32;
+                c += 32;
+            }
+            if ((v & 0xffff) == 0)
+            {
+                v >>= 16;
+                c += 16;
+            }
+            if ((v & 0xff) == 0)
+            {
+                v >>= 8;
+                c += 8;
+            }
+            if ((v & 0xf) == 0)
+            {
+                v >>= 4;
+                c += 4;
+            }
+            if ((v & 0x3) == 0)
+            {
+                v >>= 2;
+                c += 2;
+            }
+            c -= v & 0x1;
+            return c;
+        }
+    }
+    /**
+   * get the locations of the true values as one vector. (may use more memory
+   * than iterator())
+   *
+   * @return the positions
+   */
+    std::vector<int> positionsToVector() {
+        std::vector<int> res;
+        if (this->verbatim) {
+            int ntz = 0;
+            long data = 0;
+            int pos = 0;
+            std::cout<< sizeInWords() << "\n";
+            for (int i = 0; i < this->sizeInWords(); i++) {
+                data = buffer[i];
+                while (data != 0) {
+                    ntz = numberOfTrailingZeros(data);
+                    data ^= (1l << ntz);
+                    res.push_back(ntz+pos);
+                }
+                pos += 64;
+            }
+        } else {
+
+            HybridBitmapRawIterator<uword> i = raw_iterator();
+            int pos = 0;
+            int ntz;
+            while (i.hasNext()) {
+                BufferedRunningLengthWord<uword> localrlw = i.next();
+                if (localrlw.getRunningBit()) {
+                    for (int j = 0; j < localrlw.getRunningLength(); ++j) {
+                        for (int c = 0; c < wordinbits; ++c)
+                            //  v.add(new Integer(pos++));
+                            res.push_back(++pos);
+                    }
+                } else {
+                    pos += wordinbits * localrlw.getRunningLength();
+                }
+                for (int j = 0; j < localrlw.getNumberOfLiteralWords(); ++j) {
+                    long data = localrlw.getLiteralWordAt(j);
+
+                    while (data != 0) {
+                        ntz = numberOfTrailingZeros(data);
+                        data ^= (1l << ntz);
+                        res.push_back(ntz+pos);
+                        // v.add(new Integer(1+ntz + pos));
+                    }
+
+                    pos += wordinbits;
+                }
+            }
+        }
+        return res;
+    }
+
+    /**
+     * returns the positions that are set to 1 in hybridbitmap
+     */
+    std::vector<int> positionsToVectorOptimized() {
+        std::vector<int> res;
+        if (this->verbatim) {
+            int pos = 0;
+            long data = 0;
+            for (int i=0; i<this->sizeInWords(); i++) {
+                data = buffer[i];
+                while (data != 0) {
+                    res.push_back(__builtin_popcountll(~(data^(-data)))+pos);
+                    data = data&(data-1);
+                }
+                pos += 64;
+            }
+        } else {
+            HybridBitmapRawIterator<uword> i = raw_iterator();
+            int pos = 0;
+            while (i.hasNext()) {
+                BufferedRunningLengthWord<uword> localrlw = i.next();
+                if (localrlw.getRunningBit()) {
+                    for (int j = 0; j < localrlw.getRunningLength(); ++j) {
+                        for (int c = 0; c < wordinbits; ++c)
+                            // v.add(new Integer(pos++));
+                            res.push_back(++pos);
+                    }
+                } else {
+                    pos += wordinbits * localrlw.getRunningLength();
+                }
+                for (int j = 0; j < localrlw.getNumberOfLiteralWords(); ++j) {
+                    long data = localrlw.getLiteralWordAt(j);
+                    while (data != 0) {
+                        //v.add(Long.bitCount(~(data^(-data)))+pos);
+                        res.push_back(__builtin_popcountll(~(data^(-data)))+pos);
+                        data = data&(data-1);
+                    }
+                }
+            }
+        }
+        return res;
+    }
 
     /**
      * computes the logical and with another bitmap
@@ -376,9 +513,7 @@ public:
 
     void shiftRow(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap);
     void shiftRowWithCarry(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap, HybridBitmap &carry);
-    
-    
-    
+
     
     void AndInPlace(const HybridBitmap &a );
     void andVerbatimCompressInPlace(const HybridBitmap &a );
@@ -905,7 +1040,7 @@ public:
     /*
      * Return the size in words of this bitmap
      */
-    inline size_t sizeInWords() const { return sizeInBits()/sizeof(uword); }
+    inline size_t sizeInWords() const { return sizeInBytes()/sizeof(uword); }
 
     /**
      * Return the size of the buffer in bytes. This

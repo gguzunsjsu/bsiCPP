@@ -72,6 +72,8 @@ public:
     void setExistenceBitmap(const HybridBitmap<uword> &exBitmap);
 
     void setTwosFlag(bool flag);
+
+    //std::vector<long> positionsToVector(HybridBitmap<uword> positions_representation);
     /*
     * ---------------------- Declarations for getters and setters end---------------------------
     */
@@ -329,6 +331,19 @@ template <class uword>
 void BsiAttribute<uword>::setTwosFlag(bool flag){
     twosComplement=flag;
 }
+
+/**
+ * Return the array of values that a positions HybridBitmap refers to
+*/
+/*template <class uword>
+std::vector<long> BsiAttribute<uword>::positionsToVector(HybridBitmap<uword> positions_representation) {
+    std::vector<int> positions = positions_representation.positionsToVector();
+    std::vector<long> res;
+    for (int position: positions) {
+        res.push_back(this->getValue(position));
+    }
+    return res;
+}*/
 
 /**
  * builds a BSI attribute with all rows identical given one number (row)

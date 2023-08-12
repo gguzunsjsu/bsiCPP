@@ -22,11 +22,13 @@ int main() {
                           "rows10k_skew2_card16_neg",
                           "rows100_skew1_card16_neg",
                           "rows100k_skew1_card16_neg"};
-    //rows10k_skew0_card16_neg;
-    for (string filename: filenames) {
+    //rows10k_skew0_card16_neg
+    //rows10k_skew2_card16_neg
+    //rows1M_skew1_card16_neg
+    /*for (string filename: filenames) {
         processAndRun(filename);
-    }
-    //processAndRun("rows10k_skew2_card16_neg");
+    }*/
+    processAndRun("signed_testcase");
 
     return 0;
 }
@@ -42,9 +44,7 @@ void processAndRun(string filename) {
     ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/"+filename);
     while (getline(file, line)) {
         long el = stol(line.substr(0, line.size() - 1));
-        if (el != 0) {
-            array.push_back(el);
-        }
+        array.push_back(el);
     }
     file.close();
     if (array.size() < k) {
@@ -56,7 +56,7 @@ void processAndRun(string filename) {
 
     //--- test runtimes ---
     //runQuickSort(array);
-    sort(array.begin(),array.end());
+    //sort(array.begin(),array.end());
     /*for (int el: array) {
         cout << el << " ";
     }
@@ -113,7 +113,7 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
     //--- topKMax ---
     HybridBitmap<uint64_t> topkmax;
     double time = 0;
-    for (int i=0; i<5; i++) {
+    for (int i=0; i<1; i++) {
         auto start = chrono::high_resolution_clock::now();
         topkmax = bsi->topKMax(k);
         auto stop = chrono::high_resolution_clock::now();
@@ -121,7 +121,7 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time += duration.count();
     }
     cout << "Time for topKMax: " << time/5 << "\n";
-
+    cout << "topkmax number of ones: " << topkmax.numberOfOnes() << "\n";
     vector<long> topkmax_vector;
     //cout << "topkmax number of ones: " << topkmax.numberOfOnes() << "\n";
     for (int i=0; i<topkmax.sizeInBits(); i++) {
@@ -142,9 +142,8 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         if (topkmax_vector[j] != array[array.size()-j-1]) {
             correct = false;
             cout << j << "\n";
-            break;
+            //break;
         }
-        //cout << topkmax_vector[j] << " " << array[array.size()-j-1] << "\n";
         j++;
     }
     if (correct && topkmax_vector.size() >= k) {

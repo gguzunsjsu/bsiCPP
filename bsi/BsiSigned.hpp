@@ -244,56 +244,15 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
     topK = topK.Or(E);
     n = topK.numberOfOnes();
 
-    /*std::vector<long> topK_vector = positionsToVector(topK);
-    std::vector<long> e_vector = positionsToVector(E);
-    std::vector<long> se_vector = positionsToVector(SE);
-    std::vector<long> x_vector = positionsToVector(X);*/
+    std::vector<int> topK_vector = topK.positionsToVector();
+    std::vector<int> e_vector = E.positionsToVector();
+    std::vector<int> se_vector = SE.positionsToVector();
+    std::vector<int> x_vector = X.positionsToVector();
     if(n<k){
         topK = topK.Or(topKMaxNeg(k-n));
     }
     return topK;
 };
-/**
- * Return the array of values that a positions HybridBitmap refers to
-*/
-template <class uword>
-std::vector<long> BsiSigned<uword>::positionsToVector(HybridBitmap<uword> positions) {
-    std::vector<long> res;
-    if (positions.isVerbatim()) {
-        for (int j=0; j<positions.sizeInBits(); j++) {
-            if (positions.get(j)) {
-                res.push_back(this->getValue(j));
-            }
-        }
-    } else {
-        int m = 0;
-        HybridBitmapRawIterator<uword> j = positions.raw_iterator();
-        while (j.hasNext()) {
-            BufferedRunningLengthWord<uword> &rlw = j.next();
-            if (rlw.getRunningBit()) {
-                for (int l=0; l<rlw.getRunningLength(); l++) {
-                    res.push_back(this->getValue(m));
-                    m++;
-                }
-            }
-            for (size_t l=0; l<rlw.getNumberOfLiteralWords(); l++) {
-                uword word = rlw.getLiteralWordAt(l);
-                int count = 0;
-                while (word > 0) {
-                    if (word&1) {
-                        res.push_back(this->getValue(m));
-                    }
-                    word = word >> 1;
-                    m++;
-                    count ++;
-                }
-                m += 64-count;
-            }
-        }
-    }
-    sort(res.begin(),res.end(),std::less<long>());
-    return res;
-}
 
 /*
  * topKMin used for find k min values from bsi and return positions bitmap.
