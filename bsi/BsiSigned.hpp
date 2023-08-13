@@ -286,6 +286,10 @@ HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
     if(n<k){
         topK = topK.Or(topKMinPos(k-n));
     }
+    /*std::vector<int> topK_vector = topK.positionsToVector();
+    std::vector<int> e_vector = E.positionsToVector();
+    std::vector<int> se_vector = SE.positionsToVector();
+    std::vector<int> x_vector = X.positionsToVector();*/
     return topK;
 };
 
