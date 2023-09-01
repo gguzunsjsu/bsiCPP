@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include "BsiAttribute.hpp"
 #include <cmath>
+#include <cstdint>
+
 
 template <class uword>
 class BsiUnsigned : public BsiAttribute<uword>{
@@ -40,7 +42,7 @@ public:
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
     BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
-    long dot(BsiAttribute<uword>* unbsi) const override;
+    long long int dot(BsiAttribute<uword>* unbsi) const override;
     bool append(long value) override;
     
     /*
@@ -2080,8 +2082,8 @@ BsiAttribute<uword>* BsiUnsigned<uword>::peasantMultiply(BsiUnsigned &unbsi) con
  */
 
 template <class uword>
-long BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
-    long res =0;
+long long int BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
+    long long int res =0;
 
     for(int j=0; j<unbsi->size; j++){
         for (int i = 0; i < this->size; i++) {
