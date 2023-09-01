@@ -111,7 +111,8 @@ public:
         cin >> this->compressionThreshold;
         cout << "The number of elements in array: " << this->array.size() << "\n";
         auto start = chrono::high_resolution_clock::now();
-        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+//        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVectorSigned(this->array, this->compressionThreshold);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "\nTime to build the BSI Attribute: " << duration.count() << endl
@@ -265,7 +266,8 @@ public:
         }
         cout << "\nDONE!\n";
         // Build the BSI attribute for this
-        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+//        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVectorSigned(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -281,12 +283,12 @@ public:
         cout << "Result from vectors : " << resultFromVectors << endl;
 
 
-        start = chrono::high_resolution_clock::now();
-        long resultbsi2 =  this->bsi_attribute->dotProduct(bsi2);
-        stop = chrono::high_resolution_clock::now();
-        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime for dot product via multiplication, horizontal split and no compression for the BSI Attribute: " << duration.count() << endl;
-        cout << "Result: " << resultbsi2 << endl;
+//        start = chrono::high_resolution_clock::now();
+//        long resultbsi2 =  this->bsi_attribute->dotProduct(bsi2);
+//        stop = chrono::high_resolution_clock::now();
+//        duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+//        cout << "\nTime for dot product via multiplication, horizontal split and no compression for the BSI Attribute: " << duration.count() << endl;
+//        cout << "Result: " << resultbsi2 << endl;
 
         // Take average time of 5 runs
         long total = 0;
