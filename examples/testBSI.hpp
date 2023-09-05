@@ -226,7 +226,7 @@ public:
         int randomChoice;
         cout << "We are in the method to test dot product of two vectors represented as bsis\n";
         cout << "Enter the numbers in the new vector: \n";
-        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers ? ";
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers ? \n 3. preset numbers";
         cin >> randomChoice;
 
         if (randomChoice == 2)
@@ -236,6 +236,12 @@ public:
             {
                 cin >> number;
                 array1.push_back(number % this->range);
+            }
+        }
+        else if (randomChoice == 3) {
+            //Fill the arrays with numbers 1 to the size
+            for (int i = 1; i <= numberOfElementsInTheArray; i++) {
+                array1.push_back(i % this->range);
             }
         }
         else {
