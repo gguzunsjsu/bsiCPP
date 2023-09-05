@@ -64,7 +64,7 @@ public:
     BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const override;
     BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *unbsi)const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
-    long dot(BsiAttribute<uword>* unbsi) const override;
+    long long int dot(BsiAttribute<uword>* unbsi) const override;
     
     
     BsiAttribute<uword>* sum_Horizontal_Hybrid(const BsiAttribute<uword> *a) const;
@@ -1916,9 +1916,32 @@ long BsiSigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const {
  * dot perfom a = b dot c
  */
 template <class uword>
-long BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
-    return 1;
-}
+long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
+    long long int res =0;
+
+    for(int j=0; j<unbsi->size; j++){
+        for (int i = 0; i < this->size; i++) {
+            if(j==0 && i==0) {  //first iteration
+                res = res - unbsi->bsi[j].And(this->bsi[i]).And(this->sign).numberOfOnes();
+                res = res + unbsi->bsi[j].And(this->bsi[i]).andNot(this->sign).numberOfOnes();
+//                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(this->sign).And(unbsi->sign).numberOfOnes();
+//                    res = res + unbsi->bsi[j].And(this->bsi[i]).andNot(this->sign).andNot(unbsi->sign).numberOfOnes();
+//                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(this->sign).andNot(unbsi->sign).numberOfOnes();
+//                    res = res - unbsi->bsi[j].And(this->bsi[i]).andNot(this->sign).And(unbsi->sign).numberOfOnes();
+            }
+            else {
+                res = res - unbsi->bsi[j].And(this->bsi[i]).And(this->sign).numberOfOnes() * (2 << (j + i - 1));
+                res = res + unbsi->bsi[j].And(this->bsi[i]).andNot(this->sign).numberOfOnes() * (2 << (j + i - 1));
+//                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(this->sign).And(unbsi->sign).numberOfOnes() * (2 << (j + i - 1));
+//                    res = res + unbsi->bsi[j].And(this->bsi[i]).andNot(this->sign).andNot(unbsi->sign).numberOfOnes() * (2 << (j + i - 1));
+//                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(this->sign).andNot(unbsi->sign).numberOfOnes() * (2 << (j + i - 1));
+//                    res = res - unbsi->bsi[j].And(this->bsi[i]).andNot(this->sign).And(unbsi->sign).numberOfOnes() * (2 << (j + i - 1));
+            }
+            }
+        }
+    return res;
+    }
+
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyBSI(BsiAttribute<uword> *a) const{

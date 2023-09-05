@@ -3938,6 +3938,10 @@ void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitm
             }
             lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
             if(lastrlwa >= a.bufferSize()){
+                for (; i < buffer.size(); i++) {
+                    container.add(buffer[i]);
+                    i++;
+                }
                 break;
             }
             rlwa = (a.buffer[lastrlwa]);
