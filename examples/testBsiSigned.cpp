@@ -22,13 +22,10 @@ int main() {
                           "rows10k_skew2_card16_neg",
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
-    //rows10k_skew0_card16_neg
-    //rows10k_skew2_card16_neg
-    //rows1M_skew1_card16_neg
+
     for (string filename: filenames) {
         processAndRun(filename);
     }
-    //processAndRun("signed_testcase");
 
     return 0;
 }
@@ -36,7 +33,7 @@ void processAndRun(string filename) {
     cout << filename << "\n";
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    int k = 5000;
+    int k = 500000;
     vector<long> array;
 
     //--- read file ---
@@ -56,13 +53,8 @@ void processAndRun(string filename) {
 
     //--- test runtimes ---
     //runQuickSort(array);
-    //sort(array.begin(),array.end());
-    /*for (int el: array) {
-        cout << el << " ";
-    }
-    cout << "\n";*/
     runTopKMax(k,bsi,array);
-    //runTopKMin(k,bsi,array);
+    runTopKMin(k,bsi,array);
 
     array.clear();
 }
@@ -98,9 +90,6 @@ int compare(const void* a, const void* b)
     return 0;
 }
 
-vector<long> presetArray() {
-    return vector<long>{};
-}
 vector<long> randomizeArray(int len, int range) {
     vector<long> array;
     srand(time(0));
@@ -109,11 +98,12 @@ vector<long> randomizeArray(int len, int range) {
     }
     return array;
 }
+
 void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
     //--- topKMax ---
     HybridBitmap<uint64_t> topkmax;
     double time = 0;
-    for (int i=0; i<1; i++) {
+    for (int i=0; i<5; i++) {
         auto start = chrono::high_resolution_clock::now();
         topkmax = bsi->topKMax(k);
         auto stop = chrono::high_resolution_clock::now();
@@ -121,25 +111,43 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time += duration.count();
     }
     cout << "Time for topKMax: " << time/5 << "\n";
-    vector<long> topkmax_vector = bsi->positionsToVector(topkmax);
-    //cout << "topkmax number of ones: " << topkmax.numberOfOnes() << "\n";
-    /*for (int i=0; i<topkmax.sizeInBits(); i++) {
-        if (topkmax.get(i)) {
-            topkmax_vector.push_back(bsi->getValue(i));
-            //cout << bsi->getValue(i) << " ";
-        }
-    }*/
+    vector<int> topkmax_positions;
+    double time2 = 0;
+    for (int i=0; i<5; i++) {
+        auto start = chrono::high_resolution_clock::now();
+        topkmax_positions = topkmax.positionsToVector();
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        time2 += duration.count();
+        //topkmax_positions.clear();
+    }
+    cout << "Time for hybridbitmap positionstovector: " << time2/5 << "\n";
+
+    vector<long> topkmax_vector;
+    double time3 = 0;
+    for (int i=0; i<5; i++) {
+        auto start = chrono::high_resolution_clock::now();
+        topkmax_vector = bsi->positionsToVector(topkmax_positions);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        time3 += duration.count();
+        //topkmax_vector.clear();
+    }
+    cout << "Time for bsiattribute positionstovector: " << time3/5 << "\n";
 
     cout << "array length: " << topkmax_vector.size() << "\n";
     sort(topkmax_vector.begin(),topkmax_vector.end(),greater<long>());
-    sort(array.begin(),array.end(),greater<long>());
+
+    vector<long> sorted_array;
+    for (int el: array) {sorted_array.push_back(el);}
+    sort(sorted_array.begin(),sorted_array.end(),greater<long>());
 
     //--- verify accuracy ---
     int j = 0;
     bool correct = true;
     while (j<topkmax_vector.size()) {
         //cout << topkmax_vector[j] << " " << array[j] << "\n";
-        if (topkmax_vector[j] != array[j]) {
+        if (topkmax_vector[j] != sorted_array[j]) {
             correct = false;
             //cout << j << "\n";
             break;
@@ -164,13 +172,9 @@ void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time += duration1.count();
     }
     cout << "Time for topKMin: " << time/5 << "\n";
-    vector<long> topkmin_vector = bsi->positionsToVector(topkmin);
-    /*for (int i=0; i<topkmin.sizeInBits(); i++) {
-        if (topkmin.get(i)) {
-            topkmin_vector.push_back(bsi->getValue(i));
-            //cout << bsi->getValue(i) << " ";
-        }
-    }*/
+    vector<int> topkmin_positions = topkmin.positionsToVector();
+    vector<long> topkmin_vector = bsi->positionsToVector(topkmin_positions);
+
     cout << "array length: " << topkmin_vector.size() << "\n";
     sort(array.begin(),array.end(),less<long>());
     sort(topkmin_vector.begin(),topkmin_vector.end(),less<long>());

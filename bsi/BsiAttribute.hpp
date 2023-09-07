@@ -73,7 +73,7 @@ public:
 
     void setTwosFlag(bool flag);
 
-    std::vector<long> positionsToVector(HybridBitmap<uword> positions_representation);
+    std::vector<long> positionsToVector(std::vector<int> positions);
     /*
     * ---------------------- Declarations for getters and setters end---------------------------
     */
@@ -336,8 +336,7 @@ void BsiAttribute<uword>::setTwosFlag(bool flag){
  * Return the array of values that a positions HybridBitmap refers to
 */
 template <class uword>
-std::vector<long> BsiAttribute<uword>::positionsToVector(HybridBitmap<uword> positions_representation) {
-    std::vector<int> positions = positions_representation.positionsToVector();
+std::vector<long> BsiAttribute<uword>::positionsToVector(std::vector<int> positions) {
     std::vector<long> res;
     for (int position: positions) {
         res.push_back(this->getValue(position));

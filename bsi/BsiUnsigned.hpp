@@ -559,10 +559,10 @@ HybridBitmap<uword> BsiUnsigned<uword>::rangeBetween(long lowerBound, long upper
     HybridBitmap<uword> B_eq1;
     HybridBitmap<uword> B_eq2;
     HybridBitmap<uword> B_f = this->existenceBitmap;
-    B_gt.setSizeInBits(this->bsi[0].sizeInBits());
-    B_lt.setSizeInBits(this->bsi[0].sizeInBits());
-    B_eq1.setSizeInBits(this->bsi[0].sizeInBits()); B_eq1.density=1;
-    B_eq2.setSizeInBits(this->bsi[0].sizeInBits()); B_eq2.density=1;
+    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_lt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_eq1.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq1.density=1;
+    B_eq2.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq2.density=1;
     
     for(int i=this->getNumberOfSlices()-1; i>=0; i--){
         if((upperBound & (1<<i)) !=0){

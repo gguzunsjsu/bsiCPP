@@ -32,6 +32,7 @@ public:
     BsiAttribute<uword>* convertToTwos(int bits) override;
     long getValue(int pos) override;
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
+    HybridBitmap<uword> rangeBetweenAbsValue(HybridBitmap<uword> B_f, long lowerBound, long upperBound);
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
     BsiUnsigned<uword>* absScale(double range) override;
@@ -527,15 +528,59 @@ long BsiSigned<uword>::getValue(int i){
 };
 
 /*
- * Provides values between range in position bitmap: - not implemented yet
+ * Provides values between range in position bitmap
  */
 
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::rangeBetween(long lowerBound, long upperBound){
-    //this needs to be implemented
-    HybridBitmap<uword> h;
-    std::cout<<"lower bound is: "<< lowerBound <<"  uper bound is: "<< upperBound << std::endl;
-    return h;
+    if (lowerBound > upperBound) {
+        long temp = lowerBound;
+        lowerBound = upperBound;
+        upperBound = temp;
+    }
+    HybridBitmap<uword> B_f_pos, B_f_neg;
+    if (upperBound < 0) {
+        B_f_neg = rangeBetweenAbsValue(this->existenceBitmap.And(this->sign),-upperBound,-lowerBound);
+    } else if (lowerBound >= 0) {
+        B_f_pos = rangeBetweenAbsValue(this->existenceBitmap,lowerBound,upperBound);
+    } else {
+        B_f_pos = rangeBetweenAbsValue(this->existenceBitmap,std::max(0l,lowerBound),upperBound);
+        B_f_neg = rangeBetweenAbsValue(this->existenceBitmap.And(this->sign),std::max(0l,-upperBound),-lowerBound);
+    }
+
+    return B_f_pos.Or(B_f_neg);
+};
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::rangeBetweenAbsValue(HybridBitmap<uword> B_f, long lowerBound, long upperBound){
+    HybridBitmap<uword> B_gt;
+    HybridBitmap<uword> B_lt;
+    HybridBitmap<uword> B_eq1;
+    HybridBitmap<uword> B_eq2;
+    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_lt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_eq1.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq1.density=1;
+    B_eq2.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq2.density=1;
+
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--){
+        if (upperBound & (1<<i)){
+            HybridBitmap<uword> ans = B_eq1.andNot(this->bsi[i]);
+            //the i'th bit is set in upperBound
+            B_lt = B_lt.Or(ans);
+            B_eq1 = B_eq1.And(this->bsi[i]);
+        } else{ //The i'th bit is not set in uppperBound
+            B_eq1 = B_eq1.andNot(this->bsi[i]);
+        }
+        if (lowerBound & (1<<i)){ // the I'th bit is set in lowerBound
+            B_eq2 = B_eq2.And(this->bsi[i]);
+        } else{ //the i'th bit is not set in lowerBouond
+            B_gt = B_gt.logicalor(B_eq2.And(this->bsi[i]));
+            B_eq2 = B_eq2.andNot(this->bsi[i]);
+        }
+    }
+    B_lt = B_lt.Or(B_eq1);
+    B_gt = B_gt.Or(B_eq2);
+    B_f = B_lt.And(B_gt.And(B_f));
+    return B_f;
 };
 
 /*
