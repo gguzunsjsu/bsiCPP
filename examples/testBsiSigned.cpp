@@ -10,6 +10,7 @@ void runQuickSort(vector<long> array);
 void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array);
 void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array);
 void processAndRun(string filename);
+void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi, vector<long> array);
 int main() {
     string filenames[] = {"rows100_skew1_card16_neg",
                           "rows1k_skew1_card16_neg",
@@ -23,9 +24,11 @@ int main() {
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
 
-    for (string filename: filenames) {
+    /*for (string filename: filenames) {
         processAndRun(filename);
-    }
+    }*/
+    //processAndRun("rows10k_skew1_card4_neg");
+    processAndRun("signed_testcase");
 
     return 0;
 }
@@ -33,7 +36,9 @@ void processAndRun(string filename) {
     cout << filename << "\n";
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    int k = 500000;
+    //int k = 500000;
+    int range_begin = -100;
+    int range_end = 100;
     vector<long> array;
 
     //--- read file ---
@@ -44,19 +49,82 @@ void processAndRun(string filename) {
         array.push_back(el);
     }
     file.close();
-    if (array.size() < k) {
+    /*if (array.size() < k) {
         return;
-    }
+    }*/
 
     //--- buildBSI ---
     bsi = build.buildBsiAttributeFromVectorSigned(array,0.5);
 
     //--- test runtimes ---
     //runQuickSort(array);
-    runTopKMax(k,bsi,array);
-    runTopKMin(k,bsi,array);
+    //runTopKMax(k,bsi,array);
+    //runTopKMin(k,bsi,array);
+    runRangeBetween(range_begin,range_end,bsi,array);
 
     array.clear();
+}
+void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi, vector<long> array) {
+    //--- topKMax ---
+    HybridBitmap<uint64_t> range;
+    double time = 0;
+    for (int i=0; i<5; i++) {
+        auto start = chrono::high_resolution_clock::now();
+        range = bsi->rangeBetween(range_begin,range_end);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        time += duration.count();
+    }
+    cout << "Time for bsi rangeBetween: " << time/5 << "\n";
+
+    vector<long> ans;
+    double time1 = 0;
+    for (int i=0; i<5; i++) {
+        ans.clear();
+        auto start = chrono::high_resolution_clock::now();
+        for (int i=0; i<array.size(); i++) {
+            int num = array[i];
+            if (num <= range_end && num >= range_begin) {
+                ans.push_back(i);
+            }
+        }
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        time1 += duration.count();
+    }
+    cout << "Time for linear rangeBetween: " << time1/5 << "\n";
+    // check for accuracy
+    cout << ans.size() << " " << range.numberOfOnes() << "\n";
+    if (ans.size() != range.numberOfOnes()) {
+        cout << "incorrect\n";
+        vector<int> range_pos = range.positionsToVector();
+        sort(range_pos.begin(),range_pos.end(),less<long>());
+        sort(ans.begin(),ans.end(),less<long>());
+        bool res = true;
+        for (int i=0; i<range_pos.size(); i++) {
+            if (ans[i] != range_pos[i]) {
+                res = false;
+                cout << ans[i] << " " << range_pos[i] << "\n";
+                //break;
+            }
+        }
+    } else {
+        vector<int> range_pos = range.positionsToVector();
+        sort(range_pos.begin(),range_pos.end(),greater<long>());
+        sort(ans.begin(),ans.end(),greater<long>());
+        bool res = true;
+        for (int i=0; i<ans.size(); i++) {
+            if (ans[i] != range_pos[i]) {
+                res = false;
+                break;
+            }
+        }
+        if (res) {
+            cout << "correct\n";
+        } else {
+            cout << "incorrect\n";
+        }
+    }
 }
 void runQuickSort(vector<long> array) {
     //--- quick sort ---

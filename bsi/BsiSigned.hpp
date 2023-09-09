@@ -539,13 +539,13 @@ HybridBitmap<uword> BsiSigned<uword>::rangeBetween(long lowerBound, long upperBo
         upperBound = temp;
     }
     HybridBitmap<uword> B_f_pos, B_f_neg;
-    if (upperBound < 0) {
+    if (upperBound <= 0) {
         B_f_neg = rangeBetweenAbsValue(this->existenceBitmap.And(this->sign),-upperBound,-lowerBound);
     } else if (lowerBound >= 0) {
-        B_f_pos = rangeBetweenAbsValue(this->existenceBitmap,lowerBound,upperBound);
+        B_f_pos = rangeBetweenAbsValue(this->existenceBitmap.andNot(this->sign),lowerBound,upperBound);
     } else {
-        B_f_pos = rangeBetweenAbsValue(this->existenceBitmap,std::max(0l,lowerBound),upperBound);
-        B_f_neg = rangeBetweenAbsValue(this->existenceBitmap.And(this->sign),std::max(0l,-upperBound),-lowerBound);
+        B_f_pos = rangeBetweenAbsValue(this->existenceBitmap.andNot(this->sign),0,upperBound);
+        B_f_neg = rangeBetweenAbsValue(this->existenceBitmap.And(this->sign),0,-lowerBound);
     }
 
     return B_f_pos.Or(B_f_neg);
