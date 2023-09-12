@@ -110,12 +110,25 @@ public:
         cout << "Enter the compression threshold: ";
         cin >> this->compressionThreshold;
         cout << "The number of elements in array: " << this->array.size() << "\n";
-        auto start = chrono::high_resolution_clock::now();
+        //Take average of 5 runs
+        long total = 0;
+        for (int i = 0; i < 5; i++) {
+            auto start = chrono::high_resolution_clock::now();
+            this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVectorSigned(this->array, this->compressionThreshold);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+        double average = total / 5;
+        /*
+        * auto start = chrono::high_resolution_clock::now();
 //        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
         this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVectorSigned(this->array, this->compressionThreshold);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl
+        */
+        
+        cout << "\nTime to build the BSI Attribute: " << average << endl
              << endl;
         this->bsi_attribute->setPartitionID(0);
         this->bsi_attribute->setFirstSliceFlag(true);
@@ -227,7 +240,7 @@ public:
         int randomChoice;
         cout << "We are in the method to test dot product of two vectors represented as bsis\n";
         cout << "Enter the numbers in the new vector: \n";
-        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers ? \n 3. preset numbers";
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers  \n 3. preset numbers ? ";
         cin >> randomChoice;
 
         if (randomChoice == 2)
@@ -280,13 +293,15 @@ public:
         // Validate the build of the BSI attribute
         //cout << "BSI Attribute building is correct ? " << validateBSIWithArray(array1, bsi2) << "\n";
         cout << "Let's try to do dot product\n";
-
-        auto start = chrono::high_resolution_clock::now();
+        /*
+        * auto start = chrono::high_resolution_clock::now();
         long resultFromVectors = vectorDotProduct(this->array, array1);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "\nTime for dot product for the vectors: " << duration.count() << endl;
         cout << "Result from vectors : " << resultFromVectors << endl;
+        */
+        
 
 
 //        start = chrono::high_resolution_clock::now();
@@ -297,6 +312,7 @@ public:
 //        cout << "Result: " << resultbsi2 << endl;
 
         // Take average time of 5 runs
+        //BSI Operation
         long total = 0;
         long result;
         for(int i =0; i<5;i++) {
@@ -309,6 +325,21 @@ public:
         double average = total/5;
         cout << "\nAverage Time for dot product for the BSI Attribute: " << average << endl;
         cout << "Result: " << result << endl;
+        //Vector operation
+        total = 0;
+        long resultFromVectors;
+        for (int i = 0; i < 5; i++) {
+            auto start = chrono::high_resolution_clock::now();
+            resultFromVectors = vectorDotProduct(this->array, array1);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+        average = total / 5;
+        cout << "\nTime for dot product for the vectors: " << average << endl;
+        cout << "Result from vectors : " << resultFromVectors << endl;
+
+
 
         return result;
     }

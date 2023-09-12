@@ -586,7 +586,18 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     }
 
     BsiAttribute* res;
-    if (min < 0) {
+    //Let's try to always build a BsiSigned Vector
+    res = new BsiSigned<uword>(slices + 1);
+    res->sign.reset();
+    res->sign.verbatim = true;
+    for (typename std::vector<uword>::iterator it = signBits.begin(); it != signBits.end(); it++) {
+        res->sign.addVerbatim(*it, numberOfElements);
+    }
+    res->sign.setSizeInBits(numberOfElements);
+    res->sign.density = countOnes / (double)numberOfElements;
+    res->sign.density = countOnes / (double)numberOfElements;
+    /*
+    * if (min < 0) {
         res = new BsiSigned<uword>(slices+1);
         res->sign.reset();
         res->sign.verbatim = true;
@@ -599,6 +610,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     } else {
         res = new BsiUnsigned<uword>(slices+1);
     }
+    */
+    
 
     double existBitDensity = (CountZeros/(double)nums.size()); // to decide whether to compress or not
     double existCompressRatio = 1-pow((1-existBitDensity), (2*bits))-pow(existBitDensity, (2*bits));

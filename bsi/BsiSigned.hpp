@@ -1918,17 +1918,19 @@ long BsiSigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const {
 template <class uword>
 long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
     long long int res =0;
-    HybridBitmap<uword> signProduct;
-    signProduct = this->sign.Xor(unbsi->sign);
+    HybridBitmap<uword> signNegative;
+    signNegative = this->sign.Xor(unbsi->sign);
+    HybridBitmap<uword> signPositive;
+    signPositive = signNegative.Not();
     for(int j=0; j<unbsi->size; j++){
         for (int i = 0; i < this->size; i++) {
             if(j==0 && i==0) {  //first iteration
-                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(signProduct).numberOfOnes();
-                    res = res + unbsi->bsi[j].And(this->bsi[i]).andNot(signProduct).numberOfOnes();
+                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes();
+                    res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes();
             }
             else {
-                res = res - unbsi->bsi[j].And(this->bsi[i]).And(signProduct).numberOfOnes() * (2 << (j + i - 1));
-                res = res + unbsi->bsi[j].And(this->bsi[i]).andNot(signProduct).numberOfOnes() * (2 << (j + i - 1));
+                res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes() * (2 << (j + i - 1));
+                res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes() * (2 << (j + i - 1));
             }
             }
         }
