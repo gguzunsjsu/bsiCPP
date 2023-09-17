@@ -561,6 +561,10 @@ HybridBitmap<uword> BsiSigned<uword>::rangeBetweenAbsValue(HybridBitmap<uword> B
     B_eq1.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq1.density=1;
     B_eq2.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq2.density=1;
 
+    if (upperBound > ((1 << this->getNumberOfSlices()) - 1)) {
+        return B_f;
+    }
+
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
         if (upperBound & (1<<i)){
             HybridBitmap<uword> ans = B_eq1.andNot(this->bsi[i]);
