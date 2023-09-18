@@ -24,11 +24,11 @@ int main() {
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
 
-    /*for (string filename: filenames) {
+    for (string filename: filenames) {
         processAndRun(filename);
-    }*/
+    }
     //processAndRun("rows10k_skew1_card4_neg");
-    processAndRun("signed_testcase");
+    //processAndRun("signed_testcase");
 
     return 0;
 }
@@ -79,13 +79,14 @@ void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi
 
     vector<long> ans;
     double time1 = 0;
+    cout << "size of array " << array.size() << "\n";
     for (int i=0; i<5; i++) {
         ans.clear();
         auto start = chrono::high_resolution_clock::now();
-        for (int i=0; i<array.size(); i++) {
-            int num = array[i];
+        for (int j=0; j<array.size(); j++) {
+            int num = array[j];
             if (num <= range_end && num >= range_begin) {
-                ans.push_back(i);
+                ans.push_back(j);
             }
         }
         auto stop = chrono::high_resolution_clock::now();
@@ -93,11 +94,11 @@ void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi
         time1 += duration.count();
     }
     cout << "Time for linear rangeBetween: " << time1/5 << "\n";
+
     // check for accuracy
-    cout << ans.size() << " " << range.numberOfOnes() << "\n";
     if (ans.size() != range.numberOfOnes()) {
         cout << "incorrect\n";
-        vector<int> range_pos = range.positionsToVector();
+        /*vector<int> range_pos = range.positionsToVector();
         sort(range_pos.begin(),range_pos.end(),less<long>());
         sort(ans.begin(),ans.end(),less<long>());
         bool res = true;
@@ -107,7 +108,7 @@ void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi
                 cout << ans[i] << " " << range_pos[i] << "\n";
                 //break;
             }
-        }
+        }*/
     } else {
         vector<int> range_pos = range.positionsToVector();
         sort(range_pos.begin(),range_pos.end(),greater<long>());
