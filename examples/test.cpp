@@ -45,7 +45,8 @@ int main() {
 
    
     testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(1000);
-    testVectorMultiplication->buildBSIAttribute();
+//    testVectorMultiplication->buildBSIAttribute();
+    testVectorMultiplication->buildBSIAttributefromTensor();
     testVectorMultiplication->dotProductForTestingNew();
     //testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
 

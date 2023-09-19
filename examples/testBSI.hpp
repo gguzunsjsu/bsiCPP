@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "zipf.h"
+#include <torch/torch.h>
 
 //----- Constants -----------------------------------------------------------
 
@@ -32,6 +33,7 @@ public:
     BsiAttribute<uword> *bsi_attribute;
     int numberOfElementsInTheArray;
     int maxValue;
+    torch::Tensor tensor;
 
     // Constructors
 
@@ -115,12 +117,90 @@ public:
         this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVectorSigned(this->array, this->compressionThreshold);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl
-             << endl;
+        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl;
         this->bsi_attribute->setPartitionID(0);
         this->bsi_attribute->setFirstSliceFlag(true);
         this->bsi_attribute->setLastSliceFlag(true);
     }
+
+    // Member functions
+    void buildBSIAttributefromTensor()
+    {
+        cout << "Enter the number of elements in the array: ";
+        cin >> this->numberOfElementsInTheArray;
+
+        cout << "Enter the Max value: ";
+        cin >> this->maxValue;
+        range = maxValue;
+
+        int randomChoice;
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. preset numbers \n 3. user input? ";
+        cin >> randomChoice;
+
+        if (randomChoice == 2) {
+            std::vector<long> presetValues;
+            for (int i = 0; i < numberOfElementsInTheArray; i++) {
+                presetValues.push_back((i + 1) % range);
+            }
+            // Create a PyTorch tensor from the vector
+            this->tensor = torch::from_blob(presetValues.data(), {numberOfElementsInTheArray}, torch::kLong);
+        }
+        else if (randomChoice == 3) {
+            vector<long> userValues;
+            long number;
+            cout << "\nEnter the numbers : \n";
+            for (int i = 0; i < numberOfElementsInTheArray; i++) {
+                cin >> number;
+                userValues.push_back(number % range);
+            }
+            // Create a PyTorch tensor from the vector
+            this->tensor = torch::from_blob(userValues.data(), {numberOfElementsInTheArray}, torch::kLong);
+        }
+        else {
+            cout << "\nInitializing the tensor with random numbers\n";
+            int distribution;
+            cout << "Choose your distribution \n 1. Uniform \n 2. Skewed zipf distribution ";
+            cin >> distribution;
+            if (distribution == 1) {
+                cout << "\nInitializing the tensor with random UNIFORM numbers\n";
+                vector<long> randomValues;
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                    randomValues.push_back(rand() % range);
+                }
+                // Create a PyTorch tensor from the vector
+                this->tensor = torch::from_blob(randomValues.data(), {numberOfElementsInTheArray}, torch::kLong);
+            }
+            else {
+                double s = 1.0;
+                cout << "\nZIPF: choose a real number between 0 and 5 for the zipf skew: ";
+                cin >> s;
+                cout << "\nInitializing the tensor with random ZIPF SKEWED numbers\n";
+                random_device rd;
+                mt19937 gen(rd());
+                vector<long> zipfValues;
+                zipf_distribution<> zipf(range, s);
+
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                    zipfValues.push_back(zipf(gen) - 1);
+                }
+                // Create a PyTorch tensor from the vector
+                tensor = torch::from_blob(zipfValues.data(), {this->numberOfElementsInTheArray}, torch::kLong);
+            }
+        }
+
+        cout << "Enter the compression threshold: ";
+        cin >> this->compressionThreshold;
+        cout << "The number of elements in array: " << this->numberOfElementsInTheArray<< "\n";
+        auto start = chrono::high_resolution_clock::now();
+        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromTensor(this->tensor, this->compressionThreshold);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "\nTime to build the BSI Attribute: " << duration.count() << endl;
+        this->bsi_attribute->setPartitionID(0);
+        this->bsi_attribute->setFirstSliceFlag(true);
+        this->bsi_attribute->setLastSliceFlag(true);
+    }
+
     void multiplyByConstant()
     {
         int multiplier;
