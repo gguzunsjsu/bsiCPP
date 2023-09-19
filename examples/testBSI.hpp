@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "zipf.h"
+#include <random>
+// Initialize the random number generator
+std::mt19937 gen(std::random_device{}());
 
 //----- Constants -----------------------------------------------------------
 
@@ -17,6 +20,7 @@
 #define  TRUE           1       // Boolean true
 
 using namespace std;
+
 /*
  * this test class is for testing various operations on BSI
  * Each instance of the class has a range of elements it can hold
@@ -42,6 +46,17 @@ public:
     testBSI(int range)
     {
         this->range = range;
+    }
+
+    // Function to generate positive or negative numbers
+    int generatePositiveOrNegative(int value) {
+        // Generate a random boolean (true or false)
+        std::uniform_int_distribution<> coinFlip(0, 1);
+        bool isPositive = coinFlip(gen);
+
+        // If isPositive is true, return the value as is (positive)
+        // If isPositive is false, negate the value (make it negative)
+        return isPositive ? value : -value;
     }
 
     // Member functions
@@ -98,7 +113,7 @@ public:
 
                 for (int i = 0; i < this->numberOfElementsInTheArray; i++)
                 {
-                    this->array.push_back(zipf(gen)-1);
+                    this->array.push_back(generatePositiveOrNegative(zipf(gen)-1));
                 }
 
             }
@@ -279,7 +294,7 @@ public:
                 zipf_distribution<> zipf(this->range, s);
 
                 for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
-                    array1.push_back(zipf(gen) - 1);
+                    array1.push_back(generatePositiveOrNegative(zipf(gen) - 1));
                 }
             }
         }
