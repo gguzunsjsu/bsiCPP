@@ -1,5 +1,7 @@
 project(test)
 include_directories(include)
+set(CMAKE_PREFIX_PATH '/Users/akankshajoshi/Downloads/libtorch')
+find_package(Torch REQUIRED)
 file(GLOB SOURCES
     "testBSIAttributeBuilding.h"
     "testBSIAttributeBuilding.cpp"
