@@ -3575,13 +3575,13 @@ void HybridBitmap<uword>::XorInPlace(const HybridBitmap &a ) {
         //if(container.density>orThreshold){
         if(std::max(density, a.density)>orThreshold){
             //inPlaceLogicalxorDecompress(a);
-            std::cout<<"inPlaceLogicalxorDecompress";
+//            std::cout<<"inPlaceLogicalxorDecompress";
         }else{
             //container.buffer.reserve(bufferSize() + a.bufferSize());
             //inPlaceLogicalxor(a);
             this->reset();
             logicalxor(a, *this);
-            std::cout<<"inPlaceLogicalxor";
+//            std::cout<<"inPlaceLogicalxor";
 
 
         }
@@ -3938,6 +3938,10 @@ void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitm
             }
             lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
             if(lastrlwa >= a.bufferSize()){
+                for (; i < buffer.size(); i++) {
+                    container.add(buffer[i]);
+                    i++;
+                }
                 break;
             }
             rlwa = (a.buffer[lastrlwa]);

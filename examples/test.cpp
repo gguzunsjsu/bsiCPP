@@ -1,11 +1,10 @@
 
 #include "testBSIAttributeBuilding.h"
 #include "testBSI.hpp"
-#include "benchmarking.h"
+//#include "benchmarking.h"
 
 #include <iostream>
 #include <chrono>
-using namespace std;
 
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
@@ -42,11 +41,14 @@ int main() {
     testVectorMultiplication->buildBSIAttribute();
     testVectorMultiplication->sumOfBSIVectorElements();
     */
+
+
    
-   
-    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(100);
+    testBSI<uint64_t>* testVectorMultiplication = new testBSI<uint64_t>(1000);
     testVectorMultiplication->buildBSIAttribute();
-    testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
+    testVectorMultiplication->dotProductForTestingNew();
+    //testVectorMultiplication->vectorMultiplicationOfBSIWithUserInput();
+
 
 //    benchmarking<uint64_t>* testVectorMultiplication = new benchmarking<uint64_t>(100);
 //    testVectorMultiplication->buildBSIAttribute();
