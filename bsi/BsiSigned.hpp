@@ -63,6 +63,8 @@ public:
     BsiAttribute<uword>* multiplication_Horizontal(const BsiAttribute<uword> *a) const;
     BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const override;
     BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *unbsi)const override;
+    long dotProduct(BsiAttribute<uword>* unbsi) const override;
+    long long int dot(BsiAttribute<uword>* unbsi) const override;
     
     
     BsiAttribute<uword>* sum_Horizontal_Hybrid(const BsiAttribute<uword> *a) const;
@@ -1905,6 +1907,35 @@ void BsiSigned<uword>::multiplicationInPlace(BsiAttribute<uword> *a){
 /*
  * multiplicationInPlace perfom a = b * c using modified booth's algorithm
  */
+template <class uword>
+long BsiSigned<uword>::dotProduct(BsiAttribute<uword>* unbsi) const {
+    return 1;
+}
+
+/*
+ * dot perfom a = b dot c
+ */
+template <class uword>
+long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
+    long long int res =0;
+    HybridBitmap<uword> signNegative;
+    signNegative = this->sign.Xor(unbsi->sign);
+    HybridBitmap<uword> signPositive;
+    signPositive = signNegative.Not();
+    for(int j=0; j<unbsi->size; j++){
+        for (int i = 0; i < this->size; i++) {
+            if(j==0 && i==0) {  //first iteration
+                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes();
+                    res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes();
+            }
+            else {
+                res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes() * (2 << (j + i - 1));
+                res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes() * (2 << (j + i - 1));
+            }
+            }
+        }
+    return res;
+    }
 
 
 template <class uword>

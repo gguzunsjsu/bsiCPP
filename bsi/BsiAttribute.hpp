@@ -99,6 +99,8 @@ public:
     virtual BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *a) const=0;
+    virtual long dotProduct(BsiAttribute<uword>* a) const = 0;
+    virtual long long int dot(BsiAttribute<uword>* a) const = 0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
 
     virtual BsiAttribute<uword>* negate()=0;
@@ -111,6 +113,7 @@ public:
     BsiAttribute* buildBsiAttributeFromArray(std::vector<uword> &array, int attRows, double compressThreshold);
     BsiAttribute* buildBsiAttributeFromArray(uword array[], long max, long min, long firstRowID, double compressThreshold);
     BsiAttribute<uword>* buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold)const;
+    BsiAttribute<uword>* buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold)const;
     BsiAttribute<uword>* buildCompressedBsiFromVector(std::vector<long> nums, double compressThreshold) const;
     BsiAttribute<uword> *
     buildBsiVector(std::vector<long> decimalVector, int vectorLength, long min, long max, long firstRowID,
@@ -542,6 +545,138 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     return res;
 };
 
+/*
+ * Check if the array has any signed numbers to know whether to build BsiSigned or BsiUnsigned
+ * */
+
+template <class uword>
+BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold) const{
+    const int MAXLONGLENGTH = 64;
+    int slices = 0;
+    /*
+    *
+    bits = 8*sizeof(uword);
+    If we declare a  BsiAttribute<uint64_t> variable,unsigned long long
+    each element in the vector can fit in a 64 bit word
+    Therefore bits = 64
+    How many such words are needed to represent the sign and non-zero property of each element ?
+    If one element is represented by one bit of the sign word, the number of words needed = number of elements/number of bits per word.
+    */
+    long min = 0;
+    int numberOfElements = nums.size();
+    std::vector<uword> signBits(numberOfElements/(bits)+1);
+    std::vector<uword> existBits(numberOfElements/(bits)+1); // keep track for non-zero values
+    int countOnes = 0;
+    int CountZeros = 0;
+    const uword one = 1;
+    //int bits = 8*sizeof(uword);
+    //find max, min, and zeros.
+    //Setting sign bits and existence bits for the array of numbers
+    for (int i=0; i<nums.size(); i++){
+        int offset = i%(bits);
+        min = std::min(min,nums[i]);
+        if(nums[i] < 0){
+            nums[i] = 0 - nums[i];
+            signBits[i / (bits)] |= (one << offset); // setting sign bit
+            countOnes++;
+        }
+        existBits[i / (bits)] |= (one << offset); // seting one at position
+        if(nums[i] == 0){
+            CountZeros++;
+        }
+        slices = std::max(slices,sliceLengthFinder(nums[i])); //Finding the maximum length of the bit representation of the numbers
+    }
+
+    BsiAttribute* res;
+    //Let's try to always build a BsiSigned Vector
+    res = new BsiSigned<uword>(slices + 1);
+    res->sign.reset();
+    res->sign.verbatim = true;
+    for (typename std::vector<uword>::iterator it = signBits.begin(); it != signBits.end(); it++) {
+        res->sign.addVerbatim(*it, numberOfElements);
+    }
+    res->sign.setSizeInBits(numberOfElements);
+    res->sign.density = countOnes / (double)numberOfElements;
+    res->sign.density = countOnes / (double)numberOfElements;
+    /*
+    * if (min < 0) {
+        res = new BsiSigned<uword>(slices+1);
+        res->sign.reset();
+        res->sign.verbatim = true;
+
+        for (typename std::vector<uword>::iterator it=signBits.begin(); it != signBits.end(); it++){
+            res->sign.addVerbatim(*it,numberOfElements);
+        }
+        res->sign.setSizeInBits(numberOfElements);
+        res->sign.density = countOnes/(double)numberOfElements;
+    } else {
+        res = new BsiUnsigned<uword>(slices+1);
+    }
+    */
+    
+
+    double existBitDensity = (CountZeros/(double)nums.size()); // to decide whether to compress or not
+    double existCompressRatio = 1-pow((1-existBitDensity), (2*bits))-pow(existBitDensity, (2*bits));
+    if(existCompressRatio >= compressThreshold){
+        HybridBitmap<uword> bitmap;
+        for(int j=0; j<existBits.size(); j++){
+            bitmap.addWord(existBits[j]);
+        }
+        //bitmap.setSizeInBits(numberOfElements);
+        bitmap.density=existBitDensity;
+        res->setExistenceBitmap(bitmap);
+    }else{
+        HybridBitmap<uword> bitmap(true,existBits.size());
+        for(int j=0; j<existBits.size(); j++){
+            bitmap.buffer[j] = existBits[j];
+        }
+        //bitmap.setSizeInBits(numberOfElements);
+        bitmap.density=existBitDensity;
+        res->setExistenceBitmap(bitmap);
+    }
+
+    //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
+    std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
+
+    for(int i=0; i<slices; i++){
+        double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
+        double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
+        if(compressRatio<compressThreshold && compressRatio!=0 ){
+            //build compressed bitmap
+            HybridBitmap<uword> bitmap;
+            for(int j=1; j<bitSlices[i].size(); j++){
+                bitmap.addWord(bitSlices[i][j]);
+            }
+            //bitmap.setSizeInBits(numberOfElements);
+            bitmap.density=bitDensity;
+            res->addSlice(bitmap);
+
+        }else{
+            //build verbatim Bitmap
+            HybridBitmap<uword> bitmap(true);
+            bitmap.reset();
+            bitmap.verbatim = true;
+            //                std::copy(bitSlices[i].begin(), bitSlices[i].end(), bitmap.buffer.begin());
+            for (typename std::vector<uword>::iterator it=bitSlices[i].begin()+1; it != bitSlices[i].end(); it++){
+                bitmap.addVerbatim(*it,numberOfElements);
+            }
+            // bitmap.buffer=Arrays.copyOfRange(bitSlices[i], 1, bitSlices[i].length);
+            //bitmap.actualsizeinwords=bitSlices[i].length-1;
+            bitmap.setSizeInBits(numberOfElements);
+            bitmap.density=bitDensity;
+            res->addSlice(bitmap);
+
+        }
+    }
+    res->existenceBitmap.setSizeInBits(numberOfElements,true);
+    res->existenceBitmap.density=1;
+    res->lastSlice=true;
+    res->firstSlice=true;
+    //res->twosComplement = false;
+    res->rows = numberOfElements;
+    //res->is_signed = true;
+    return res;
+};
 
 /**
  * function to be parallelised for bringTheBits

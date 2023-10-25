@@ -1,17 +1,7 @@
 # ninja log v5
 1226	1289	1683325840644006953	examples/example	625b813c0e18e1bf
-0	21	1683352832751903996	build.ninja	7e1eb51643acf71e
-2	1126	1683328284178063286	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	e879e683714be518
-1187	1256	1683347783736187768	examples/tests	152347343fb934f3
 0	1225	1683325840576012918	examples/CMakeFiles/example.dir/example.cpp.o	66454470f75f7ae3
-1	1187	1683347783668187511	examples/CMakeFiles/tests.dir/test.cpp.o	932a98b86a2517de
-0	20	1683352832751903996	build.ninja	7e1eb51643acf71e
-1	1330	1683352834087935759	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	292441e339ceb2fa
-1	1468	1683352834223938993	examples/CMakeFiles/tests.dir/test.cpp.o	a2078249c048ba85
-1468	1535	1683352834291940610	examples/tests	152347343fb934f3
-1	1158	1683355914782164784	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	292441e339ceb2fa
-1	1239	1683355914866165817	examples/CMakeFiles/tests.dir/test.cpp.o	a2078249c048ba85
-1239	1293	1683355914918166456	examples/tests	152347343fb934f3
-1	1335	1683358436960596219	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	292441e339ceb2fa
-1	1457	1683358437084596095	examples/CMakeFiles/tests.dir/test.cpp.o	a2078249c048ba85
-1457	1530	1683358437156596024	examples/tests	152347343fb934f3
+1	26	1697579732843904924	build.ninja	7e1eb51643acf71e
+1489	1547	1689400842594352683	examples/tests	152347343fb934f3
+1	1274	1689391360451647516	examples/CMakeFiles/tests.dir/testBSIAttributeBuilding.cpp.o	292441e339ceb2fa
+1	1489	1689400842534352559	examples/CMakeFiles/tests.dir/test.cpp.o	a2078249c048ba85
