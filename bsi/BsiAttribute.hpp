@@ -138,6 +138,8 @@ public:
     void applyExsistenceBitmap(const HybridBitmap<uword> &ex);    
     virtual ~BsiAttribute();
 
+    virtual HybridBitmap<uword> reLU(long threshold)=0;
+
     /*
     * ------------------------Decalrations for private helper methods------------------------------
     */

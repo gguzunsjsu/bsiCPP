@@ -43,13 +43,13 @@ public:
     void multiplicationInPlace(BsiAttribute<uword> *a) override;
     long sumOfBsi()const override;
     bool append(long value) override;
+    HybridBitmap<uword> reLU(long threshold) override;
+    HybridBitmap<uword> reLUAbs(long threshold);
     
     /*
      Declaring Other Functions
      */
     HybridBitmap<uword> topKMaxTwosComplement(int k);
-    HybridBitmap<uword> topKMaxTemporary(int k);
-    std::vector<long> positionsToVector(HybridBitmap<uword> positions);
 
     void addSliceWithOffset(HybridBitmap<uword> slice, int sliceOffset);
     BsiAttribute<uword>* SUMunsigned(BsiAttribute<uword>* a)const;
@@ -367,6 +367,49 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
 
     return topK;
 };
+/*
+ * positions bitmap of values with value greater than the threshold
+ */
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
+    HybridBitmap<uword> B_f;
+    if (threshold < 0) {
+        B_f = this->existenceBitmap.andNot(this->sign);
+        B_f = B_f.Or(this->convertToTwos().reLUAbs(threshold));
+    } else {
+        B_f = this->reLUAbs(threshold).andNot(this->existenceBitmap.And(this->sign));
+    }
+    return B_f;
+}
+/*
+ * positions bitmap of values with absolute value greater than the threshold (positive number)
+ */
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::reLUAbs(long threshold) {
+    HybridBitmap<uword> B_f;
+    HybridBitmap<uword> B_gt;
+    HybridBitmap<uword> B_lt;
+    HybridBitmap<uword> B_eq;
+    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
+
+    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
+        return B_f;
+    }
+
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--){
+        if (threshold & (1<<i)){ //the ith bit is set in threshold
+            B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
+            B_eq = B_eq.And(this->bsi[i]);
+        } else{ //The ith bit is not set in threshold
+            B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
+            B_eq = B_eq.andNot(this->bsi[i]);
+        }
+    }
+    B_gt = B_gt.Or(B_eq);
+    B_f = B_f.And(B_gt).andNot(B_lt);
+    return B_f;
+}
 
 /*
  * sumOfBsi perform sum vertically on bsi
