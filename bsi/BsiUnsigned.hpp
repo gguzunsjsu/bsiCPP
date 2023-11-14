@@ -285,7 +285,8 @@ HybridBitmap<uword> BsiUnsigned<uword>::topKMin(int k){
  */
 template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::reLU(long threshold) {
-    threshold = abs(threshold);
+    if (threshold < 0)
+        threshold = -threshold;
     HybridBitmap<uword> B_f;
     HybridBitmap<uword> B_gt;
     HybridBitmap<uword> B_lt;

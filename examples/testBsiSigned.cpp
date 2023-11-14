@@ -11,6 +11,7 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array);
 void runTopKMin(int k, BsiAttribute<uint64_t>* bsi, vector<long> array);
 void processAndRun(string filename);
 void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi, vector<long> array);
+void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array);
 int main() {
     string filenames[] = {"rows100_skew1_card16_neg",
                           "rows1k_skew1_card16_neg",
@@ -37,8 +38,9 @@ void processAndRun(string filename) {
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
     //int k = 500000;
-    int range_begin = -100;
-    int range_end = 100;
+    //int range_begin = -100;
+    //int range_end = 100;
+    int threshold = 100;
     vector<long> array;
 
     //--- read file ---
@@ -60,12 +62,75 @@ void processAndRun(string filename) {
     //runQuickSort(array);
     //runTopKMax(k,bsi,array);
     //runTopKMin(k,bsi,array);
-    runRangeBetween(range_begin,range_end,bsi,array);
+    //runRangeBetween(range_begin,range_end,bsi,array);
+    runReLU(threshold,bsi,array);
 
     array.clear();
 }
+void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array) {
+    //--- reLU ---
+    HybridBitmap<uint64_t> res;
+    double time = 0;
+    for (int i=0; i<5; i++) {
+        auto start = chrono::high_resolution_clock::now();
+        res = bsi->reLU(threshold);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        time += duration.count();
+    }
+    cout << "Time for bsi reLU: " << time/5 << "\n";
+
+    vector<long> ans;
+    double time1 = 0;
+    for (int i=0; i<5; i++) {
+        ans.clear();
+        auto start = chrono::high_resolution_clock::now();
+        for (int j=0; j<array.size(); j++) {
+            int num = array[j];
+            if (num >= threshold) {
+                ans.push_back(j);
+            }
+        }
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        time1 += duration.count();
+    }
+    cout << "Time for linear reLU: " << time1/5 << "\n";
+
+    // check for accuracy
+    if (ans.size() != res.numberOfOnes()) {
+        cout << "incorrect\n";
+        /*vector<int> range_pos = range.positionsToVector();
+        sort(range_pos.begin(),range_pos.end(),less<long>());
+        sort(ans.begin(),ans.end(),less<long>());
+        bool res = true;
+        for (int i=0; i<range_pos.size(); i++) {
+            if (ans[i] != range_pos[i]) {
+                res = false;
+                cout << ans[i] << " " << range_pos[i] << "\n";
+                //break;
+            }
+        }*/
+    } else {
+        vector<int> range_pos = res.positionsToVector();
+        sort(range_pos.begin(),range_pos.end(),greater<long>());
+        sort(ans.begin(),ans.end(),greater<long>());
+        bool res = true;
+        for (int i=0; i<ans.size(); i++) {
+            if (ans[i] != range_pos[i]) {
+                res = false;
+                break;
+            }
+        }
+        if (res) {
+            cout << "correct\n";
+        } else {
+            cout << "incorrect\n";
+        }
+    }
+}
 void runRangeBetween(int range_begin, int range_end, BsiAttribute<uint64_t>* bsi, vector<long> array) {
-    //--- topKMax ---
+    //--- rangeBetween ---
     HybridBitmap<uint64_t> range;
     double time = 0;
     for (int i=0; i<5; i++) {
