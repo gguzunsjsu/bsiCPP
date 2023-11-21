@@ -148,6 +148,7 @@ public:
         this->bsi_attribute->setPartitionID(0);
         this->bsi_attribute->setFirstSliceFlag(true);
         this->bsi_attribute->setLastSliceFlag(true);
+        cout<<"\nSize of the object" << this->bsi_attribute->getSizeInMemory();
     }
     void multiplyByConstant()
     {
