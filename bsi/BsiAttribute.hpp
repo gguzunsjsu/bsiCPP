@@ -135,6 +135,16 @@ public:
     void addOneSliceNoSignExt(const HybridBitmap<uword> &slice);
     void applyExsistenceBitmap(const HybridBitmap<uword> &ex);    
     virtual ~BsiAttribute();
+    size_t getSizeInMemory() const {
+        size_t size_in_memory = sizeof(*this);
+
+        // Add the size of dynamically allocated vectors (assuming they are vectors)
+        size_in_memory += bsi.size() * sizeof(HybridBitmap<>);  // adjust as needed
+        size_in_memory += sizeof(existenceBitmap);  // adjust as needed
+        size_in_memory += sizeof(sign);  // adjust as needed
+
+        return size_in_memory;
+    }
 
     /*
     * ------------------------Decalrations for private helper methods------------------------------

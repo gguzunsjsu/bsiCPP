@@ -28,34 +28,34 @@ template <class uword> class HybridBitmapRawIterator;
  */
 template <class uword = uint32_t> class HybridBitmap {
 public:
-    
+
     double density=0;
     bool verbatim = false;
     std::vector<uword> buffer;
 //    std::vector<uword>& buffer = *buffer1;
-    
-    
-    
+
+
+
     HybridBitmap() : buffer(1, 0), sizeinbits(0), lastRLW(0) {}
     /**
      * @param buffersize :allocates the buffer size with all zero values
      */
-    HybridBitmap(size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize* wordinbits), lastRLW(0) { 
-        //cout << "Constructor HybridBitmap(size_t buffersize) is called\n"; 
+    HybridBitmap(size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize* wordinbits), lastRLW(0) {
+        //cout << "Constructor HybridBitmap(size_t buffersize) is called\n";
     }
 
-    HybridBitmap(bool verbatim) : buffer(1, 0), sizeinbits(0), lastRLW(0), verbatim(verbatim) { 
-        //cout << "Constructor HybridBitmap(bool verbatim) is called\n"; 
+    HybridBitmap(bool verbatim) : buffer(1, 0), sizeinbits(0), lastRLW(0), verbatim(verbatim) {
+        //cout << "Constructor HybridBitmap(bool verbatim) is called\n";
     }
 
     HybridBitmap(bool verbatim, size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize*wordinbits), lastRLW(0), verbatim(verbatim) {
-        //cout << "Constructor HybridBitmap(bool verbatim, size_t buffersize) is called\n"; 
+        //cout << "Constructor HybridBitmap(bool verbatim, size_t buffersize) is called\n";
     }
-    
+
     HybridBitmap(const HybridBitmap &other)
     : buffer(other.buffer), sizeinbits(other.sizeinbits),
     lastRLW(other.lastRLW),verbatim(other.verbatim), density(other.density) {
-        //cout << "Constructor HybridBitmap(const HybridBitmap &other) is called\n"; 
+        //cout << "Constructor HybridBitmap(const HybridBitmap &other) is called\n";
     }
 
     /**
@@ -64,7 +64,7 @@ public:
     HybridBitmap(HybridBitmap &&other)
     : buffer(other.buffer), sizeinbits(other.sizeinbits),
     lastRLW(other.lastRLW),verbatim(other.verbatim), density(other.density)  {
-        //cout << "Constructor HybridBitmap(HybridBitmap &&other) is called\n"; 
+        //cout << "Constructor HybridBitmap(HybridBitmap &&other) is called\n";
     }
 
 
@@ -91,7 +91,7 @@ public:
     }
 
     static HybridBitmap verbatimBitmapOf(size_t n, ...) {
-        
+
         HybridBitmap ans;
         va_list vl;
         va_start(vl, n);
@@ -103,7 +103,7 @@ public:
         va_end(vl);
         size_t wordSize = vectorOfValues.back()>>6;
         ans.buffer.resize(wordSize + 1);
-        
+
         for (size_t i = 0; i < n; i++) {
             long position = vectorOfValues[i]>>6;
             long word = 1l << (vectorOfValues[i] % wordinbits);
