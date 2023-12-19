@@ -376,7 +376,8 @@ public:
 size_t dischargeDecompressed(HybridBitmap<uword> &container, size_t max) {
     size_t index = 0;
     while ((index < max) && (size() > 0)) {
-            // first run
+        // first run
+        auto start = std::chrono::high_resolution_clock::now();
         size_t pl = getRunningLength();
         if (index + pl > max) {
             pl = max - index;
@@ -390,6 +391,7 @@ size_t dischargeDecompressed(HybridBitmap<uword> &container, size_t max) {
                 container.addVerbatim(0);
             }
         }
+
 //        Arrays.fill(container.buffer, container.actualsizeinwords, (int) (container.actualsizeinwords+pl), getRunningBit()?~0L:0);
 //        container.actualsizeinwords+=pl;
         //  container.addStreamOfEmptyWords(getRunningBit(), pl);
@@ -402,8 +404,13 @@ size_t dischargeDecompressed(HybridBitmap<uword> &container, size_t max) {
             container.addVerbatim(parent->dirtyWords()[i]);
             //container.buffer[container.actualsizeinwords+i]=this.buffer[this.literalWordStartPosition+i];
         }
+
         //container.actualsizeinwords+=pd;
         discardFirstWordsWithReload(pl+pd);
+
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        double timeDischarge = duration.count();
         index += pd;
     }
 return index;

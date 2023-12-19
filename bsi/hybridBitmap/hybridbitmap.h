@@ -2624,6 +2624,8 @@ template <class uword>size_t HybridBitmap<uword>::addEmptyWord(const bool v) {
 template <class uword>
 void HybridBitmap<uword>::logicalor(const HybridBitmap &a,
                                     HybridBitmap &container) const {
+
+    auto start = std::chrono::high_resolution_clock::now();
     container.reset();
     container.density= (density+a.density)-(density*a.density);
     container.buffer.push_back(0);
@@ -2638,7 +2640,6 @@ void HybridBitmap<uword>::logicalor(const HybridBitmap &a,
     // at this point, this should be safe:
     BufferedRunningLengthWord<uword> &rlwi = i.next();
     BufferedRunningLengthWord<uword> &rlwj = j.next();
-
     while ((rlwi.size() > 0) && (rlwj.size() > 0)) {
         while ((rlwi.getRunningLength() > 0) || (rlwj.getRunningLength() > 0)) {
             const bool i_is_prey = rlwi.getRunningLength() < rlwj.getRunningLength();
@@ -2668,6 +2669,7 @@ void HybridBitmap<uword>::logicalor(const HybridBitmap &a,
     }
     const bool i_remains = rlwi.size() > 0;
     BufferedRunningLengthWord<uword> &remaining = i_remains ? rlwi : rlwj;
+
     remaining.discharge(container);
     container.setSizeInBits(sizeInBits() > a.sizeInBits() ? sizeInBits() : a.sizeInBits());
 }
@@ -2675,6 +2677,7 @@ void HybridBitmap<uword>::logicalor(const HybridBitmap &a,
 template <class uword>
 void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                                     HybridBitmap &container) const {
+
     container.reset();
     container.density= (density+a.density)-(density*a.density);
     container.verbatim =true;
@@ -2692,11 +2695,15 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
     BufferedRunningLengthWord<uword> &rlwj = j.next();
     uword actualsizeinwords = 0;
 
+
     while ((rlwi.size() > 0) && (rlwj.size() > 0)) {
         while ((rlwi.getRunningLength() > 0) || (rlwj.getRunningLength() > 0)) {
+
             const bool i_is_prey = rlwi.getRunningLength() < rlwj.getRunningLength();
             BufferedRunningLengthWord<uword> &prey = i_is_prey ? rlwi : rlwj;
             BufferedRunningLengthWord<uword> &predator = i_is_prey ? rlwj : rlwi;
+
+
             if (predator.getRunningBit()) {
                 //container.fastaddStreamOfEmptyWords(true, predator.getRunningLength());
                 for(int i = 0; i< predator.getRunningLength(); i++){
@@ -2709,10 +2716,15 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                 prey.discardFirstWordsWithReload(predator.getRunningLength());
                 predator.discardFirstWordsWithReload(predator.getRunningLength());
             } else {
+                auto start = std::chrono::high_resolution_clock::now();
                 const size_t index =
                         prey.dischargeDecompressed(container, predator.getRunningLength());
-               // container.fastaddStreamOfEmptyWords(false, predator.getRunningLength() -
-               //                                            index);
+                // container.fastaddStreamOfEmptyWords(false, predator.getRunningLength() -
+                //                                            index);
+
+                auto stop = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+                double timeOR = duration.count();
                 for(int i = actualsizeinwords; i< actualsizeinwords+predator.getRunningLength() - index; i++){
                     container.buffer.push_back(0);
                 }
@@ -2722,7 +2734,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                 actualsizeinwords+=predator.getRunningLength()-index;
                 predator.discardFirstWordsWithReload(predator.getRunningLength());
             }
-            
+
         }
 
         const size_t nbre_literal = std::min(rlwi.getNumberOfLiteralWords(),

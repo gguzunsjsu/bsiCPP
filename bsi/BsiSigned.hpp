@@ -266,10 +266,14 @@ HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
     topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
     HybridBitmap<uword> E = this->existenceBitmap.And(this->sign); //considers only negative values
     int n = 0;
+
     for (int i = this->size - 1; i >= 0; i--) {
         SE = E.And(this->bsi[i]);
+
         X = topK.Or(SE);
+
         n = X.numberOfOnes();
+
         if (n > k) {
             E = SE;
         }
@@ -285,7 +289,10 @@ HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
     topK = topK.Or(E);
     n = topK.numberOfOnes();
     if(n<k){
+        //topK = topK.Or(this->signMagnitudeToTwos(this->bits+1)->topKMax(k-n));
+
         topK = topK.Or(topKMinPos(k-n));
+
     }
     /*std::vector<int> topK_vector = topK.positionsToVector();
     std::vector<int> e_vector = E.positionsToVector();
@@ -309,15 +316,33 @@ HybridBitmap<uword> BsiSigned<uword>::topKMinPos(int k){
     int n = 0;
 
     for (int i = this->size - 1; i >= 0; i--) {
+        auto start = std::chrono::high_resolution_clock::now();
         SNOT = E.andNot(this->bsi[i]);
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        double timeAN = duration.count();
+
+        start = std::chrono::high_resolution_clock::now();
         X = topK.Or(SNOT); //Maximum
+        stop = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        double timeOR = duration.count();
+
+        start = std::chrono::high_resolution_clock::now();
         n = X.numberOfOnes();
+        stop = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        double timeNOO = duration.count();
         if (n > k) {
             E = SNOT;
         }
         else if (n < k) {
             topK = X;
+            start = std::chrono::high_resolution_clock::now();
             E = E.And(this->bsi[i]);
+            stop = std::chrono::high_resolution_clock::now();
+            duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            double timeAND = duration.count();
         }
         else {
             E = SNOT;

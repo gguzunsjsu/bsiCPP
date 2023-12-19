@@ -24,11 +24,11 @@ int main() {
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
 
-    for (string filename: filenames) {
+    /*for (string filename: filenames) {
         processAndRun(filename);
-    }
+    }*/
     //processAndRun("rows10k_skew1_card4_neg");
-    //processAndRun("signed_testcase");
+    processAndRun("testcase.txt");
 
     return 0;
 }
@@ -36,7 +36,7 @@ void processAndRun(string filename) {
     cout << filename << "\n";
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    //int k = 500000;
+    int k = 100;
     int range_begin = -100;
     int range_end = 100;
     vector<long> array;
@@ -45,7 +45,7 @@ void processAndRun(string filename) {
     string line;
     ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/"+filename);
     while (getline(file, line)) {
-        long el = stol(line.substr(0, line.size() - 1));
+        long el = stol(line);
         array.push_back(el);
     }
     file.close();
@@ -59,8 +59,8 @@ void processAndRun(string filename) {
     //--- test runtimes ---
     //runQuickSort(array);
     //runTopKMax(k,bsi,array);
-    //runTopKMin(k,bsi,array);
-    runRangeBetween(range_begin,range_end,bsi,array);
+    runTopKMin(k,bsi,array);
+    //runRangeBetween(range_begin,range_end,bsi,array);
 
     array.clear();
 }
