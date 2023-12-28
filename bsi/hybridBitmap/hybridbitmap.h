@@ -1918,7 +1918,11 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
                 tot += static_cast<size_t>(rlw.getRunningLength() * wordinbits);
             }
             ++pointer;
+            auto prev = pointer;
+            auto runLen = rlw.getRunningLength();
+            auto numLiteral = rlw.getNumberOfLiteralWords();
             for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
+                auto x = (uword)buffer[pointer];
                 tot += countOnes((uword)buffer[pointer]);
                 ++pointer;
             }
@@ -3370,7 +3374,7 @@ void HybridBitmap<uword>::andVerbatimInPlace(const HybridBitmap &a ){
 template <class uword>
 void HybridBitmap<uword>::andHybridCompressInPlace(const HybridBitmap &a ){
     int j = 0;
-    int i=0;
+    int i = 0;
     density=density*a.density;
     
     if (verbatim) { // this is verbatim

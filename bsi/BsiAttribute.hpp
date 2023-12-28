@@ -139,7 +139,6 @@ public:
     virtual ~BsiAttribute();
 
     virtual HybridBitmap<uword> reLU(long threshold)=0;
-    HybridBitmap<uword> reLUAbs(long threshold);
 
     /*
     * ------------------------Decalrations for private helper methods------------------------------
@@ -180,35 +179,6 @@ protected:
   addOneSliceNoSignExt
   applyExsistenceBitmap
 */
-/*
- * positions bitmap of values with absolute value greater than the threshold (positive number)
- */
-template <class uword>
-HybridBitmap<uword> BsiAttribute<uword>::reLUAbs(long threshold) {
-    HybridBitmap<uword> B_f;
-    HybridBitmap<uword> B_gt;
-    HybridBitmap<uword> B_lt;
-    HybridBitmap<uword> B_eq;
-    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
-    B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
-
-    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
-        return B_f;
-    }
-
-    for (int i=this->getNumberOfSlices()-1; i>=0; i--){
-        if (threshold & (1<<i)){ //the ith bit is set in threshold
-            B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
-            B_eq = B_eq.And(this->bsi[i]);
-        } else{ //The ith bit is not set in threshold
-            B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
-            B_eq = B_eq.andNot(this->bsi[i]);
-        }
-    }
-    B_gt = B_gt.Or(B_eq);
-    B_f = B_f.And(B_gt).andNot(B_lt);
-    return B_f;
-}
 
 /*
  * Destructor
