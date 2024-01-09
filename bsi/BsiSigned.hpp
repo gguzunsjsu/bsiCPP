@@ -46,6 +46,7 @@ public:
     HybridBitmap<uword> reLU(long threshold) override;
     HybridBitmap<uword> lessThan(long threshold);
     HybridBitmap<uword> greaterThan(long threshold);
+    BsiAttribute<uword> softmax();
     
     /*
      Declaring Other Functions
@@ -440,6 +441,19 @@ HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
     B_lt = B_lt.Or(B_eq);
     B_f = B_f.And(B_lt);
     return B_f;
+}
+
+/*
+ * returns hybridbitmap of softmax of bsi
+ */
+template <class uword>
+BsiAttribute<uword> BsiSigned<uword>::softmax() {
+    // step 1: find e^x = 2^(x * log2 (e)) of all numbers
+    // a) multiply numerator by constant to get x * log2 (e)
+    BsiAttribute<uword> res = this->multiplyByConstant(log2(exp(1)));
+    // b) shift each row with itself
+    // step 2: find sum e^x
+    // step 3: multiply all numbers by inverse of sum e^x
 }
 
 /*
