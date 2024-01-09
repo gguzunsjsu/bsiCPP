@@ -375,7 +375,7 @@ template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
     HybridBitmap<uword> B_f;
     if (threshold < 0) {
-        B_f = this->lessThan(threshold);
+        B_f = this->lessThan(threshold).Or(this->existenceBitmap.andNot(this->sign));
     } else {
         B_f = this->greaterThan(threshold);
     }
@@ -383,7 +383,7 @@ HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
 }
 
 /*
- * positions bitmap of values with value greater than the threshold (positive number)
+ * positions bitmap of positive numbers with value greater than the threshold (positive number)
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
@@ -400,7 +400,7 @@ HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
 
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
         if (threshold & (1<<i)){ //the ith bit is set in threshold
-            B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
+            //B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
             B_eq = B_eq.And(this->bsi[i]);
         } else{ //The ith bit is not set in threshold
             B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
@@ -408,17 +408,16 @@ HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
         }
     }
     B_gt = B_gt.Or(B_eq);
-    //B_f = B_f.And(B_gt);
-    B_f.AndInPlace(B_gt);
+    B_f = B_f.And(B_gt);
     return B_f;
 }
 
 /*
- * positions bitmap of values with value less than the threshold (positive number)
+ * positions bitmap of negative numbers with value less than the threshold (positive number)
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
-    HybridBitmap<uword> B_f = this->existenceBitmap.andNot(this->sign);
+    HybridBitmap<uword> B_f = this->existenceBitmap.And(this->sign);
     HybridBitmap<uword> B_gt;
     HybridBitmap<uword> B_lt;
     HybridBitmap<uword> B_eq;
@@ -434,13 +433,12 @@ HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
             B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
             B_eq = B_eq.And(this->bsi[i]);
         } else{ //The ith bit is not set in threshold
-            B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
+            //B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
             B_eq = B_eq.andNot(this->bsi[i]);
         }
     }
-    B_lt = B_lt.Or(B_eq).And(this->sign).And(this->existenceBitmap);
-    //B_lt.AndInPlace(this->sign.And(this->existenceBitmap));
-    B_f = B_f.Or(B_lt);
+    B_lt = B_lt.Or(B_eq);
+    B_f = B_f.And(B_lt);
     return B_f;
 }
 

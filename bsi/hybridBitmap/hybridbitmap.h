@@ -3375,7 +3375,7 @@ template <class uword>
 void HybridBitmap<uword>::andHybridCompressInPlace(const HybridBitmap &a ){
     int j = 0;
     int i = 0;
-    density=density*a.density;
+    density = density*a.density;
     
     if (verbatim) { // this is verbatim
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
@@ -3397,7 +3397,7 @@ void HybridBitmap<uword>::andHybridCompressInPlace(const HybridBitmap &a ){
                     //container.setbits+=Long.bitCount(newdata);
                     i++;
                 }
-//                container.addStreamOfEmptyWords(false, rlwa.getRunningLength());
+//                addStreamOfEmptyWords(false, rlwa.getRunningLength());
 //                i+=rlwa.getRunningLength();
             }
             
@@ -3406,7 +3406,7 @@ void HybridBitmap<uword>::andHybridCompressInPlace(const HybridBitmap &a ){
                 //container.setbits+=Long.bitCount(newdata);
                 i++;
             }
-            lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
+            lastrlwa += rlwa.getNumberOfLiteralWords()+1;
             if(lastrlwa >= a.bufferSize()){
                 break;
             }
@@ -3421,12 +3421,12 @@ void HybridBitmap<uword>::andHybridCompressInPlace(const HybridBitmap &a ){
         
         while (i < a.buffer.size()) {
             if (rlw.getRunningBit()) { // fill of ones
-                for (j = 0; j < rlw.getRunningLength(); j++) {
+                /*for (j = 0; j < rlw.getRunningLength(); j++) {
                     
                     buffer[i] = a.buffer[i];
                     //container.setbits+=Long.bitCount(newdata);
                     i++;
-                }
+                }*/
             } else {
                 for (j = 0; j < rlw.getRunningLength(); j++) {
                     
@@ -3444,8 +3444,8 @@ void HybridBitmap<uword>::andHybridCompressInPlace(const HybridBitmap &a ){
                 //container.setbits+=Long.bitCount(newdata);
                 i++;
             }
-            lastrlw +=rlw.getNumberOfLiteralWords()+1;
-            if(lastrlw >= bufferSize()){
+            lastrlw += rlw.getNumberOfLiteralWords()+1;
+            if (lastrlw >= bufferSize()){
                 break;
             }
             rlw = (buffer[lastrlw]);
@@ -4074,7 +4074,7 @@ void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap 
                 i++;
             }
             lastrlw += rlw.getNumberOfLiteralWords()+1;
-            if(lastrlw >= bufferSize()){
+            if (lastrlw >= bufferSize()){
                 break;
             }
             rlw = (buffer[lastrlw]);
