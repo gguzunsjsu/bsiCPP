@@ -25,11 +25,11 @@ int main() {
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
 
-    for (string filename: filenames) {
+    /*for (string filename: filenames) {
         processAndRun(filename);
-    }
-    //processAndRun("rows10k_skew1_card4_neg");
-    //processAndRun("signed_testcase");
+    }*/
+    processAndRun("signed_testcase");
+    //processAndRun("rows100_skew1_card16_neg");
 
     return 0;
 }
@@ -69,11 +69,17 @@ void processAndRun(string filename) {
 }
 void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array) {
     //--- reLU ---
-    HybridBitmap<uint64_t> res;
+    HybridBitmap<uint64_t> relu;
+    bsi->signMagnitudeToTwosInPlace(bsi->bits+1);
+    for (int i=0; i<bsi->rows; i++) {
+        cout << bsi->getValue(i) << " ";
+    }
+    cout << "\n";
+
     double time = 0;
     for (int i=0; i<5; i++) {
         auto start = chrono::high_resolution_clock::now();
-        res = bsi->reLU(threshold);
+        relu = bsi->reLU(threshold);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         time += duration.count();
@@ -96,30 +102,28 @@ void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time1 += duration.count();
     }
     cout << "Time for linear reLU: " << time1/5 << "\n";
-
+    cout << ans.size() << " " << relu.numberOfOnes() << "\n";
     // check for accuracy
-    if (ans.size() != res.numberOfOnes()) {
+    if (ans.size() != relu.numberOfOnes()) {
         cout << "incorrect\n";
-        /*vector<int> range_pos = range.positionsToVector();
-        sort(range_pos.begin(),range_pos.end(),less<long>());
+        vector<int> relu_pos = relu.positionsToVector();
+        sort(relu_pos.begin(),relu_pos.end(),less<long>());
         sort(ans.begin(),ans.end(),less<long>());
-        bool res = true;
-        for (int i=0; i<range_pos.size(); i++) {
-            if (ans[i] != range_pos[i]) {
-                res = false;
-                cout << ans[i] << " " << range_pos[i] << "\n";
-                //break;
-            }
-        }*/
+        for (int i=0; i<max(ans.size(),relu_pos.size()); i++) {
+            if (i < relu_pos.size()) {cout << relu_pos[i] << " ";} else {cout << -1 << " ";}
+            if (i < ans.size()) {cout << ans[i] << "\n";} else {cout << -1 << "\n";}
+
+        }
     } else {
-        vector<int> range_pos = res.positionsToVector();
-        sort(range_pos.begin(),range_pos.end(),greater<long>());
+        vector<int> relu_pos = relu.positionsToVector();
+        sort(relu_pos.begin(),relu_pos.end(),greater<long>());
         sort(ans.begin(),ans.end(),greater<long>());
         bool res = true;
         for (int i=0; i<ans.size(); i++) {
-            if (ans[i] != range_pos[i]) {
+            if (ans[i] != relu_pos[i]) {
                 res = false;
-                break;
+                cout << relu_pos[i] << " " << ans[i] << "\n";
+                //break;
             }
         }
         if (res) {

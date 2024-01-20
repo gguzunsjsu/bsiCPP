@@ -1922,7 +1922,6 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
             auto runLen = rlw.getRunningLength();
             auto numLiteral = rlw.getNumberOfLiteralWords();
             for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
-                auto x = (uword)buffer[pointer];
                 tot += countOnes((uword)buffer[pointer]);
                 ++pointer;
             }

@@ -860,12 +860,12 @@ HybridBitmap<uword> BsiAttribute<uword>::topKMaxPositive(int k){
  *
  */
 template <class uword>
-void BsiAttribute<uword>::signMagnitudeToTwosInPlace(int bits){
+void BsiAttribute<uword>::signMagnitudeToTwosInPlace(int bit_limit){
     int i=0;
     for(i=0; i<getNumberOfSlices(); i++){
         bsi[i]=bsi[i].Xor(sign);
     }
-    while(i<bits){ // sign extension
+    while(i<bit_limit){ // sign extension
         
         addSlice(sign);
         i++;

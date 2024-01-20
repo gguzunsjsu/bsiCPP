@@ -375,27 +375,36 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
     HybridBitmap<uword> B_f;
-    if (threshold < 0) {
-        B_f = this->lessThan(threshold).Or(this->existenceBitmap.andNot(this->sign));
+    if (this->twosComplement) {
+        if (threshold < 0) {
+            B_f = this->greaterThan(~threshold+1).Or(this->bsi[this->size-1]);
+        } else {
+            B_f = this->greaterThan(threshold);
+            B_f = B_f.andNot(this->bsi[this->size-1]);
+            auto x = this->bsi[this->size-1];
+            auto y = 0;//this->bsi[this->size-1];
+        }
     } else {
-        B_f = this->greaterThan(threshold);
+        if (threshold < 0) {
+            B_f = this->lessThan(threshold).And(this->sign).Or(this->existenceBitmap.andNot(this->sign));
+        } else {
+            B_f = this->greaterThan(threshold).andNot(this->sign);
+        }
     }
     return B_f;
 }
 
 /*
- * positions bitmap of positive numbers with value greater than the threshold (positive number)
+ * positions bitmap of numbers with value greater than the threshold (positive number)
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
-    HybridBitmap<uword> B_f = this->existenceBitmap.andNot(this->sign);
+    HybridBitmap<uword> B_f = this->existenceBitmap;
     HybridBitmap<uword> B_gt;
-    HybridBitmap<uword> B_lt;
     HybridBitmap<uword> B_eq;
     B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
     B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
-
-    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
+    if (this->getNumberOfSlices() < 64 && threshold > ((1 << this->getNumberOfSlices()) - 1)) {
         return B_gt;
     }
 
@@ -418,15 +427,14 @@ HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
-    HybridBitmap<uword> B_f = this->existenceBitmap.And(this->sign);
-    HybridBitmap<uword> B_gt;
+    HybridBitmap<uword> B_f = this->existenceBitmap;
     HybridBitmap<uword> B_lt;
     HybridBitmap<uword> B_eq;
-    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_lt.setSizeInBits(this->bsi[0].sizeInBits(), false);
     B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
 
     if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
-        return B_gt;
+        return B_lt;
     }
 
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
@@ -448,12 +456,14 @@ HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
  */
 template <class uword>
 BsiAttribute<uword> BsiSigned<uword>::softmax() {
-    // step 1: find e^x = 2^(x * log2 (e)) of all numbers
+    // step 1: subtract max from all numbers
+
+    // step 2: find e^x = 2^(x * log2 (e)) of all numbers
     // a) multiply numerator by constant to get x * log2 (e)
     BsiAttribute<uword> res = this->multiplyByConstant(log2(exp(1)));
     // b) shift each row with itself
-    // step 2: find sum e^x
-    // step 3: multiply all numbers by inverse of sum e^x
+    // step 3: find sum e^x
+    // step 4: multiply all numbers by inverse of sum e^x
 }
 
 /*
@@ -595,12 +605,12 @@ template <class uword>
 long BsiSigned<uword>::getValue(int i){
     if(this->twosComplement){
         bool sign = this->bsi[this->size-1].get(i);
-        long sum=0;
+        long sum = 0;
         HybridBitmap<uword> B_i;
-        for (int j = 0; j < this->size-1; i++) {
+        for (int j = 0; j < this->size-1; j++) {
             B_i = this->bsi[j];
             if(B_i.get(i)^sign)
-                sum =sum|( 1<<(this->offset + i));
+                sum =sum|( 1<<(this->offset + j));
         }
         
         return (sum+((sign)?1:0))*((sign)?-1:1);
