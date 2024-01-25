@@ -361,7 +361,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildQueryAttribute(long query, int ro
         BsiAttribute* res = new BsiUnsigned<uword>(maxsize);
         res->setPartitionID(partitionID);
         for(int i=0; i<=maxsize; i++){
-            bool currentBit = (q&(1<<i))!=0;
+            bool currentBit = (q&(1l<<i))!=0;
             HybridBitmap<uword> slice;
             slice.setSizeInBits(rows, currentBit);
             if(currentBit){
@@ -385,7 +385,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildQueryAttribute(long query, int ro
         BsiAttribute* res = new BsiUnsigned<uword>(maxsize);
         res->setPartitionID(partitionID);
         for(int i=0; i<=maxsize; i++){
-            bool currentBit = (query&(1<<i))!=0;
+            bool currentBit = (query&(1l<<i))!=0;
             HybridBitmap<uword> slice;
             slice.setSizeInBits(rows, currentBit);
             if(currentBit){

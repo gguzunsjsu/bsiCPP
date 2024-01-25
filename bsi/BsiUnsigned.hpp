@@ -299,7 +299,7 @@ HybridBitmap<uword> BsiUnsigned<uword>::reLU(long threshold) {
     }
 
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
-        if (threshold & (1<<i)){ //the ith bit is set in threshold
+        if (threshold & (1l<<i)){ //the ith bit is set in threshold
             B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
             B_eq = B_eq.And(this->bsi[i]);
         } else{ //The ith bit is not set in threshold
@@ -451,7 +451,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             res->size++;
             int i;
             for( i=1; i<this->size; i++ ){
-                if((a&(1<<i))!=0){//xorNot(this->bsi[i])
+                if((a&(1l<<i))!=0){//xorNot(this->bsi[i])
                     res->bsi[i]=C.xorNot(this->bsi[i]);
                     //res.bsi[i] = C.xor(this.bsi[i].NOT());
                     C=this->bsi[i].Or(C);
@@ -464,7 +464,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             }
             if((intSize+1)>this->size){
                 while(i<(intSize+1)){
-                    if((a&(1<<i))!=0){
+                    if((a&(1l<<i))!=0){
                         res->bsi[i]=C.logicalnot();
                         //C=this.bsi[i].or(C);
                     }else{
@@ -497,7 +497,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             res->size++;
             int i;
             for(i=1;i<minSP;i++){
-                if((a&(1<<i))!=0){
+                if((a&(1l<<i))!=0){
                     res->bsi.push_back(C.xorNot(this->bsi[i]));
                     //res.bsi[i] = C.xor(this.bsi[i].NOT());
                     C=this->bsi[i].Or(C);
@@ -523,7 +523,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             }else{
                 while (i<intSize){
                     if(cCard>0){
-                        if((a&(1<<i))!=0){
+                        if((a&(1l<<i))!=0){
                             res->bsi.push_back(C.logicalnot());
                         }else{
                             res->bsi.push_back(C);
@@ -532,7 +532,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
                         }
                         
                     }else{
-                        if((a&(1<<i))!=0){res->bsi[i]=allOnes;
+                        if((a&(1l<<i))!=0){res->bsi[i]=allOnes;
                         }else {res->bsi.push_back(zeroBitmap);}
                         
                     }
@@ -598,7 +598,7 @@ HybridBitmap<uword> BsiUnsigned<uword>::rangeBetween(long lowerBound, long upper
     B_eq2.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq2.density=1;
     
     for(int i=this->getNumberOfSlices()-1; i>=0; i--){
-        if((upperBound & (1<<i)) !=0){
+        if((upperBound & (1l<<i)) !=0){
             HybridBitmap<uword> ans = B_eq1.andNot(this->bsi[i]);
             //the i'th bit is set in upperBound
             B_lt = B_lt.Or(ans);
@@ -606,7 +606,7 @@ HybridBitmap<uword> BsiUnsigned<uword>::rangeBetween(long lowerBound, long upper
         }else{ //The i'th bit is not set in uppperBound
             B_eq1=B_eq1.andNot(this->bsi[i]);
         }
-        if((lowerBound & (1<<i)) != 0){ // the I'th bit is set in lowerBound
+        if((lowerBound & (1l<<i)) != 0){ // the I'th bit is set in lowerBound
             B_eq2 = B_eq2.And(this->bsi[i]);
         }else{ //the i'th bit is not set in lowerBouond
             B_gt = B_gt.logicalor(B_eq2.And(this->bsi[i]));
@@ -938,7 +938,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a, HybridBitmap<uword> EB, int
             res->size++;
             int i;
             for( i=1; i<intSize; i++ ){
-                if((a&(1<<i))!=0){
+                if((a&(1l<<i))!=0){
                     res->bsi[i]=C.logicalxornot(EB.And(this->bsi[i]));
                     //res.bsi[i] = C.xor(this.bsi[i].NOT());
                     C=EB.logicaland(this->bsi[i]).logicalor(C);

@@ -25,10 +25,10 @@ int main() {
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
 
-    /*for (string filename: filenames) {
+    for (string filename: filenames) {
         processAndRun(filename);
-    }*/
-    processAndRun("signed_testcase");
+    }
+    //processAndRun("signed_testcase");
     //processAndRun("rows100_skew1_card16_neg");
 
     return 0;
@@ -71,10 +71,6 @@ void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array) {
     //--- reLU ---
     HybridBitmap<uint64_t> relu;
     bsi->signMagnitudeToTwosInPlace(bsi->bits+1);
-    for (int i=0; i<bsi->rows; i++) {
-        cout << bsi->getValue(i) << " ";
-    }
-    cout << "\n";
 
     double time = 0;
     for (int i=0; i<5; i++) {
@@ -102,7 +98,6 @@ void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time1 += duration.count();
     }
     cout << "Time for linear reLU: " << time1/5 << "\n";
-    cout << ans.size() << " " << relu.numberOfOnes() << "\n";
     // check for accuracy
     if (ans.size() != relu.numberOfOnes()) {
         cout << "incorrect\n";
@@ -110,8 +105,8 @@ void runReLU(int threshold, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         sort(relu_pos.begin(),relu_pos.end(),less<long>());
         sort(ans.begin(),ans.end(),less<long>());
         for (int i=0; i<max(ans.size(),relu_pos.size()); i++) {
-            if (i < relu_pos.size()) {cout << relu_pos[i] << " ";} else {cout << -1 << " ";}
-            if (i < ans.size()) {cout << ans[i] << "\n";} else {cout << -1 << "\n";}
+            if (i < relu_pos.size()) {cout << array[relu_pos[i]] << " ";} else {cout << -1 << " ";}
+            if (i < ans.size()) {cout << array[ans[i]] << "\n";} else {cout << -1 << "\n";}
 
         }
     } else {

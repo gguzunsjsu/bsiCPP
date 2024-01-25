@@ -370,7 +370,7 @@ HybridBitmap<uword> BsiSigned<uword>::topKMaxNeg(int k){
     return topK;
 };
 /*
- * positions bitmap of values with value greater than the threshold
+ * positions bitmap of values greater than the threshold
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
@@ -381,8 +381,6 @@ HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
         } else {
             B_f = this->greaterThan(threshold);
             B_f = B_f.andNot(this->bsi[this->size-1]);
-            auto x = this->bsi[this->size-1];
-            auto y = 0;//this->bsi[this->size-1];
         }
     } else {
         if (threshold < 0) {
@@ -395,7 +393,7 @@ HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
 }
 
 /*
- * positions bitmap of numbers with value greater than the threshold (positive number)
+ * positions bitmap of numbers with magnitude greater than a positive threshold
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
@@ -404,13 +402,13 @@ HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
     HybridBitmap<uword> B_eq;
     B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
     B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
-    if (this->getNumberOfSlices() < 64 && threshold > ((1 << this->getNumberOfSlices()) - 1)) {
+    if (this->getNumberOfSlices() < 64 && threshold > ((1l << this->getNumberOfSlices()) - 1)) {
         return B_gt;
     }
 
+
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
-        if (threshold & (1<<i)){ //the ith bit is set in threshold
-            //B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
+        if (threshold & (1l<<i)){ //the ith bit is set in threshold
             B_eq = B_eq.And(this->bsi[i]);
         } else{ //The ith bit is not set in threshold
             B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
@@ -423,7 +421,7 @@ HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
 }
 
 /*
- * positions bitmap of negative numbers with value less than the threshold (positive number)
+ * positions bitmap of numbers with magnitude less than a positive threshold
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
@@ -433,12 +431,12 @@ HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
     B_lt.setSizeInBits(this->bsi[0].sizeInBits(), false);
     B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
 
-    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
-        return B_lt;
+    if (threshold > ((1l << this->getNumberOfSlices()) - 1)) {
+        return B_eq;
     }
 
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
-        if (threshold & (1<<i)){ //the ith bit is set in threshold
+        if (threshold & (1l<<i)){ //the ith bit is set in threshold
             B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
             B_eq = B_eq.And(this->bsi[i]);
         } else{ //The ith bit is not set in threshold
@@ -530,7 +528,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
 
     int i = 1;
     for(; i<this->size; i++){
-        if((a & (1<<i)) != 0){
+        if((a & (1l<<i)) != 0){
             res->addSlice(C.logicalxornot(this->bsi[i]));
             //res.bsi[i] = C.xor(this.bsi[i].NOT());
             C = this->bsi[i].logicalor(C);
@@ -542,7 +540,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     }
     if(intSize > this->size){
         while (i < intSize){
-            if((a&(1<<i)) != 0){
+            if((a&(1l<<i)) != 0){
                 res->addSlice(C.logicalxornot(this->bsi[this->size-1]));
                 C=this->bsi[this->size-1].logicalor(C);
             }else{
@@ -610,7 +608,7 @@ long BsiSigned<uword>::getValue(int i){
         for (int j = 0; j < this->size-1; j++) {
             B_i = this->bsi[j];
             if(B_i.get(i)^sign)
-                sum =sum|( 1<<(this->offset + j));
+                sum =sum|( 1l<<(this->offset + j));
         }
         
         return (sum+((sign)?1:0))*((sign)?-1:1);
@@ -619,7 +617,7 @@ long BsiSigned<uword>::getValue(int i){
         long sum = 0;
         for (int j = 0; j < this->size; j++) {
             if(this->bsi[j].get(i))
-                sum += 1<<(this->offset + j);
+                sum += 1l<<(this->offset + j);
         }
         return sum*sign;
     }
@@ -664,7 +662,7 @@ HybridBitmap<uword> BsiSigned<uword>::rangeBetweenAbsValue(HybridBitmap<uword> B
     }
 
     for (int i=this->getNumberOfSlices()-1; i>=0; i--){
-        if (upperBound & (1<<i)){
+        if (upperBound & (1l<<i)){
             HybridBitmap<uword> ans = B_eq1.andNot(this->bsi[i]);
             //the i'th bit is set in upperBound
             B_lt = B_lt.Or(ans);
@@ -672,7 +670,7 @@ HybridBitmap<uword> BsiSigned<uword>::rangeBetweenAbsValue(HybridBitmap<uword> B
         } else{ //The i'th bit is not set in uppperBound
             B_eq1 = B_eq1.andNot(this->bsi[i]);
         }
-        if (lowerBound & (1<<i)){ // the I'th bit is set in lowerBound
+        if (lowerBound & (1l<<i)){ // the I'th bit is set in lowerBound
             B_eq2 = B_eq2.And(this->bsi[i]);
         } else{ //the i'th bit is not set in lowerBouond
             B_gt = B_gt.logicalor(B_eq2.And(this->bsi[i]));
