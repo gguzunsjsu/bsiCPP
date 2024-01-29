@@ -143,12 +143,11 @@ public:
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         */
 
-        cout << "\nTime to build the BSI Attribute: " << average << endl
-             << endl;
+        cout << "Time to build the BSI Attribute: " << average<< endl;
         this->bsi_attribute->setPartitionID(0);
         this->bsi_attribute->setFirstSliceFlag(true);
         this->bsi_attribute->setLastSliceFlag(true);
-        cout<<"\nSize of the object" << this->bsi_attribute->getSizeInMemory();
+        cout<<"Size of the object: " << this->bsi_attribute->getSizeInMemory();
     }
     void multiplyByConstant()
     {
