@@ -43,6 +43,7 @@ public:
     BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
     long long int dot(BsiAttribute<uword>* unbsi) const override;
+    long long int dotHorizontal(BsiAttribute<uword>* a) const override;
     bool append(long value) override;
     
     /*
@@ -1918,8 +1919,10 @@ BsiAttribute<uword>*  BsiUnsigned<uword>::multiplyWithBsiHorizontal(const BsiAtt
 //        this->multiplyWithBSI(b);         //perform multiplication on one word
 
         for(int j=0; j< answer.size() ; j++){
+            //Add the count here
             res->bsi[j].addVerbatim(answer[j]);
         }
+        //Aggregation
     }
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
@@ -2104,6 +2107,12 @@ long long int BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
         }
     }
     return res;
+};
+
+template <class uword>
+long long int BsiUnsigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
+    std::cout<<"Under construction"<<"\n This method performs dot product on verbatim vectors";
+    return 0;
 };
 
 //template <class uword>

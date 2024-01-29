@@ -65,6 +65,7 @@ public:
     BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *unbsi)const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
     long long int dot(BsiAttribute<uword>* unbsi) const override;
+    long long int dotHorizontal(BsiAttribute<uword>* a) const override;
     
     
     BsiAttribute<uword>* sum_Horizontal_Hybrid(const BsiAttribute<uword> *a) const;
@@ -1936,7 +1937,11 @@ long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
         }
     return res;
     }
-
+template <class uword>
+long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
+    std::cout<<"Under construction";
+    return 0;
+}
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyBSI(BsiAttribute<uword> *a) const{

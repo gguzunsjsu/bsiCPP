@@ -102,6 +102,7 @@ public:
     virtual long dotProduct(BsiAttribute<uword>* a) const = 0;
     virtual long long int dot(BsiAttribute<uword>* a) const = 0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
+    virtual long long int dotHorizontal(BsiAttribute<uword>* a) const = 0;
 
     virtual BsiAttribute<uword>* negate()=0;
 
