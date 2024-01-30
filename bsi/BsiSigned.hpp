@@ -1939,7 +1939,7 @@ long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
     }
 template <class uword>
 long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
-    std::cout<<"Under construction";
+    std::cout<<"Under construction"<<"\n This method performs dot product on verbatim signed vectors\n";
     return 0;
 }
 

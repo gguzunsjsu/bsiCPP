@@ -36,6 +36,7 @@ public:
     BsiAttribute<uword> *bsi_attribute;
     int numberOfElementsInTheArray;
     int maxValue;
+    bool isVerbatim;
 
     //Constructors
 
@@ -46,6 +47,10 @@ public:
     testBSI(int range)
     {
         this->range = range;
+    }
+    testBSI(bool isVerbatim)
+    {
+        this->isVerbatim = isVerbatim;
     }
 
     // Function to generate positive or negative numbers
@@ -122,8 +127,14 @@ public:
 
 
         }
-        cout << "Enter the compression threshold: ";
-        cin >> this->compressionThreshold;
+        if(this->isVerbatim==false){
+            cout << "Enter the compression threshold: ";
+            cin >> this->compressionThreshold;
+        }else{
+            this->compressionThreshold = 0;
+            std::cout<<"Since, the test is defined for verbatim BSI, the compression threshold is 0\n";
+        }
+
         cout << "The number of elements in array: " << this->array.size() << "\n";
         //Take average of 5 runs
         long total = 0;
@@ -521,6 +532,94 @@ public:
             count++;
         }
         return count;
+    }
+
+    /**
+     * Tests for the new horizontal dot product method
+     */
+    long long horizontalDotProductTesting() {
+        vector<long> array1;
+        long number;
+        int randomChoice;
+        cout << "We are in the method to test dot product of two vectors represented as verbatim bsis\n";
+        cout << "Enter the numbers in the new vector: \n";
+        cout << "Do you want to initialize the array with \n 1. random numbers \n 2. input numbers  \n 3. preset numbers ? ";
+        cin >> randomChoice;
+        if (randomChoice == 2)
+        {
+            //Input numbers
+            cout << "Enter the numbers : \n";
+            for (int i = 0; i < this->numberOfElementsInTheArray; i++)
+            {
+                cin >> number;
+                array1.push_back(number % this->range);
+            }
+        }
+        else if (randomChoice == 3) {
+            //Fill the arrays with numbers 1 to the size
+            for (int i = 1; i <= numberOfElementsInTheArray; i++) {
+                array1.push_back(i % this->range);
+            }
+        }
+        else {
+            cout << "\nInitializing the array with random numbers\n";
+            int distribution;
+            cout << "Choose your distribution \n 1. Uniform \n 2. Skewed zipf distribution ";
+            cin >> distribution;
+            if (distribution == 1) {
+                cout << "\nInitializing the array with random UNIFORM numbers\n";
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                    array1.push_back(std::rand() % this->range);
+                }
+            } else {
+                double s = 1.0;
+                cout << "\nZIPF: choose a real number between 0 and 5 for the zipf skew: ";
+                cin >> s;
+                cout << "\nInitializing the array with random ZIPF SKEWED numbers\n";
+
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                zipf_distribution<> zipf(this->range, s);
+
+                for (int i = 0; i < this->numberOfElementsInTheArray; i++) {
+                    array1.push_back(generatePositiveOrNegative(zipf(gen) - 1));
+                }
+            }
+        }
+        cout << "\nDone with getting the numbers for the second vector we would like to do dot product with!\n";
+        //Building Signed BSI for the second vector
+        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVectorSigned(array1, this->compressionThreshold);
+        bsi2->setPartitionID(0);
+        bsi2->setFirstSliceFlag(true);
+        bsi2->setLastSliceFlag(true);
+        cout << "Let's try to do dot product\n";
+        //BSI Operation
+        long long total = 0;
+        long long result;
+        for(int i =0; i<5;i++) {
+            auto start = chrono::high_resolution_clock::now();
+            result = this->bsi_attribute->dotHorizontal(bsi2);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+        double average = total/5;
+        cout << "\nAverage Time for dot product for the BSI Attribute: " << average << endl;
+        cout << "Result: " << result << endl;
+        //Vector operation
+        total = 0;
+        long long resultFromVectors;
+        for (int i = 0; i < 5; i++) {
+            auto start = chrono::high_resolution_clock::now();
+            resultFromVectors = vectorDotProduct(this->array, array1);
+            auto stop = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+            total = total + duration.count();
+        }
+        average = total / 5;
+        cout << "\nTime for dot product for the vectors: " << average << endl;
+        cout << "Result from vectors : " << resultFromVectors << endl;
+        return result;
     }
 };
 

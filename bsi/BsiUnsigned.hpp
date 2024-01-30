@@ -2111,7 +2111,7 @@ long long int BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
 
 template <class uword>
 long long int BsiUnsigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
-    std::cout<<"Under construction"<<"\n This method performs dot product on verbatim vectors";
+    std::cout<<"Under construction"<<"\n This method performs dot product on verbatim unsigned vectors\n";
     return 0;
 };
 
