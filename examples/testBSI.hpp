@@ -592,7 +592,13 @@ public:
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
-        cout << "Let's try to do dot product\n";
+        for(int i =0;i<bsi2->bsi.size();i++){
+            if(bsi2->bsi[i].verbatim== false)
+                return 0;
+        }
+        //The BSI Vector has only verbatim slices, proceed
+        std::cout<<"\nSecond BSI also has a verbatim construction. Proceding with the horizontal verbatim dot product";
+        cout << "\nLet's try to do dot product\n";
         //BSI Operation
         long long total = 0;
         long long result;

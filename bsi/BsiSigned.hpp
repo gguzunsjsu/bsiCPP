@@ -1965,9 +1965,10 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     uword* x = new uword[size_x];
     uword* y = new uword[size_y];
     uword* answer = new uword[size_ans];
-    long long result = 0;
+
     //Insert each BSI slice into an array of uwords
-    //The buffer will be of uniform size uword - word length we are working with
+    //The array of uswords is called buffer
+    //Each buffer entry will be of uniform size uword - word length we are working with
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         //Get all the bit slice words from current bsi into x
         for(int j=0; j< size_x; j++){
@@ -1981,10 +1982,25 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
         this->multiply_array(x,size_x,y, size_y,answer, size_ans);
         for(int j=0; j< size_ans ; j++){
             res->bsi[j].addVerbatim(answer[j]);
+        }
+
+    }
+
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    res->sign = this->sign.Xor(a->sign);
+    res->is_signed = true;
+    res->twosComplement = false;
+    //Calculate the dot product result seperately
+    long long result = 0;
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
+        for(int j=0; j< size_ans ; j++){
+            uword bitslice = res->bsi[j].getWord(i);
             //In each slice, count the number of one and find the corresponding weighted value
             int countOnes = 0;
             int bitmask = 1;
-            for (int k = 0; k < sizeof(answer[j]) * 8; k++) {
+            for (int k = 0; k < sizeof(bitslice) * 8; k++) {
                 if (answer[j] & bitmask) {
                     countOnes++;
                 }
@@ -1995,13 +2011,6 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
             result += weightedValue;
         }
     }
-
-    res->existenceBitmap = this->existenceBitmap;
-    res->rows = this->rows;
-    res->index = this->index;
-    res->sign = this->sign.Xor(a->sign);
-    res->is_signed = true;
-    res->twosComplement = false;
 
     return result;
 }
