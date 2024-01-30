@@ -1939,7 +1939,7 @@ long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
     }
 template <class uword>
 long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
-    std::cout<<"Under construction"<<"\n This method performs dot product on verbatim signed vectors\n";
+    std::cout<<"\n This method performs dot product on verbatim signed vectors\n";
     //If either of the vectors is empty, return empty result
     if(this->bsi.size() ==0 or a->bsi.size()==0){
         BsiSigned<uword>* res = new BsiSigned<uword>();
@@ -1970,7 +1970,7 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     long long result = 0;
     res->sign = this->sign.Xor(a->sign);
     //Insert each BSI slice into an array of uwords
-    //The array of uswords is called buffer
+    //The array of uwords is called buffer
     //Each buffer entry will be of uniform size uword - word length we are working with
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         uword signWord = res->sign.getWord(i);
@@ -2019,64 +2019,8 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;
-
     res->is_signed = true;
     res->twosComplement = false;
-
-
-    //Calculate the dot product result seperately
-    /*
-    uword one = 1;
-    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
-        uword signWord = res->sign.getWord(i);
-        for(int j=0; j< size_ans ; j++){
-            //Bits where signbit is 1 and bit is also 1
-            uword negativeBitSlice = (res->bsi[j].getWord(i)&signWord);
-            //In each slice, count the number of one and find the corresponding weighted value
-            int countOnesNegative = 0;
-            uword bitmask = 1;
-            for (int k = 0; k < sizeof(negativeBitSlice) * 8; k++) {
-                if (negativeBitSlice & bitmask) {
-                    countOnesNegative++;
-                }
-                bitmask <<= 1;
-            }
-            //Count of Ones in the actual slice
-            uword positiveBitSlice = res->bsi[j].getWord(i)&(~signWord);
-            int countOnesPositive = 0;
-            bitmask = 1;
-            for (int k = 0; k < sizeof(positiveBitSlice) * 8; k++) {
-                if (positiveBitSlice & bitmask) {
-                    countOnesPositive++;
-                }
-                bitmask <<= 1;
-            }
-            // Multiply the count by 2^j and add the weighted value to the result
-            long long weightedValue = countOnesPositive << j;
-            result += weightedValue;
-            weightedValue = countOnesNegative<<j;
-            result-=weightedValue;
-
-        }
-    }
-    */
-    /*
-    uword sign = res->sign.getWord(0);
-    uword one = 1;
-    for(int j=0; j< res->bsi.size() ; j++){
-        int sign = sign & (one << j) == 1? -1:1;
-        long long sliceWeight = (res->bsi[j].numberOfOnes())<<j;
-        // Check the sign bit
-        result += (sliceWeight*sign);
-        //result += ((res->bsi[j].numberOfOnes())<<j);
-    }*/
-
-    //Result for Unsigned Numbers
-    /*
-    for(int j=0; j< res->bsi.size() ; j++){
-        result+=(res->bsi[j].numberOfOnes())<<j;
-    }
-    */
     return result;
 }
 
