@@ -1966,10 +1966,14 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     uword* y = new uword[size_y];
     uword* answer = new uword[size_ans];
 
+    //Calculate the sign slice - needed for dot product
+    long long result = 0;
+    res->sign = this->sign.Xor(a->sign);
     //Insert each BSI slice into an array of uwords
     //The array of uswords is called buffer
     //Each buffer entry will be of uniform size uword - word length we are working with
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
+        uword signWord = res->sign.getWord(i);
         //Get all the bit slice words from current bsi into x
         for(int j=0; j< size_x; j++){
             x[j] = this->bsi[j].getWord(i);
@@ -1982,6 +1986,32 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
         this->multiply_array(x,size_x,y, size_y,answer, size_ans);
         for(int j=0; j< size_ans ; j++){
             res->bsi[j].addVerbatim(answer[j]);
+            //Calculate Dot Product
+            uword negativeBitSlice = (answer[j]&signWord);
+            //In each slice, count the number of one and find the corresponding weighted value
+            int countOnesNegative = 0;
+            uword bitmask = 1;
+            for (int k = 0; k < sizeof(negativeBitSlice) * 8; k++) {
+                if (negativeBitSlice & bitmask) {
+                    countOnesNegative++;
+                }
+                bitmask <<= 1;
+            }
+            //Count of Positive Ones in slice
+            uword positiveBitSlice = answer[j]&(~signWord);
+            int countOnesPositive = 0;
+            bitmask = 1;
+            for (int k = 0; k < sizeof(positiveBitSlice) * 8; k++) {
+                if (positiveBitSlice & bitmask) {
+                    countOnesPositive++;
+                }
+                bitmask <<= 1;
+            }
+            // Multiply the count by 2^j and add the weighted value to the result
+            long long weightedValue = countOnesPositive << j;
+            result += weightedValue;
+            weightedValue = countOnesNegative<<j;
+            result-=weightedValue;
         }
 
     }
@@ -1989,45 +2019,44 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;
-    res->sign = this->sign.Xor(a->sign);
+
     res->is_signed = true;
     res->twosComplement = false;
 
-    long long result = 0;
+
     //Calculate the dot product result seperately
     /*
-
     uword one = 1;
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
         uword signWord = res->sign.getWord(i);
         for(int j=0; j< size_ans ; j++){
             //Bits where signbit is 1 and bit is also 1
-            uword bitslice1 = (res->bsi[j].getWord(i)&signWord);
+            uword negativeBitSlice = (res->bsi[j].getWord(i)&signWord);
             //In each slice, count the number of one and find the corresponding weighted value
-            int countOnes = 0;
+            int countOnesNegative = 0;
             uword bitmask = 1;
-            for (int k = 0; k < sizeof(bitslice1) * 8; k++) {
-                if (bitslice1 & bitmask) {
-                    countOnes++;
+            for (int k = 0; k < sizeof(negativeBitSlice) * 8; k++) {
+                if (negativeBitSlice & bitmask) {
+                    countOnesNegative++;
                 }
                 bitmask <<= 1;
             }
             //Count of Ones in the actual slice
-            uword bitslice2 = res->bsi[j].getWord(i)&(~signWord);
-            int countOnesInBitSlice = 0;
+            uword positiveBitSlice = res->bsi[j].getWord(i)&(~signWord);
+            int countOnesPositive = 0;
             bitmask = 1;
-            for (int k = 0; k < sizeof(bitslice2) * 8; k++) {
-                if (bitslice1 & bitmask) {
-                    countOnesInBitSlice++;
+            for (int k = 0; k < sizeof(positiveBitSlice) * 8; k++) {
+                if (positiveBitSlice & bitmask) {
+                    countOnesPositive++;
                 }
                 bitmask <<= 1;
             }
             // Multiply the count by 2^j and add the weighted value to the result
-            long long weightedValue = countOnesInBitSlice << j;
+            long long weightedValue = countOnesPositive << j;
             result += weightedValue;
-            weightedValue = countOnes<<j;
+            weightedValue = countOnesNegative<<j;
             result-=weightedValue;
-            //Count the
+
         }
     }
     */
