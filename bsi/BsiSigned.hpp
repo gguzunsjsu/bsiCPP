@@ -1992,26 +1992,62 @@ long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     res->sign = this->sign.Xor(a->sign);
     res->is_signed = true;
     res->twosComplement = false;
-    //Calculate the dot product result seperately
+
     long long result = 0;
+    //Calculate the dot product result seperately
+    /*
+
+    uword one = 1;
     for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
+        uword signWord = res->sign.getWord(i);
         for(int j=0; j< size_ans ; j++){
-            uword bitslice = res->bsi[j].getWord(i);
+            //Bits where signbit is 1 and bit is also 1
+            uword bitslice1 = (res->bsi[j].getWord(i)&signWord);
             //In each slice, count the number of one and find the corresponding weighted value
             int countOnes = 0;
-            int bitmask = 1;
-            for (int k = 0; k < sizeof(bitslice) * 8; k++) {
-                if (answer[j] & bitmask) {
+            uword bitmask = 1;
+            for (int k = 0; k < sizeof(bitslice1) * 8; k++) {
+                if (bitslice1 & bitmask) {
                     countOnes++;
                 }
                 bitmask <<= 1;
             }
+            //Count of Ones in the actual slice
+            uword bitslice2 = res->bsi[j].getWord(i)&(~signWord);
+            int countOnesInBitSlice = 0;
+            bitmask = 1;
+            for (int k = 0; k < sizeof(bitslice2) * 8; k++) {
+                if (bitslice1 & bitmask) {
+                    countOnesInBitSlice++;
+                }
+                bitmask <<= 1;
+            }
             // Multiply the count by 2^j and add the weighted value to the result
-            long long weightedValue = countOnes << j;
+            long long weightedValue = countOnesInBitSlice << j;
             result += weightedValue;
+            weightedValue = countOnes<<j;
+            result-=weightedValue;
+            //Count the
         }
     }
+    */
+    /*
+    uword sign = res->sign.getWord(0);
+    uword one = 1;
+    for(int j=0; j< res->bsi.size() ; j++){
+        int sign = sign & (one << j) == 1? -1:1;
+        long long sliceWeight = (res->bsi[j].numberOfOnes())<<j;
+        // Check the sign bit
+        result += (sliceWeight*sign);
+        //result += ((res->bsi[j].numberOfOnes())<<j);
+    }*/
 
+    //Result for Unsigned Numbers
+    /*
+    for(int j=0; j< res->bsi.size() ; j++){
+        result+=(res->bsi[j].numberOfOnes())<<j;
+    }
+    */
     return result;
 }
 
