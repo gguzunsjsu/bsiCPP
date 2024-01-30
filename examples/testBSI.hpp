@@ -600,19 +600,17 @@ public:
         std::cout<<"\nSecond BSI also has a verbatim construction. Proceding with the horizontal verbatim dot product";
         cout << "\nLet's try to do dot product\n";
         //BSI Operation
-        long long total = 0;
+
+
+        long long resultFromVectors;
         long long result;
+        long long total = 0;
+        /*
         result = this->bsi_attribute->dotHorizontal(bsi2);
         cout << "Result: " << result << endl;
-        long long resultFromVectors;
         resultFromVectors = vectorDotProduct(this->array, array1);
         cout << "Result from vectors : " << resultFromVectors << endl;
-
-
-        //The following code is commented out as we are only testing and not benchmarking
-
-
-        /*
+        */
         for(int i =0; i<5;i++) {
             auto start = chrono::high_resolution_clock::now();
             result = this->bsi_attribute->dotHorizontal(bsi2);
@@ -625,7 +623,6 @@ public:
         cout << "Result: " << result << endl;
         //Vector operation
         total = 0;
-        long long resultFromVectors;
         for (int i = 0; i < 5; i++) {
             auto start = chrono::high_resolution_clock::now();
             resultFromVectors = vectorDotProduct(this->array, array1);
@@ -636,7 +633,6 @@ public:
         average = total / 5;
         cout << "\nTime for dot product for the vectors: " << average << endl;
         cout << "Result from vectors : " << resultFromVectors << endl;
-         */
         return result;
     }
 };

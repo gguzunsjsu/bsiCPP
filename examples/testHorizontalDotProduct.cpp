@@ -27,6 +27,6 @@ int main(){
     }
     //The BSI Vector has only verbatim slices, proceed
     std::cout<<"\nProceding with the horizontal verbatim dot product";
-    std:: cout<<"\n"<<testDotProductHorizontal->horizontalDotProductTesting();
+    testDotProductHorizontal->horizontalDotProductTesting();
     return 0;
 }
