@@ -1940,8 +1940,72 @@ long long int BsiSigned<uword>::dot(BsiAttribute<uword>* unbsi) const {
 template <class uword>
 long long int BsiSigned<uword>:: dotHorizontal(BsiAttribute<uword>* a) const{
     std::cout<<"Under construction"<<"\n This method performs dot product on verbatim signed vectors\n";
-    return 0;
+    //If either of the vectors is empty, return empty result
+    if(this->bsi.size() ==0 or a->bsi.size()==0){
+        BsiSigned<uword>* res = new BsiSigned<uword>();
+        res->existenceBitmap = this->existenceBitmap;
+        res->rows = this->rows;
+        res->index = this->index;
+        res->sign = this->sign.Xor(a->sign);
+        res->is_signed = true;
+        res->twosComplement = false;
+    }
+    BsiSigned<uword>* res = new BsiSigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    hybridBitmap.reset();
+    hybridBitmap.verbatim = true;
+    //Adding all the slices to the result
+    //There will be (number of slices in current bsi + number of slices in a) slices in the result
+    for(int j=0; j< this->size + a->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_x = this->size;
+    int size_y = a->size;
+    int size_ans = size_y +size_x;
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    long long result = 0;
+    //Insert each BSI slice into an array of uwords
+    //The buffer will be of uniform size uword - word length we are working with
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
+        //Get all the bit slice words from current bsi into x
+        for(int j=0; j< size_x; j++){
+            x[j] = this->bsi[j].getWord(i);
+        }
+        //Get all the bit slice words from the second bsi we are doing dot product with
+        for(int j=0; j< size_y; j++){
+            y[j] = a->bsi[j].getWord(i);
+        }
+        //Perform multiplication on the uword arrays
+        this->multiply_array(x,size_x,y, size_y,answer, size_ans);
+        for(int j=0; j< size_ans ; j++){
+            res->bsi[j].addVerbatim(answer[j]);
+            //In each slice, count the number of one and find the corresponding weighted value
+            int countOnes = 0;
+            int bitmask = 1;
+            for (int k = 0; k < sizeof(answer[j]) * 8; k++) {
+                if (answer[j] & bitmask) {
+                    countOnes++;
+                }
+                bitmask <<= 1;
+            }
+            // Multiply the count by 2^j and add the weighted value to the result
+            long long weightedValue = countOnes << j;
+            result += weightedValue;
+        }
+    }
+
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    res->sign = this->sign.Xor(a->sign);
+    res->is_signed = true;
+    res->twosComplement = false;
+
+    return result;
 }
+
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplyBSI(BsiAttribute<uword> *a) const{

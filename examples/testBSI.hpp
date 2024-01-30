@@ -370,8 +370,8 @@ public:
         return result;
     }
 
-    long vectorDotProduct(vector<long> vector_a, vector<long> vector_b) {
-        long product = 0;
+    long long vectorDotProduct(vector<long> vector_a, vector<long> vector_b) {
+        long long product = 0;
         for (int i = 0; i < this->numberOfElementsInTheArray; i++)
             product = product + vector_a[i] * vector_b[i];
         return product;
@@ -596,6 +596,17 @@ public:
         //BSI Operation
         long long total = 0;
         long long result;
+        result = this->bsi_attribute->dotHorizontal(bsi2);
+        cout << "Result: " << result << endl;
+        long long resultFromVectors;
+        resultFromVectors = vectorDotProduct(this->array, array1);
+        cout << "Result from vectors : " << resultFromVectors << endl;
+
+
+        //The following code is commented out as we are only testing and not benchmarking
+
+
+        /*
         for(int i =0; i<5;i++) {
             auto start = chrono::high_resolution_clock::now();
             result = this->bsi_attribute->dotHorizontal(bsi2);
@@ -619,6 +630,7 @@ public:
         average = total / 5;
         cout << "\nTime for dot product for the vectors: " << average << endl;
         cout << "Result from vectors : " << resultFromVectors << endl;
+         */
         return result;
     }
 };
