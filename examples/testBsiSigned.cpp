@@ -24,11 +24,11 @@ int main() {
                           "rows10k_skew1_card4_neg",
                           "rows10k_skew1_card8_neg"};
 
-    /*for (string filename: filenames) {
+    for (string filename: filenames) {
         processAndRun(filename);
-    }*/
+    }
     //processAndRun("rows10k_skew1_card4_neg");
-    processAndRun("testcase.txt");
+    //processAndRun("testcase.txt");
 
     return 0;
 }
@@ -36,7 +36,7 @@ void processAndRun(string filename) {
     cout << filename << "\n";
     BsiSigned<uint64_t> build;
     BsiAttribute<uint64_t>* bsi;
-    int k = 100;
+    int k = 5000;
     int range_begin = -100;
     int range_end = 100;
     vector<long> array;
@@ -49,17 +49,16 @@ void processAndRun(string filename) {
         array.push_back(el);
     }
     file.close();
-    /*if (array.size() < k) {
-        return;
-    }*/
 
     //--- buildBSI ---
     bsi = build.buildBsiAttributeFromVectorSigned(array,0.5);
 
     //--- test runtimes ---
     //runQuickSort(array);
-    //runTopKMax(k,bsi,array);
-    runTopKMin(k,bsi,array);
+    if (array.size() >= k) {
+        runTopKMax(k,bsi,array);
+        //runTopKMin(k,bsi,array);
+    }
     //runRangeBetween(range_begin,range_end,bsi,array);
 
     array.clear();
@@ -190,7 +189,7 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time2 += duration.count();
         //topkmax_positions.clear();
     }
-    cout << "Time for hybridbitmap positionstovector: " << time2/5 << "\n";
+    //cout << "Time for hybridbitmap positionstovector: " << time2/5 << "\n";
 
     vector<long> topkmax_vector;
     double time3 = 0;
@@ -202,7 +201,7 @@ void runTopKMax(int k, BsiAttribute<uint64_t>* bsi, vector<long> array) {
         time3 += duration.count();
         //topkmax_vector.clear();
     }
-    cout << "Time for bsiattribute positionstovector: " << time3/5 << "\n";
+    //cout << "Time for bsiattribute positionstovector: " << time3/5 << "\n";
 
     cout << "array length: " << topkmax_vector.size() << "\n";
     sort(topkmax_vector.begin(),topkmax_vector.end(),greater<long>());
