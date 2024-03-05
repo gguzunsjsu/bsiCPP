@@ -4130,7 +4130,7 @@ void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap 
         auto t4 = std::chrono::high_resolution_clock::now();
         auto op1 = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
         auto op2 = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2);
-        auto op1 = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t1);
+        auto op3 = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t1);
     }
 
 }
