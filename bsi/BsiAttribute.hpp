@@ -147,7 +147,7 @@ private:
     std::vector< std::vector< uword > > bringTheBits(const std::vector<uword> &array, int slices, int attRows) const;
 protected:
     int sliceLengthFinder(uword value)const;
-    int sliceLengthFinder(long value)const;
+    //int sliceLengthFinder(long value)const;
 
 
 };
@@ -421,10 +421,10 @@ int BsiAttribute<uword>::sliceLengthFinder(uword value) const{
  * One liner for finding required slices for storing value
  */
 //todo check which slicelengthfinder implementation is faster
-template <class uword>
+/*template <class uword>
 int BsiAttribute<uword>::sliceLengthFinder(long value) const{
     return 64 - std::countl_zero((unsigned long)value); // todo replace 64 with const
-}
+}*/
 
 /*
  * Used for converting vector into BSI
