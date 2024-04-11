@@ -1,9 +1,9 @@
 #include <iostream>
 #include <chrono>
 
-#include </home/czhang/OpenSfM/bsiCPP/bsi/BsiUnsigned.hpp>
-#include </home/czhang/OpenSfM/bsiCPP/bsi/BsiSigned.hpp>
-#include </home/czhang/OpenSfM/bsiCPP/bsi/BsiAttribute.hpp>
+#include "BsiUnsigned.hpp"
+#include "BsiSigned.hpp"
+#include "BsiAttribute.hpp"
 
 
 //void MultiplyVectorByScalar(vector<long>& v, int k) {
@@ -31,6 +31,7 @@ vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
         res.push_back(new BsiSigned<uint64_t>(mat.at(0)->getNumberOfSlices()+1));
     }
     sgesv(n,n,mat,ipiv,res);
+    return res;
 }
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b) {
 
