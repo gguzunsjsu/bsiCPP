@@ -114,6 +114,7 @@ public:
     BsiAttribute* buildBsiAttributeFromArray(uword array[], long max, long min, long firstRowID, double compressThreshold);
     BsiAttribute<uword>* buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold)const;
     BsiAttribute<uword>* buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold)const;
+    //BsiAttribute<uword>* buildBsiAttributeFromPyList(py::list nums, double compressThreshold)const;
     BsiAttribute<uword>* buildCompressedBsiFromVector(std::vector<long> nums, double compressThreshold) const;
     BsiAttribute<uword> *
     buildBsiVector(std::vector<long> decimalVector, int vectorLength, long min, long max, long firstRowID,
