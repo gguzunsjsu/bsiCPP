@@ -30,6 +30,7 @@ public:
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
     long getValue(int pos) override;
+    long setValue(int pos, int val) override;
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -41,6 +42,7 @@ public:
     void multiplicationInPlace(BsiAttribute<uword> *a) override;
     long sumOfBsi()const override;
     bool append(long value) override;
+    int compareTo(BsiAttribute<uword> *a, int index) override;
     
     /*
      Declaring Other Functions
@@ -375,6 +377,14 @@ long BsiSigned<uword>::getValue(int i){
 };
 
 /*
+ * set value of i'th position
+ */
+template <class uword>
+long BsiSigned<uword>::setValue(int pos, int val) {
+    return 0;
+}
+
+/*
  * Provides values between range in position bitmap: - not implemented yet
  */
 
@@ -466,7 +476,59 @@ BsiUnsigned<uword>* BsiSigned<uword>::absScale(double range){
     return res;
 };
 
-
+/*
+ * Compares values stored in slice "index".
+ * Returns -1 if this is less than a, 1 if this is greater than a, 0 otherwise
+*/
+template <class uword>
+int BsiSigned<uword>::compareTo(BsiAttribute<uword> *a, int index) {
+    if (this->sign.get(index) == 1 && a->sign.get(index) == 0) return -1;
+    if (this->sign.get(index) == 0 && a->sign.get(index) == 1) return 1;
+    if (this->twosComplement && this->sign.get(index) == 1) {
+        if (this->size < a->size) {
+            for (int i=a->size-1; i>=this->size; i--) {
+                if (a->bsi[i].get(index) == 1) {
+                    return -1;
+                }
+            }
+        } else if (this->size > a->size) {
+            for (int i=this->size-1; i>=a->size; i--) {
+                if (this->bsi[i].get(index) == 1) {
+                    return 1;
+                }
+            }
+        }
+        for (int i=std::min(this->size,a->size)-1; i>=0; i--) {
+            if (this->bsi[i].get(index) != a->bsi[i].get(index)) {
+                if (this->sign.get(index) == this->bsi[i].get(index)) return 1;
+                else return -1;
+            }
+        }
+    } else {
+        if (this->size < a->size) {
+            for (int i=a->size-1; i>=this->size; i--) {
+                if (a->bsi[i].get(index) == 1) {
+                    if (a->sign.get(index) == 0) return -1;
+                    else return 1;
+                }
+            }
+        } else if (this->size > a->size) {
+            for (int i=this->size-1; i>=a->size; i--) {
+                if (this->bsi[i].get(index) == 1) {
+                    if (this->sign.get(index) == 0) return 1;
+                    else return -1;
+                }
+            }
+        }
+        for (int i=std::min(this->size,a->size)-1; i>=0; i--) {
+            if (this->bsi[i].get(index) != a->bsi[i].get(index)) {
+                if (this->sign.get(index) == this->bsi[i].get(index)) return -1;
+                else return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 
 /*

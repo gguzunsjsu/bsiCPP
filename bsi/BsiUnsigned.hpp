@@ -34,6 +34,7 @@ public:
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
     long getValue(int pos) override;
+    long setValue(int pos, int val) override;
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -44,6 +45,7 @@ public:
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
     long long int dot(BsiAttribute<uword>* unbsi) const override;
     bool append(long value) override;
+    int compareTo(BsiAttribute<uword> *a, int index) override;
     
     /*
      * multiplication is only compatible with Verbatim Bitmap
@@ -517,6 +519,14 @@ long BsiUnsigned<uword>::getValue(int pos){
     }
     return sum;
 };
+
+/*
+ * set value of i'th position
+ */
+template <class uword>
+long BsiUnsigned<uword>::setValue(int pos, int val) {
+    return 0;
+}
 
 template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::rangeBetween(long lowerBound, long upperBound){
@@ -2195,6 +2205,19 @@ bool BsiUnsigned<uword>::append(long value){
     return true;
 }
 
-
+/*
+ * Compares values stored in slice "index".
+ * Returns -1 if this is less than a, 1 if this is greater than a, 0 otherwise
+*/
+template <class uword>
+int BsiUnsigned<uword>::compareTo(BsiAttribute<uword> *a, int index) {
+    for (int i=this->size; i>=0; i--) {
+        if (this->bsi[i].get(index) != a->bsi[i].get(index)) {
+            if (this->bsi[i].get(index) == 0) return -1;
+            else return 1;
+        }
+    }
+    return 0;
+}
 
 #endif /* BsiUnsigned_hpp */

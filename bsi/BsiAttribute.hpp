@@ -90,8 +90,10 @@ public:
     virtual BsiUnsigned<uword>* abs()=0;
     virtual BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB)=0;
     virtual BsiUnsigned<uword>* absScale(double range)=0;
+    virtual int compareTo(BsiAttribute<uword> *a, int index)=0;
 
-    virtual long getValue(int pos)=0;   
+    virtual long getValue(int pos)=0;
+    virtual long setValue(int pos, int val)=0;
 
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
     virtual BsiAttribute<uword>* multiplyByConstantNew(int number)const=0;
