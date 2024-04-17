@@ -33,8 +33,7 @@ public:
     BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
-    long getValue(int pos) override;
-    long setValue(int pos, int val) override;
+    long getValue(int pos) const override;
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -510,7 +509,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::convertToTwos(int bitsize){
 };
 
 template <class uword>
-long BsiUnsigned<uword>::getValue(int pos){
+long BsiUnsigned<uword>::getValue(int pos) const {
     long sum = 0;
 
     for (int i = 0; i < this->size; i++) {
@@ -519,14 +518,6 @@ long BsiUnsigned<uword>::getValue(int pos){
     }
     return sum;
 };
-
-/*
- * set value of i'th position
- */
-template <class uword>
-long BsiUnsigned<uword>::setValue(int pos, int val) {
-    return 0;
-}
 
 template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::rangeBetween(long lowerBound, long upperBound){

@@ -29,8 +29,7 @@ public:
     BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
-    long getValue(int pos) override;
-    long setValue(int pos, int val) override;
+    long getValue(int pos) const override;
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -353,8 +352,8 @@ BsiAttribute<uword>* BsiSigned<uword>::convertToTwos(int bits){
  * getValue for fetching value of i'th position
  */
 template <class uword>
-long BsiSigned<uword>::getValue(int i){
-    if(this->twosComplement){
+long BsiSigned<uword>::getValue(int i) const{
+    if(this->twosComplement){ // not implemented for compressed
         bool sign = this->bsi[this->size-1].get(i);
         long sum=0;
         HybridBitmap<uword> B_i;
@@ -371,18 +370,33 @@ long BsiSigned<uword>::getValue(int i){
         for (int j = 0; j < this->size; j++) {
             if(this->bsi[j].get(i))
                 sum += 1<<(this->offset + j);
+            /*if (this->bsi[j].isVerbatim()) {
+                if(this->bsi[j].get(i))
+                    sum += 1<<(this->offset + j);
+            } else {
+                ConstRunningLengthWord<uword> rlwa(this->bsi[j].buffer[0]);
+                int bit = 0;
+                int word = 0;
+                while (word*sizeof(uword) < i) {
+                    word += (int) rlwa.getRunningLength();
+                    if (word*sizeof(uword) > i) {
+                        bit = rlwa.getRunningBit();
+                    } else {
+                        if (i/sizeof(uword) >= word+rlwa.getNumberOfLiteralWords()) {
+                            word += rlwa.getNumberOfLiteralWords();
+                        } else {
+                            bit = this->bsi[j].buffer[i/sizeof(uword)+1] & (1 << (i%sizeof(uword)));
+                            word += rlwa.getNumberOfLiteralWords();
+                        }
+                    }
+                }
+                if(bit)
+                    sum += 1<<(this->offset + j);
+            }*/
         }
         return sum*sign;
     }
 };
-
-/*
- * set value of i'th position
- */
-template <class uword>
-long BsiSigned<uword>::setValue(int pos, int val) {
-    return 0;
-}
 
 /*
  * Provides values between range in position bitmap: - not implemented yet
@@ -1023,14 +1037,32 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
             } else {
                 /* Move the slices of res k positions */
                 HybridBitmap<uword> A, B;
-                A = res->bsi[k];
+                if (k >= res->size) {
+                    A = new HybridBitmap(1,false);
+                } else {
+                    A = res->bsi[k];
+                }
                 B = this->bsi[0];
                 S = A.Xor(B);
                 C = A.And(B);
-                res->bsi.at(k) = S;
+                if (k >= res->size) {
+                    HybridBitmap<uword> zeroBitmap;
+                    zeroBitmap.addStreamOfEmptyWords(false, this->existenceBitmap.bufferSize());
+                    //zeroBitmap.reset();
+                    //zeroBitmap.verbatim = true;
+                    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                    for (int i = res->size; i < k; i++) {
+                        res->bsi.push_back(zeroBitmap);
+                        res->size ++;
+                    }
+                    res->size ++;
+                    res->bsi.push_back(S);
+                } else {
+                    res->bsi[k] = S;
+                }
                 for (int i = 1; i < this->size; i++) {// Add the slices of this to the current res
                     B = this->bsi[i];
-                    if ((i + k) >=this->size){
+                    if ((i + k) >=res->size){
                         S = B.Xor(C);
                         C = B.And(C);
                         res->size++;
@@ -1054,7 +1086,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
                     res->size++;
                 }
             }
-        }else{
+        }/*else{
             if (res == nullptr) {
                 res = new BsiSigned<uword>();
                 HybridBitmap<uword> zeroBitmap;
@@ -1068,7 +1100,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
                 res->size = this->size;
                 k = 0;
             }
-        }
+        }*/
         number >>= 1;
         k++;
     }

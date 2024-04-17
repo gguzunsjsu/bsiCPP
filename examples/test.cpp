@@ -14,6 +14,7 @@ using namespace std;
 
 void testInverse();
 void testCompareTo();
+void testMultByConstant();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -21,9 +22,31 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testCompareTo();
-    cout << "done testing compareTo\n";
+    testMultByConstant();
+    //testInverse();
     return 0;
+}
+
+void testMultByConstant() {
+    vector<long> v = {6,4,3};
+    int c = 100000000;
+    BsiSigned<uint64_t> bsi;
+    BsiAttribute<uint64_t> *test = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    for (int i=0; i<v.size(); i++) {
+        v[i] *= c;
+    }
+    BsiAttribute<uint64_t> *sol = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    test = test->multiplyByConstant(c);
+    for (int i=0; i<v.size(); i++) {
+        cout << test->getValue(i) << " ";
+    }
+    cout << "\n";
+    for (int i=0; i<test->getNumberOfSlices(); i++) {
+        if (test->getSlice(i) != sol->getSlice(i)) {
+            break;
+        }
+    }
+    cout << "finish testing mult by constant";
 }
 
 void testInverse() {
@@ -37,13 +60,69 @@ void testInverse() {
 }
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
+    int precision = 10000;
     int n = mat.size();
-    vector<int> ipiv;
-    vector<BsiAttribute<uint64_t>*> res;
+    vector<BsiAttribute<uint64_t>*> res; // initialize as identity matrix
+    vector<long> row;
     for (int i=0; i<n; i++) {
-        res.push_back(new BsiSigned<uint64_t>(mat.at(0)->getNumberOfSlices()+1));
+        for (int j=0; j<n; j++) {
+            cout << mat[i]->getValue(j) << " ";
+        }
+        cout <<"\n";
     }
-    sgesv(n,n,mat,ipiv,res);
+    for (int i=0; i<n; i++) {
+        row.push_back(0);
+        mat[i] = mat[i]->multiplyByConstant(precision);
+    }
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            cout << mat[i]->getValue(j) << " ";
+        }
+        cout <<"\n";
+    }
+    BsiSigned<uint64_t> bsi;
+    for (int i=0; i<n; i++) {
+        row[i] = precision;
+        res.push_back(bsi.buildBsiAttributeFromVectorSigned(row,0.5));
+        row[i] = 0;
+    }
+
+    // Gaussian elimination with partial pivoting
+    for (int i=0; i<n-1; i++) {
+        // Find maximum possible pivot in column for numerical stability
+        int piv = i;
+        for (int j = i+1; j<n; j++) {
+            if (mat[i]->compareTo(mat[j],i) < 0) {
+                piv = j;
+            }
+        }
+        // Interchange rows
+        BsiAttribute<uint64_t>* temp = mat[i];
+        mat[i] = mat[piv];
+        mat[piv] = temp;
+
+        temp = res[i];
+        res[i] = res[piv];
+        res[piv] = temp;
+
+        // Calculate rows (i+1):n
+        for (int j = i+1; j<n; j++) {
+            int l = mat[j]->getValue(i)/mat[i]->getValue(i)*(-1);
+            mat[j] = mat[j]->SUM(mat[i]->multiplyByConstant(l));
+        }
+    }
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            cout << res[i]->getValue(j) << " ";
+        }
+        cout <<"\n";
+    }
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            cout << res[i]->getValue(j) << " ";
+        }
+        cout <<"\n";
+    }
     return res;
 }
 /*
@@ -95,9 +174,13 @@ void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv) 
         ipiv[0] = i;
         if (a[i]->getValue(0) != 0) {
             // Apply the interchange
-            if (i != 1) {
-                int temp = a[0]->getValue(0);
+            if (i != 0) {
+                auto temp = a[0];
+                a[0] = a[i];
+                a[i] = temp;
             }
+            // Compute elements 2:M of the column
+
         }
     }
 }
