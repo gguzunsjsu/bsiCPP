@@ -3250,6 +3250,7 @@ template <class uword>
 void HybridBitmap<uword>::And(const HybridBitmap &a, HybridBitmap &container) const {
     //And count
     andCount++;
+    std::cout << "Current count for And: " << andCount << std::endl;
     container.density=density*a.density;
     if (verbatim && a.verbatim) {
         //if(container.density<andThreshold){
@@ -3656,6 +3657,7 @@ template <class uword>
 void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) const {
     //Added for instrumentation
     orCount++;
+    std::cout << "Current count for Or: " << orCount << std::endl;
     //double expDens = (this.setbits+a.setbits)/(double)(this.sizeinbits)-(this.setbits/(double)this.sizeinbits*a.setbits/(double)a.sizeinbits);
     container.density= (density+a.density)-(density*a.density);
     //    container.sizeinbits=this.sizeinbits;

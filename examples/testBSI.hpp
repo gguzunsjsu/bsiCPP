@@ -44,6 +44,13 @@ public:
         this->range = range;
     }
 
+    void getHybridBitMapMethodStatistics() {
+        size_t andCount = HybridBitmap<>::getAndCount();
+        size_t orCount = HybridBitmap<>::getOrCount();
+        std::cout << "AND count: " << andCount << std::endl;
+        std::cout << "OR count: " << orCount << std::endl;
+    }
+
     // Member functions
     void buildBSIAttribute()
     {
