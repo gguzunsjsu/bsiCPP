@@ -32,7 +32,9 @@ public:
     double density=0;
     bool verbatim = false;
     std::vector<uword> buffer;
-//    std::vector<uword>& buffer = *buffer1;
+    
+    
+    
     
     
     
@@ -385,31 +387,31 @@ public:
      * bitmap's sizeInBits() and that of a.sizeInBits().
      */
     
-    HybridBitmap And(const HybridBitmap &a) const {
+    HybridBitmap And(const HybridBitmap &a) const {        
         HybridBitmap answer;
         And(a, answer);
         return answer;
     }
 
-    HybridBitmap Or(const HybridBitmap &a) const {
+    HybridBitmap Or(const HybridBitmap &a) const {   
         HybridBitmap answer;
         Or(a, answer);
         return answer;
     }
     
     
-    HybridBitmap orVerbatimCompress(const HybridBitmap &a) const {
+    HybridBitmap orVerbatimCompress(const HybridBitmap &a) const {        
         HybridBitmap answer;
         orVerbatimCompress(a, answer);
         return answer;
     }
-    HybridBitmap Xor(const HybridBitmap &a) const {
+    HybridBitmap Xor(const HybridBitmap &a) const {        
         HybridBitmap answer = new HybridBitmap(this);
         Xor(a, answer);
         return answer;
     }
 
-    HybridBitmap xorNot(const HybridBitmap &a) const {
+    HybridBitmap xorNot(const HybridBitmap &a) const {        
         HybridBitmap answer;
         xorNot(a, answer);
         return answer;
@@ -434,7 +436,7 @@ public:
         andVerbatim(a, answer);
         return answer;
     }
-    HybridBitmap orVerbatim(const HybridBitmap &a) const {
+    HybridBitmap orVerbatim(const HybridBitmap &a) const {        
         HybridBitmap answer;
         orVerbatim(a, answer);
         return answer;
@@ -450,7 +452,7 @@ public:
         orHybrid(a, answer);
         return answer;
     }
-    HybridBitmap orHybridCompress(const HybridBitmap &a) const {
+    HybridBitmap orHybridCompress(const HybridBitmap &a) const {        
         HybridBitmap answer;
         orHybridCompress(a, answer);
         return answer;
@@ -1192,15 +1194,173 @@ public:
     // inline void addEmptyWordStaticCalls(bool v);
     // RunningLengthWord<> rlw;
 
-private:
-    
+private:    
     
     size_t sizeinbits;
     size_t lastRLW;
 
     double andThreshold =  0.0005;
     double orThreshold = 0.001;
+    /*
+    * Adding instrumentation to count method invocations
+    */
+    private:
+        static size_t andCount;
+        static size_t xorCount;
+        static size_t orCount;
+        static size_t orVerbatimCompressCount;
+        static size_t orVerbatimCount;
+        static size_t orHybridCompressCount;
+        static size_t orHybridCount;
+        static size_t logicalOrDecompressCount;
+        static size_t logicalOrCount;
+        static size_t xorVerbatimCount;
+        static size_t xorVerbatimCompressCount;
+        static size_t xorHybridCount;
+        static size_t xorHybridCompressCount;
+        static size_t logicalXorDecompressCount;
+        static size_t logicalXorCount;
+        static size_t inPlaceXorVerbatimCount;
+        static size_t inPlaceXorHybridCount;
+        static size_t xorNotVerbatimCount;
+        static size_t xorNotHybridCount;
+        static size_t logicalXorNotCount;
+        static size_t andVerbatimCount;
+        static size_t andVerbatimCompressCount;
+        static size_t andHybridCount;
+        static size_t andHybridCompressCount;
+        static size_t andNotHybridCompressCount;
+        static size_t andNotVerbatimCount;
+        static size_t andNotHybridCount;
+        static size_t logicalAndDecompressCount;
+        static size_t logicalAndCount;
+
+
+    public:    
+
+        // Getter functions for counts
+        static size_t getAndCount() { return andCount; }
+        static size_t getXorCount() { return xorCount; }
+        static size_t getOrCount() { return orCount; }
+        static size_t getOrVerbatimCompressCount() { return orVerbatimCompressCount; }
+        static size_t getOrVerbatimCount() { return orVerbatimCount; }
+        static size_t getOrHybridCompressCount() { return orHybridCompressCount; }
+        static size_t getOrHybridCount() { return orHybridCount; }
+        static size_t getLogicalOrDecompressCount() { return logicalOrDecompressCount; }
+        static size_t getLogicalOrCount() { return logicalOrCount; }
+        static size_t getXorVerbatimCount() { return xorVerbatimCount; }
+        static size_t getXorVerbatimCompressCount() { return xorVerbatimCompressCount; }
+        static size_t getXorHybridCount() { return xorHybridCount; }
+        static size_t getXorHybridCompressCount() { return xorHybridCompressCount; }
+        static size_t getLogicalXorDecompressCount() { return logicalXorDecompressCount; }
+        static size_t getLogicalXorCount() { return logicalXorCount; }
+        static size_t getInPlaceXorVerbatimCount() { return inPlaceXorVerbatimCount; }
+        static size_t getInPlaceXorHybridCount() { return inPlaceXorHybridCount; }
+        static size_t getXorNotVerbatimCount() { return xorNotVerbatimCount; }
+        static size_t getXorNotHybridCount() { return xorNotHybridCount; }
+        static size_t getLogicalXorNotCount() { return logicalXorNotCount; }
+        static size_t getAndVerbatimCount() { return andVerbatimCount; }
+        static size_t getAndVerbatimCompressCount() { return andVerbatimCompressCount; }
+        static size_t getAndHybridCount() { return andHybridCount; }
+        static size_t getAndHybridCompressCount() { return andHybridCompressCount; }
+        static size_t getAndNotHybridCompressCount() { return andNotHybridCompressCount; }
+        static size_t getAndNotVerbatimCount() { return andNotVerbatimCount; }
+        static size_t getAndNotHybridCount() { return andNotHybridCount; }
+        static size_t getLogicalAndDecompressCount() { return logicalAndDecompressCount; }
+        static size_t getLogicalAndCount() { return logicalAndCount; }
+
 };
+/*
+* ####################################################################################################
+* Initialize the static members used for instrumenting the count of method invocations
+* 
+*/
+
+// Initialize static counters
+template <class uword>
+size_t HybridBitmap<uword>::andCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::orCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::orVerbatimCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::orVerbatimCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::orHybridCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::orHybridCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::logicalOrDecompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::logicalOrCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorVerbatimCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorVerbatimCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorHybridCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorHybridCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::logicalXorDecompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::logicalXorCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::inPlaceXorVerbatimCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::inPlaceXorHybridCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorNotVerbatimCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::xorNotHybridCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::logicalXorNotCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::andVerbatimCount = 0;
+template <class uword>
+size_t HybridBitmap<uword>::andVerbatimCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::andHybridCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::andHybridCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::andNotHybridCompressCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::andNotVerbatimCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::andNotHybridCount = 0;
+
+template <class uword>
+size_t HybridBitmap<uword>::logicalAndDecompressCount = 0;
+template <class uword>
+size_t HybridBitmap<uword>::logicalAndCount = 0;
 /*
 ###################################################################################################################
 */
@@ -2431,6 +2591,8 @@ template <class uword>size_t HybridBitmap<uword>::addEmptyWord(const bool v) {
 template <class uword>
 void HybridBitmap<uword>::logicalor(const HybridBitmap &a,
                                     HybridBitmap &container) const {
+    //Added for instrumentation
+    logicalOrCount++;
     container.reset();
     container.density= (density+a.density)-(density*a.density);
     container.buffer.push_back(0);
@@ -2482,6 +2644,8 @@ void HybridBitmap<uword>::logicalor(const HybridBitmap &a,
 template <class uword>
 void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                                     HybridBitmap &container) const {
+    //Added for instrumentation
+    logicalOrDecompressCount++;
     container.reset();
     container.density= (density+a.density)-(density*a.density);
     container.verbatim =true;
@@ -2552,6 +2716,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
 
 template <class uword>
 size_t HybridBitmap<uword>::logicalorcount(const HybridBitmap &a) const {
+    //Is this method important
     size_t answer = 0;
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
@@ -2598,6 +2763,8 @@ size_t HybridBitmap<uword>::logicalorcount(const HybridBitmap &a) const {
 template <class uword>
 void HybridBitmap<uword>::logicalxor(const HybridBitmap &a,
                                      HybridBitmap &container) const {
+    //Added for instrumentation
+    logicalXorCount++;
     container.reset();
     container.buffer.push_back(0);
     if (RESERVEMEMORY)
@@ -2693,6 +2860,8 @@ size_t HybridBitmap<uword>::logicalxorcount(const HybridBitmap &a) const {
 template <class uword>
 void HybridBitmap<uword>::logicaland(const HybridBitmap &a,
                                      HybridBitmap &container) const {
+    //Added for instrumentation
+    logicalAndCount++;
     container.reset();
     container.density=density*a.density;
     container.buffer.push_back(0);
@@ -3079,6 +3248,8 @@ void HybridBitmap<uword>::shiftRowWithCarry(const HybridBitmap &this_bitmap, Hyb
 
 template <class uword>
 void HybridBitmap<uword>::And(const HybridBitmap &a, HybridBitmap &container) const {
+    //And count
+    andCount++;
     container.density=density*a.density;
     if (verbatim && a.verbatim) {
         //if(container.density<andThreshold){
@@ -3470,7 +3641,8 @@ bool HybridBitmap<uword>::compareBitmap(const HybridBitmap &a) const {
 
 template <class uword>
 void HybridBitmap<uword>::andVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const{
-
+    //Added for instrumentation
+    andVerbatimCompressCount++;
     container.buffer.reserve(bufferSize());
     //container.verbatim = false;
     for (int i = 0; i < buffer.size(); i++) {
@@ -3482,6 +3654,8 @@ void HybridBitmap<uword>::andVerbatimCompress(const HybridBitmap &a, HybridBitma
 
 template <class uword>
 void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) const {
+    //Added for instrumentation
+    orCount++;
     //double expDens = (this.setbits+a.setbits)/(double)(this.sizeinbits)-(this.setbits/(double)this.sizeinbits*a.setbits/(double)a.sizeinbits);
     container.density= (density+a.density)-(density*a.density);
     //    container.sizeinbits=this.sizeinbits;
@@ -3516,7 +3690,10 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
 }
 
 template <class uword>
-void HybridBitmap<uword>::orVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const{                                  //container.reserve(this.actualsizeinwords);
+void HybridBitmap<uword>::orVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const{ 
+                                 //container.reserve(this.actualsizeinwords);
+    //Added for instrumentation
+    orVerbatimCompressCount++;
     container.verbatim = false;
     container.density= (density+a.density)-(density*a.density);
     container.buffer.reserve(bufferSize());
@@ -3639,7 +3816,7 @@ void HybridBitmap<uword>::Not(HybridBitmap &container) const{
 
 template <class uword>
 void HybridBitmap<uword>::xorNot(const HybridBitmap &a, HybridBitmap &container) const{
-
+    
     //double expDens = (this.setbits+a.setbits)/(double)(this.sizeinbits)-(this.setbits*a.setbits)/(double)(this.sizeinbits*a.sizeinbits);
     //double expDens = this.setbits/(double)this.sizeinbits*(a.sizeinbits-a.setbits)/(double)a.sizeinbits+a.setbits/(double)a.sizeinbits*(this.sizeinbits-this.setbits)/(double)this.sizeinbits;
     container.density=density*(a.density)+(1-a.density)*(1-density);
@@ -3695,6 +3872,8 @@ void HybridBitmap<uword>::orAndV(const HybridBitmap &a, const HybridBitmap &b, H
 template <class uword>
 void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, const HybridBitmap &b, HybridBitmap &container) const{
     //container.buffer.reserve(bufferSize());
+    //Added for instrumentation
+    andVerbatimCount++;
     container.density = density*a.density*b.density;
     for(int i=0; i<buffer.size();i++){
         container.buffer.push_back(buffer[i]& a.buffer[i]&b.buffer[i]);
@@ -3707,6 +3886,8 @@ void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, const HybridBitmap 
 
 template <class uword>
 void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, HybridBitmap &container) const{
+    //Added for instrumentation
+    andVerbatimCount++;
     container.reset();
     container.density = density*a.density;
     container.verbatim = true;
@@ -3723,6 +3904,8 @@ void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, HybridBitmap &conta
 
 template <class uword>
 void HybridBitmap<uword>::orVerbatim(const HybridBitmap &a, HybridBitmap &container) const{
+    //Added for instrumentation
+    orVerbatimCount++;
     container.reset();
     container.verbatim = true;
     container.density= (density+a.density)-(density*a.density);
@@ -3738,6 +3921,9 @@ void HybridBitmap<uword>::orVerbatim(const HybridBitmap &a, HybridBitmap &contai
 
 template <class uword>
 void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &container) const {
+
+    //Added for instrumentation
+    orHybridCompressCount++;
     int j = 0;
     int i = 0;
 
@@ -3803,6 +3989,8 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
 
 template <class uword>
 void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap &container) const {
+    //Added for instrumentation
+    andHybridCompressCount++;
     int j = 0;
     int i=0;
     container.density=density*a.density;
@@ -3876,6 +4064,8 @@ void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap 
 }
 template <class uword>
 void HybridBitmap<uword>::xorVerbatim(const HybridBitmap &a, HybridBitmap &container)const{
+    //Added for instrumentation
+    xorVerbatimCount++;
   //  container.reserve(this.actualsizeinwords);
     double density = container.density;
     container.reset();
@@ -3895,7 +4085,8 @@ void HybridBitmap<uword>::xorVerbatim(const HybridBitmap &a, HybridBitmap &conta
 
 template <class uword>
 void HybridBitmap<uword>::inPlaceXorVerbatim(const HybridBitmap &a){
-
+    //Added for instrumentation
+    inPlaceXorVerbatimCount++;
     for (int i = 0; i < buffer.size(); i++) {
         buffer[i]=buffer[i]^a.buffer[i];
     }
@@ -3904,6 +4095,8 @@ void HybridBitmap<uword>::inPlaceXorVerbatim(const HybridBitmap &a){
 
 template <class uword>
 void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    andNotHybridCompressCount++;
     int j = 0;
     int i=0;
     container.verbatim=false;
@@ -3988,7 +4181,8 @@ void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitm
 
 template <class uword>
 void HybridBitmap<uword>::logicalAndDecompress(const HybridBitmap &a, HybridBitmap &container)const {
-   
+    //Added for instrumentation
+    logicalAndDecompressCount++;
     container.buffer.reserve(((sizeinbits/sizeof(uword)*8)+1));
     container.verbatim=true;
 //    if (RESERVEMEMORY)
@@ -4039,6 +4233,8 @@ void HybridBitmap<uword>::logicalAndDecompress(const HybridBitmap &a, HybridBitm
 
 template <class uword>
 void HybridBitmap<uword>::andHybrid(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    andHybridCount++;
     container.verbatim=true;
     int j = 0;
     int i=0;
@@ -4114,6 +4310,8 @@ void HybridBitmap<uword>::andHybrid(const HybridBitmap &a, HybridBitmap &contain
 
 template <class uword>
 void HybridBitmap<uword>::andNotVerbatim(const HybridBitmap &a, HybridBitmap &container)const{
+    //Added for instrumentation
+    andNotVerbatimCount++;
     container.buffer.reserve(bufferSize());
     container.verbatim = true;
     container.density=density*(1-a.density);
@@ -4130,6 +4328,8 @@ void HybridBitmap<uword>::andNotVerbatim(const HybridBitmap &a, HybridBitmap &co
 
 template <class uword>
 void HybridBitmap<uword>::andNotHybrid(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    andNotHybridCount++;
     container.verbatim = true;
     int j = 0;
     int i = 0;
@@ -4232,6 +4432,8 @@ void HybridBitmap<uword>::andNotHybrid(const HybridBitmap &a, HybridBitmap &cont
 
 template <class uword>
 void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    orHybridCount++;
     container.reset();
     container.density= (density+a.density)-(density*a.density);
     container.verbatim=true;
@@ -4308,6 +4510,8 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
 
 template <class uword>
 void HybridBitmap<uword>::xorVerbatimCompress(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    xorVerbatimCompressCount++;
     container.buffer.reserve(bufferSize());
     container.verbatim = false;
     for (int i = 0; i < bufferSize(); i++) {
@@ -4318,6 +4522,8 @@ void HybridBitmap<uword>::xorVerbatimCompress(const HybridBitmap &a, HybridBitma
 
 template <class uword>
 void HybridBitmap<uword>::xorNotVerbatim(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    xorNotVerbatimCount++;
     container.reset();
     container.buffer.reserve(bufferSize());
     container.density=density*(a.density)+(1-a.density)*(1-density);
@@ -4335,6 +4541,8 @@ void HybridBitmap<uword>::xorNotVerbatim(const HybridBitmap &a, HybridBitmap &co
 
 template <class uword>
 void HybridBitmap<uword>::xorHybridCompress(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    xorHybridCompressCount++;
     int j = 0;
     int i = 0;
     
@@ -4406,6 +4614,8 @@ void HybridBitmap<uword>::xorHybridCompress(const HybridBitmap &a, HybridBitmap 
 
 template <class uword>
 void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &container)const {
+    //Added for instrumentation
+    xorHybridCount++;
     container.reset();
     container.verbatim=true;
     container.density=density*(1-a.density)+a.density*(1-density);
@@ -4487,7 +4697,8 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
 
 template <class uword>
 void HybridBitmap<uword>::inPlaceXorHybrid(const HybridBitmap &a) {
-
+    //Added for instrumentation
+    inPlaceXorHybridCount++;
     int j = 0;
     int i=0;
     int runLength=0;
@@ -4555,6 +4766,8 @@ void HybridBitmap<uword>::inPlaceXorHybrid(const HybridBitmap &a) {
 
 template <class uword>
 void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &container)const{
+    //Added for instrumentation
+    xorNotHybridCount++;
     container.reset();
     container.verbatim=true;
     container.density=density*(a.density)+(1-a.density)*(1-density);
@@ -4633,6 +4846,8 @@ void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &cont
 
 template <class uword>
     void HybridBitmap<uword>::logicalxorDecompress(const HybridBitmap &a, HybridBitmap &container)const{
+    //Added for instrumentation
+    logicalXorDecompressCount++;
     container.reset();
     container.verbatim=true;
         if (RESERVEMEMORY){
@@ -4718,6 +4933,8 @@ void HybridBitmap<uword>::add(const long newdata) {
 
 template <class uword>
 void HybridBitmap<uword>::logicalxornot(const HybridBitmap &a, HybridBitmap &container) const{
+    //Added for instrumentation
+    logicalXorNotCount++;
     container.reset();
     container.buffer.push_back(0);
     if (RESERVEMEMORY)
