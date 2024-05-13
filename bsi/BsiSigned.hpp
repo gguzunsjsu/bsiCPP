@@ -2047,37 +2047,47 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyBSI(BsiAttribute<uword> *a) const
     for (int it=1; it<a->size; it++) {
         /* Move the slices of res k positions */
         S=res->bsi[k];
-        S = S.Xor(this->bsi[0]);
+        //S = S.Xor(this->bsi[0]);
+        S.XorInPlace(this->bsi[0]);
         C = res->bsi[k].And(this->bsi[0]);
         FS = a->bsi[it].And(S);
-        res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+        //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+        res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
         
         for (int i = 1; i < this->size; i++) {// Add the slices of this to the current res
             if ((i + k) < res->size){
                 //A = res->bsi[i + k];
                 S = res->bsi[i + k];
-                S = S.Xor(this->bsi[i]);
-                S = S.Xor(C);
-                C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
+                //S = S.Xor(this->bsi[i]);
+                //S = S.Xor(C);
+                S.XorInPlace(this->bsi[i]);
+                S.XorInPlace(C);
+                //C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
+                C.majInPlace(res->bsi[i + k],this->bsi[i]);
                 
             } else {
                 S=this->bsi[i];
-                S = S.Xor(C);
-                C = C.And(this->bsi[i]);
+                //S = S.Xor(C);
+                //C = C.And(this->bsi[i]);
+                S.XorInPlace(C);
+                C.AndInPlace(this->bsi[i]);
                 res->size++;
                 FS = a->bsi[it].And(S);
                 res->bsi.push_back(FS);
             }
             FS = a->bsi[it].And(S);
-            res->bsi[i + k] = res->bsi[i + k].andNot(a->bsi[it]).Or(a->bsi[it].And(FS)); // shifting operation
+            //res->bsi[i + k] = res->bsi[i + k].andNot(a->bsi[it]).Or(a->bsi[it].And(FS)); // shifting operation
+            res->bsi[i+k].selectMultiplicationInPlace(a->bsi[it],FS);
         }
         for (int i = this->size + k; i < res->size; i++) {// Add the remaining slices of res with the Carry C
             S = res->bsi[i];
-            S = S.Xor(C);
-            C = C.And(res->bsi[i]);
+            //S = S.Xor(C);
+            //C = C.And(res->bsi[i]);
+            S.XorInPlace(C);
+            C.AndInPlace(res->bsi[i]);
             FS = a->bsi[it].And(S);
-            res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
-            
+            //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+            res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
         }
         if (C.numberOfOnes() > 0) {
             res->bsi.push_back(a->bsi[it].And(C)); // Carry bit
