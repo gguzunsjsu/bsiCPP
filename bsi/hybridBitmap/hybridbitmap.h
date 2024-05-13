@@ -4531,6 +4531,7 @@ void HybridBitmap<uword>::inPlaceXorHybrid(const HybridBitmap &a) {
                 }
             } else {
                 for (j = 0; j < runLength; j++) {
+                    if (i >= a.bufferSize()) break;
                     buffer[i]=(a.buffer[i]);
                     i++;
                 }
