@@ -5,7 +5,7 @@
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
 #include "BsiAttribute.hpp"
-
+#include <sstream>
 
 //void MultiplyVectorByScalar(vector<long>& v, int k) {
 //    transform(v.begin(), v.end(), v.begin(), [k](long& c) { return c * k; });
@@ -15,6 +15,7 @@ using namespace std;
 void testInverse();
 void testCompareTo();
 void testMultByConstant();
+void testMultSum();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -22,9 +23,46 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testMultByConstant();
+    //testMultByConstant();
     //testInverse();
+    testMultSum();
     return 0;
+}
+void testMultSum() {
+    BsiSigned<uint64_t> bsi;
+    ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/testcase.txt");
+    vector<BsiAttribute<uint64_t>*> H_bsi;
+    for (int i=0; i<9; i++) {
+        string line;
+        getline(file,line);
+        stringstream ss(line);
+        long num;
+        vector<long> H;
+        while (ss >> num) {
+            H.push_back(num);
+        }
+        H_bsi.push_back(bsi.buildBsiAttributeFromVectorSigned(H,0.5));
+    }
+    string line;
+    getline(file,line);
+    stringstream ss(line);
+    long num;
+    vector<long> i;
+    while (ss >> num) {
+        i.push_back(num);
+    }
+    BsiAttribute<uint64_t>* i_bsi = bsi.buildBsiAttributeFromVectorSigned(i,0.5);
+    getline(file,line);
+    stringstream ss2(line);
+    vector<long> j;
+    while (ss2 >> num) {
+        j.push_back(num);
+    }
+    BsiAttribute<uint64_t>* j_bsi = bsi.buildBsiAttributeFromVectorSigned(j,0.5);
+    BsiAttribute<uint64_t>* u_bsi = H_bsi[0]->multiplyBSI(j_bsi)->SUM(H_bsi[1]->multiplyBSI(i_bsi)->SUM(H_bsi[2]));
+    BsiAttribute<uint64_t>* v_bsi = H_bsi[3]->multiplyBSI(j_bsi)->SUM(H_bsi[4]->multiplyBSI(i_bsi)->SUM(H_bsi[5]));
+    BsiAttribute<uint64_t>* w_bsi = H_bsi[6]->multiplyBSI(j_bsi)->SUM(H_bsi[7]->multiplyBSI(i_bsi)->SUM(H_bsi[8]));
+
 }
 
 void testMultByConstant() {
