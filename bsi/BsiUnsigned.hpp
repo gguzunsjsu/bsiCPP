@@ -64,6 +64,7 @@ public:
     BsiAttribute<uword>* SUMunsigned(BsiAttribute<uword>* a)const;
     BsiAttribute<uword>* SUMsigned(BsiAttribute<uword>* a)const;
     BsiAttribute<uword>* SUM(long a, HybridBitmap<uword> EB, int rangeSlices)const;
+    BsiAttribute<uword>* sum_Horizontal(const BsiAttribute<uword> *a) const;
     
 //    BsiAttribute<uword>* negate();
     BsiAttribute<uword>* multiplyWithBSI(BsiUnsigned &unbsi) const;
@@ -621,7 +622,12 @@ BsiUnsigned<uword>* BsiUnsigned<uword>::absScale(double range){
 /*
  Defining Other Functions -----------------------------------------------------------------------------------------
  */
-
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::sum_Horizontal(const BsiAttribute<uword> *a) const{
+    //TODO: implement
+    BsiAttribute<uword>* res;
+    return res;
+}
 
 template <class uword>
 BsiAttribute<uword>* BsiUnsigned<uword>::SUMunsigned(BsiAttribute<uword>* a)const{

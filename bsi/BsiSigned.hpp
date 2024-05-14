@@ -38,6 +38,7 @@ public:
     BsiAttribute<uword>* multiplyByConstant(int number)const override;
     BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     BsiAttribute<uword>* multiplication(BsiAttribute<uword> *a)const override;
+    BsiAttribute<uword>* multiplyWithBsiHorizontal(const BsiAttribute<uword> *a, int precision) const;
     void multiplicationInPlace(BsiAttribute<uword> *a) override;
     long sumOfBsi()const override;
     bool append(long value) override;
@@ -1119,6 +1120,48 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
     return res;
 };
 
+/*
+ */
+
+template <class uword>
+BsiAttribute<uword>*  BsiSigned<uword>::multiplyWithBsiHorizontal(const BsiAttribute<uword> *bsi, int precision) const{
+    int precisionInBits = 3*precision +1;
+    BsiSigned<uword>* res = nullptr;
+    res = new BsiSigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    hybridBitmap.reset();
+    hybridBitmap.verbatim = true;
+    for(int j=0; j< this->size + bsi->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_a = this->size;
+    int size_b = bsi->size;
+    std::vector<uword> a(size_a);
+    std::vector<uword> b(size_b);
+    std::vector<uword> answer(size_a + size_b);
+
+    for(int i=0; i< this->bsi[0].bufferSize(); i++){
+        for(int j=0; j< this->size; j++){
+            a[j] = this->bsi[j].getWord(i); //fetching one word
+        }
+        for(int j=0; j< bsi->size; j++){
+            b[j] = bsi->bsi[j].getWord(i);
+        }
+        this->multiply(a,b,answer);         //perform multiplication on one word
+//        this->multiplyBSI(a);         //perform multiplication on one word
+//        this->multiplyWithBSI(b);         //perform multiplication on one word
+
+        for(int j=0; j< answer.size() ; j++){
+            res->bsi[j].addVerbatim(answer[j]);
+        }
+    }
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    res->is_signed = true;
+    res->sign = this->sign.Xor(bsi->sign);
+    return res;
+};
 
 /*
  * multiply_array perform multiplication at word level

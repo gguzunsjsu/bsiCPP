@@ -58,11 +58,27 @@ void testMultSum() {
     while (ss2 >> num) {
         j.push_back(num);
     }
+    int PRECISION = 1;
     BsiAttribute<uint64_t>* j_bsi = bsi.buildBsiAttributeFromVectorSigned(j,0.5);
-    BsiAttribute<uint64_t>* u_bsi = H_bsi[0]->multiplyBSI(j_bsi)->SUM(H_bsi[1]->multiplyBSI(i_bsi)->SUM(H_bsi[2]));
-    BsiAttribute<uint64_t>* v_bsi = H_bsi[3]->multiplyBSI(j_bsi)->SUM(H_bsi[4]->multiplyBSI(i_bsi)->SUM(H_bsi[5]));
-    BsiAttribute<uint64_t>* w_bsi = H_bsi[6]->multiplyBSI(j_bsi)->SUM(H_bsi[7]->multiplyBSI(i_bsi)->SUM(H_bsi[8]));
+    BsiAttribute<uint64_t>* u_bsi = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION);
+    BsiAttribute<uint64_t>* u_bsi1 = H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION);
+    u_bsi = u_bsi->sum_Horizontal(u_bsi1);
+    u_bsi = u_bsi->sum_Horizontal(H_bsi[2]);
+    BsiAttribute<uint64_t>* v_bsi = H_bsi[3]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->sum_Horizontal(H_bsi[4]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->sum_Horizontal(H_bsi[5]));
+    BsiAttribute<uint64_t>* w_bsi = H_bsi[6]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->sum_Horizontal(H_bsi[7]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->sum_Horizontal(H_bsi[8]));
 
+    for (int i=0; i<u_bsi->rows; i++) {
+        cout <<u_bsi->getValue(i) << " ";
+    }
+    cout << "\n";
+    for (int i=0; i<v_bsi->rows; i++) {
+        cout <<v_bsi->getValue(i) << " ";
+    }
+    cout << "\n";
+    for (int i=0; i<w_bsi->rows; i++) {
+        cout <<w_bsi->getValue(i) << " ";
+    }
+    cout << "\n";
 }
 
 void testMultByConstant() {
