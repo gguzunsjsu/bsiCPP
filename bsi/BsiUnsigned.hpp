@@ -30,7 +30,7 @@ public:
     
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMin(int k) override;
-    BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
+    BsiAttribute<uword>* SUM(BsiAttribute<uword>* a) override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
@@ -62,7 +62,7 @@ public:
      */
     
     BsiAttribute<uword>* SUMunsigned(BsiAttribute<uword>* a)const;
-    BsiAttribute<uword>* SUMsigned(BsiAttribute<uword>* a)const;
+    BsiAttribute<uword>* SUMsigned(BsiAttribute<uword>* a);
     BsiAttribute<uword>* SUM(long a, HybridBitmap<uword> EB, int rangeSlices)const;
     BsiAttribute<uword>* sum_Horizontal(const BsiAttribute<uword> *a) const;
     
@@ -71,7 +71,14 @@ public:
     BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *unbsi)const override;
     BsiUnsigned<uword>& multiplyWithKaratsuba(BsiUnsigned &unbsi) const;
     BsiAttribute<uword>* multiplyWithBsiHorizontal(const BsiAttribute<uword> *unbsi, int precision) const;
+    BsiAttribute<uword>* multiplyWithBsiHorizontal(const BsiAttribute<uword> *unbsi) const;
     BsiUnsigned<uword>* multiplyBSIWithPrecision(const BsiUnsigned<uword> &unbsi, int precision) const;
+    void multiply_array(uword a[],int size_a, uword b[], int size_b, uword ans[], int size_ans)const;
+    BsiAttribute<uword>* multiplication_Horizontal(const BsiAttribute<uword> *a) const;
+    BsiAttribute<uword>* multiplication_Horizontal_Hybrid(const BsiAttribute<uword> *a) const;
+    BsiAttribute<uword>* multiplication_Horizontal_Verbatim(const BsiAttribute<uword> *a) const;
+    BsiAttribute<uword>* multiplication_Horizontal_compressed(const BsiAttribute<uword> *a) const;
+    BsiAttribute<uword>* multiplication_Horizontal_Hybrid_other(const BsiAttribute<uword> *a) const;
     
     //BsiUnsigned<uword>* twosComplement() const;
 //    uword sumOfBsi();
@@ -248,7 +255,7 @@ HybridBitmap<uword> BsiUnsigned<uword>::topKMin(int k){
 };
 
 template <class uword>
-BsiAttribute<uword>* BsiUnsigned<uword>::SUM(BsiAttribute<uword>* a)const{
+BsiAttribute<uword>* BsiUnsigned<uword>::SUM(BsiAttribute<uword>* a){
 //    HybridBitmap<uword> zeroBitmap;
 //    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
 //    BsiAttribute<uword>* res = new BsiUnsigned<uword>(std::max(this->size+this->offset, a->size+a->offset)+1);
@@ -340,11 +347,12 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(BsiAttribute<uword>* a)const{
 //        return res;
 //    }
     
-    if (a->is_signed){
+    /*if (a->is_signed){
         return SUMsigned(a);
     }else{
         return SUMunsigned(a);
-    }
+    }*/
+    return SUMunsigned(a);
 };
 
 
@@ -724,7 +732,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUMunsigned(BsiAttribute<uword>* a)cons
 
 
 template <class uword>
-BsiAttribute<uword>* BsiUnsigned<uword>::SUMsigned(BsiAttribute<uword>* a)const{
+BsiAttribute<uword>* BsiUnsigned<uword>::SUMsigned(BsiAttribute<uword>* a){
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
     BsiAttribute<uword>* res = new BsiSigned<uword>(std::max((this->size+this->offset), (a->size+a->offset))+2);
@@ -1935,7 +1943,432 @@ BsiAttribute<uword>*  BsiUnsigned<uword>::multiplyWithBsiHorizontal(const BsiAtt
 };
 
 
+template <class uword>
+BsiAttribute<uword>*  BsiUnsigned<uword>::multiplyWithBsiHorizontal(const BsiAttribute<uword> *unbsi) const{
+    BsiUnsigned<uword>* res = nullptr;
+    res = new BsiUnsigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    hybridBitmap.reset();
+    hybridBitmap.verbatim = true;
+    for(int j=0; j< this->size + unbsi->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_a = this->size;
+    int size_b = unbsi->size;
+    std::vector<uword> a(size_a);
+    std::vector<uword> b(size_b);
+    std::vector<uword> answer(size_a + size_b);
+    
+    for(int i=0; i< this->bsi[0].bufferSize(); i++){
+        for(int j=0; j< this->size; j++){
+            a[j] = this->bsi[j].getWord(i); //fetching one word
+        }
+        for(int j=0; j< unbsi->size; j++){
+             b[j] = unbsi->bsi[j].getWord(i);
+        }
+        this->multiply(a,b,answer);         //perform multiplication on one word
+//        this->multiplyBSI(a);         //perform multiplication on one word
+//        this->multiplyWithBSI(b);         //perform multiplication on one word
 
+        for(int j=0; j< answer.size() ; j++){
+            res->bsi[j].addVerbatim(answer[j]);
+        }
+    }
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    return res;
+};
+
+
+/*
+ * multiplyWithBsiHorizontal_array perform multiplication betwwen bsi using multiply_array
+ * support both verbatim and compressed Bsi(using existenceBitmap)
+ */
+
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplication_Horizontal(const BsiAttribute<uword> *a) const{
+    if(!this->existenceBitmap.isVerbatim() and !a->existenceBitmap.isVerbatim()){
+       return this->multiplication_Horizontal_compressed(a);
+    }else if (this->existenceBitmap.isVerbatim() or a->existenceBitmap.isVerbatim()){
+        if(this->existenceBitmap.verbatim){
+            return this->multiplication_Horizontal_Hybrid_other(a);
+        }else{
+            return this->multiplication_Horizontal_Hybrid(a);
+        }
+    }else{
+        return this->multiplication_Horizontal_Verbatim(a);
+    }
+    
+}
+
+/*
+ * multiplication_Horizontal_compressed perform multiplication betwwen bsi using multiply_array
+ * only support compressed Bsi(using existenceBitmap)
+ */
+
+
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplication_Horizontal_compressed(const BsiAttribute<uword> *a) const{
+    if(this->bsi.size() ==0 or a->bsi.size()==0){
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+        res->existenceBitmap = this->existenceBitmap;
+        res->rows = this->rows;
+        res->index = this->index;
+        return res;
+    }
+    
+    BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    hybridBitmap.setSizeInBits(this->existenceBitmap.sizeInBits());
+    for(int j=0; j< this->size + a->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_x = this->size;
+    int size_y = a->size;
+    int size_ans = size_y +size_x;
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
+    
+    HybridBitmapRawIterator<uword> iterator = this->existenceBitmap.raw_iterator();
+    HybridBitmapRawIterator<uword> a_iterator = a->existenceBitmap.raw_iterator();
+    BufferedRunningLengthWord<uword> &rlwi = iterator.next();
+    BufferedRunningLengthWord<uword> &rlwa = a_iterator.next();
+    
+    int position = 0;
+    int literal_counter = 1;
+    int positionNext = 0;
+    int a_literal_counter = 1;
+    int a_position = 0;
+    int a_positionNext = 0;
+    while (rlwi.size() > 0 and rlwa.size() > 0) {
+        position = positionNext;
+        a_position = a_positionNext;
+        while ((rlwi.getRunningLength() > 0) || (rlwa.getRunningLength() > 0)) {
+            const bool i_is_prey = rlwi.getRunningLength() < rlwa.getRunningLength();
+            BufferedRunningLengthWord<uword> &prey(i_is_prey ? rlwi : rlwa);
+            BufferedRunningLengthWord<uword> &predator(i_is_prey ? rlwa : rlwi);
+            if (!predator.getRunningBit()) {
+                for(int j=0; j< size_ans ; j++){
+                    res->bsi[j].fastaddStreamOfEmptyWords(false, predator.getRunningLength());
+                }
+                if(i_is_prey){
+                    if(rlwi.getNumberOfLiteralWords() < rlwa.getRunningLength()){
+                        position = position+rlwi.getNumberOfLiteralWords()+1;
+                        literal_counter =  1;
+                    }else{
+                        literal_counter += rlwa.getRunningLength() - rlwi.getRunningLength();
+                    }
+                }else{
+                    if(rlwa.getNumberOfLiteralWords() < rlwi.getRunningLength()){
+                        a_position = a_position+rlwa.getNumberOfLiteralWords()+1;
+                        a_literal_counter = 1;
+                    }else{
+                        a_literal_counter += rlwi.getRunningLength() - rlwa.getRunningLength();
+                    }
+                }
+                 prey.discardFirstWordsWithReload(predator.getRunningLength());
+            }
+            predator.discardRunningWordsWithReload();
+        }
+        const size_t nbre_literal = std::min(rlwi.getNumberOfLiteralWords(),
+                                             rlwa.getNumberOfLiteralWords());
+        if (nbre_literal > 0) {
+            for (size_t k = 0; k < nbre_literal; ++k) {
+                for(int j=0; j< size_x; j++){
+                    x[j] = this->bsi[j].getWord(position+literal_counter);
+                }
+                for(int j=0; j< size_y; j++){
+                    y[j] = a->bsi[j].getWord(a_position+a_literal_counter);
+                }
+                this->multiply_array(x,size_x,y, size_y,answer, size_ans);
+                for(int j=0; j< size_ans ; j++){
+                    res->bsi[j].addLiteralWord(answer[j]);
+                }
+                literal_counter++;
+                a_literal_counter++;
+            }
+            if(rlwi.getNumberOfLiteralWords() == nbre_literal){
+                positionNext = position+nbre_literal+1;
+                literal_counter = 1;
+            }
+            if(rlwa.getNumberOfLiteralWords() == nbre_literal){
+                a_positionNext = a_position + nbre_literal+1;
+                a_literal_counter = 1;
+            }
+            rlwi.discardLiteralWordsWithReload(nbre_literal);
+            rlwa.discardLiteralWordsWithReload(nbre_literal);
+        }
+    }
+    
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    return res;
+}
+
+
+/*
+ * multiplication_Horizontal_Verbatim perform multiplication betwwen bsi using multiply_array
+ * only support verbatim Bsi(using existenceBitmap)
+ */
+
+
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplication_Horizontal_Verbatim(const BsiAttribute<uword> *a) const{
+    
+    if(this->bsi.size() ==0 or a->bsi.size()==0){
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+        res->existenceBitmap = this->existenceBitmap;
+        res->rows = this->rows;
+        res->index = this->index;
+        return res;
+    }
+    BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    hybridBitmap.reset();
+    hybridBitmap.verbatim = true;
+    for(int j=0; j< this->size + a->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_x = this->size;
+    int size_y = a->size;
+    int size_ans = size_y +size_x;
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
+    
+    for(size_t i=0; i< this->bsi[0].bufferSize(); i++){
+        for(int j=0; j< size_x; j++){
+            x[j] = this->bsi[j].getWord(i);
+        }
+        for(int j=0; j< size_y; j++){
+            y[j] = a->bsi[j].getWord(i);
+        }
+        this->multiply_array(x,size_x,y, size_y,answer, size_ans);
+        for(int j=0; j< size_ans ; j++){
+            res->bsi[j].addVerbatim(answer[j]);
+        }
+    }
+    
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    return res;
+}
+
+
+/*
+ * multiplication_Horizontal_Hybrid perform multiplication betwwen bsi using multiply_array
+ * only support hybrid Bsis(one is verbatim and one is compressed)
+ */
+
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplication_Horizontal_Hybrid(const BsiAttribute<uword> *a) const{
+
+    if(this->bsi.size() ==0 or a->bsi.size()==0){
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+        res->existenceBitmap = this->existenceBitmap;
+        res->rows = this->rows;
+        res->index = this->index;
+        return res;
+    }
+
+    BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    hybridBitmap.setSizeInBits(this->existenceBitmap.sizeInBits());
+    for(int j=0; j< this->size + a->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_x = this->size;
+    int size_y = a->size;
+    int size_ans = size_y +size_x;
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
+    
+    HybridBitmapRawIterator<uword> i = this->existenceBitmap.raw_iterator();
+    BufferedRunningLengthWord<uword> &rlwi = i.next();
+    
+    int positionOfCompressed = 1;
+    int positionOfVerbatim = 0;
+    while ( rlwi.size() > 0) {
+        while (rlwi.getRunningLength() > 0) {
+            positionOfVerbatim += rlwi.getRunningLength();
+            for(int j=0; j< size_ans ; j++){
+                res->bsi[j].addStreamOfEmptyWords(0,rlwi.getRunningLength());
+            }
+            if(rlwi.getNumberOfLiteralWords() == 0){
+                positionOfCompressed++;
+            }
+            rlwi.discardRunningWordsWithReload();
+        }
+        const size_t nbre_literal = rlwi.getNumberOfLiteralWords();
+        if (nbre_literal > 0) {
+            for (size_t k = 1; k <= nbre_literal; ++k) {
+                for(int j=0; j< size_x; j++){
+                    x[j] = this->bsi[j].getWord(positionOfCompressed +k);
+                }
+                for(int j=0; j< size_y; j++){
+                    y[j] = a->bsi[j].getWord(positionOfVerbatim);
+                }
+                this->multiply_array(x,size_x,y, size_y,answer, size_ans);
+                for(int j=0; j< size_ans ; j++){
+                    res->bsi[j].addLiteralWord(answer[j]);
+                }
+                positionOfVerbatim++;
+            }
+        }
+        positionOfCompressed += rlwi.getNumberOfLiteralWords()+1;
+        rlwi.discardLiteralWordsWithReload(nbre_literal);
+        
+    }
+
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    return res;
+};
+
+
+
+template <class uword>
+BsiAttribute<uword>* BsiUnsigned<uword>::multiplication_Horizontal_Hybrid_other(const BsiAttribute<uword> *a) const{
+    
+    if(this->bsi.size() ==0 or a->bsi.size()==0){
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+        res->existenceBitmap = this->existenceBitmap;
+        res->rows = this->rows;
+        res->index = this->index;
+        res->sign = this->sign.Xor(a->sign);
+        res->is_signed = true;
+        res->twosComplement = false;
+        return res;
+    }
+    
+    BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+    HybridBitmap<uword> hybridBitmap;
+    for(int j=0; j< this->size + a->size; j++){
+        res->addSlice(hybridBitmap);
+    }
+    int size_x = this->size;
+    int size_y = a->size;
+    int size_ans = size_y +size_x;
+    uword* x = new uword[size_x];
+    uword* y = new uword[size_y];
+    uword* answer = new uword[size_ans];
+    //uword x[size_x];
+    //uword y[size_y];
+    //uword answer[size_ans];
+    
+    HybridBitmapRawIterator<uword> i = a->existenceBitmap.raw_iterator();
+    BufferedRunningLengthWord<uword> &rlwi = i.next();
+    
+    int positionOfCompressed = 0;
+    int positionOfVerbatim = 0;
+    while ( rlwi.size() > 0) {
+        while (rlwi.getRunningLength() > 0) {
+            positionOfVerbatim += rlwi.getRunningLength();
+            for(int j=0; j< size_ans ; j++){
+                res->bsi[j].addStreamOfEmptyWords(0,rlwi.getRunningLength());
+            }
+            if(rlwi.getNumberOfLiteralWords() == 0){
+                positionOfCompressed++;
+            }
+            rlwi.discardRunningWordsWithReload();
+        }
+        const size_t nbre_literal = rlwi.getNumberOfLiteralWords();
+        if (nbre_literal > 0) {
+            for (size_t k = 1; k <= nbre_literal; ++k) {
+                for(int j=0; j< size_x; j++){
+                    x[j] = this->bsi[j].getWord(positionOfVerbatim);
+                }
+                for(int j=0; j< size_y; j++){
+                    y[j] = a->bsi[j].getWord(positionOfCompressed + k);
+                }
+                this->multiply_array(x,size_x,y, size_y,answer, size_ans);
+                for(int j=0; j< size_ans ; j++){
+                    res->bsi[j].addLiteralWord(answer[j]);
+                }
+                positionOfVerbatim++;
+            }
+        }
+        positionOfCompressed += rlwi.getNumberOfLiteralWords()+1;
+        rlwi.discardLiteralWordsWithReload(nbre_literal);
+    }
+    
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    return res;
+};
+
+/*
+ * multiply_array perform multiplication at word level
+ * word from every bitmap of Bsi is multiplied with other bsi's word
+ * it is modified version of Booth's Algorithm
+ */
+
+template <class uword>
+void BsiUnsigned<uword>:: multiply_array(uword a[],int size_a, uword b[], int size_b, uword ans[], int size_ans)const{
+    uword S=0,C=0,FS;
+
+    int k=0, ansSize=0;
+    for(int i=0; i<size_a; i++){  // Initialing with first bit operation
+        ans[i] = a[i] & b[0];
+    }
+    for(int i = size_a; i< size_a + size_b; i++){ // Initializing rest of bits to zero
+        ans[i] = 0;
+    }
+    k=1;
+    ansSize = size_a;
+    for(int it=1; it<size_b; it++){
+        S = ans[k]^a[0];
+        C = ans[k]&a[0];
+        FS = S & b[it];
+        ans[k] = (~b[it] & ans[k]) | (b[it] & FS); // shifting Operation
+        
+        for(int i=1; i<size_a; i++){
+            int t = i+k;
+            if(t < ansSize){
+                S = ans[t] ^ a[i] ^ C;
+                C = (ans[t]&a[i]) | (a[i]&C) | (ans[t]&C);
+            }else{
+                S = a[i] ^ C;
+                C = a[i] & C;
+                FS = S & b[it];
+                ansSize++;
+                ans[ansSize - 1] = FS;
+            }
+            FS = b[it] & S;
+            ans[i + k ] =(~b[it] & ans[t]) | (b[it] & FS); // shifting Operation
+        }
+        for(int i=size_a + k; i< ansSize; i++){
+            S = ans[i] ^ C;
+            C = ans[i] & C;
+            FS = b[it] & S;
+            ans[k] = (~b[it] & ans[k]) | (b[it] & FS); // shifting Operation
+        }
+        if(C>0){
+            ansSize++;
+            ans[ansSize-1] = b[it] & C;
+        }
+        k++;
+    }
+    for(int t=ansSize; t<size_ans; t++){
+        ans[t] = 0;
+    }
+};
 
 
 template <class uword=uint64_t>

@@ -26,7 +26,7 @@ public:
     
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMin(int k) override;
-    BsiAttribute<uword>* SUM(BsiAttribute<uword>* a)const override;
+    BsiAttribute<uword>* SUM(BsiAttribute<uword>* a) override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
@@ -49,8 +49,10 @@ public:
      */
     void addSliceWithOffset(HybridBitmap<uword> slice, int sliceOffset);
     BsiAttribute<uword>* SUMunsigned(BsiAttribute<uword>* a)const;
-    BsiAttribute<uword>* SUMsigned(BsiAttribute<uword>* a)const;
+    BsiAttribute<uword>* SUMsigned(BsiAttribute<uword>* a);
     BsiAttribute<uword>* SUMsignToMagnitude(BsiAttribute<uword>* a)const;
+    BsiAttribute<uword>* SUMsignMagnitude(BsiAttribute<uword>* a)const;
+    BsiAttribute<uword>* SUMtwosComplement(BsiAttribute<uword>* a);
     void twosToSignMagnitude( BsiAttribute<uword>* a)const;
     BsiAttribute<uword>* multiplyWithBsiHorizontal(const BsiAttribute<uword> *a) const;
     void multiply(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans) const;
@@ -240,12 +242,12 @@ long BsiSigned<uword>::sumOfBsi() const{
 
 
 template <class uword>
-BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) const{
+BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) {
     //return sum_Horizontal(a);
     if (a->is_signed and a->twosComplement){
-        return this->SUMsignToMagnitude(a);
+        return this->SUMtwosComplement(a);
     }else if(a->is_signed){
-        return this->SUMsignToMagnitude(a);
+        return this->SUMsignMagnitude(a);
     }
     else{
         return this->SUMunsigned(a);
@@ -706,7 +708,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMunsigned(BsiAttribute<uword>* a)const{
  */
 
 template <class uword>
-BsiAttribute<uword>* BsiSigned<uword>::SUMsigned( BsiAttribute<uword>* a)const{
+BsiAttribute<uword>* BsiSigned<uword>::SUMsigned( BsiAttribute<uword>* a){
     
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
@@ -917,6 +919,113 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
     return res;
 };
 
+/*
+ *  SUMsignToMagnitude takes bsiAttribute as signeMagnitude form perform sumation operation and
+ *  return bsiAttribute as signeMagnitude.
+ *  signeMagnitude: sign bit is stored separate and only magnitude is stored in bsi.
+ */
+
+template <class uword>
+BsiAttribute<uword>* BsiSigned<uword>::SUMsignMagnitude(BsiAttribute<uword>* a) const{
+    BsiAttribute<uword> *res = new BsiSigned<uword>();
+    if(a->twosComplement or this->twosComplement){
+        return res;
+    }
+    if(this->getNumberOfRows() != a->getNumberOfRows()){
+        return res;
+    }
+    
+    int maxSlices = this->getNumberOfSlices() > a->getNumberOfSlices() ? this->getNumberOfSlices() : a->getNumberOfSlices();
+    int minSlices = this->getNumberOfSlices() < a->getNumberOfSlices() ? this->getNumberOfSlices() : a->getNumberOfSlices();
+    
+    HybridBitmap<uword> S;
+    HybridBitmap<uword> C = this->sign.Xor(a->sign);
+    HybridBitmap<uword> slice, aSlice;
+    
+    for(int i=0; i<minSlices; i++){
+        slice = this->sign.Xor(this->bsi[i]); // converting slice into two's compliment
+        aSlice = a->sign.Xor(a->bsi[i]);      // converting slice into two's compliment
+        S = this->XOR(slice, aSlice, C);
+        C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
+        res->addSlice(S);
+    }
+    if(this->getNumberOfSlices() == minSlices){
+        for(int i=minSlices; i<maxSlices; i++){
+            slice = this->sign;
+            aSlice = a->sign.Xor(a->bsi[i]);
+            S = this->XOR(slice, aSlice, C);
+            C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
+            res->addSlice(S);
+        }
+    
+    }else{
+        for(int i=minSlices; i<maxSlices; i++){
+            slice =  this->sign.Xor(this->bsi[i]);
+            aSlice = a->sign;
+            S = this->XOR(slice, aSlice, C);
+            C = slice.And(aSlice);
+            res->addSlice(S);
+        }
+    }
+    
+    res->addSlice(this->XOR(this->sign, a->sign, C));
+    res->is_signed = true;
+    res->setNumberOfRows(this->getNumberOfRows());
+    twosToSignMagnitude(res);   // Converting back to Sign to magnitude form
+    res->twosComplement = false;
+    return res;
+};
+
+/*
+ *  SUMsignToMagnitude takes bsiAttribute as twos complement form perform sumation operation and
+ *  return bsiAttribute as twos complement.
+ */
+
+template <class uword>
+BsiAttribute<uword>* BsiSigned<uword>::SUMtwosComplement(BsiAttribute<uword>* a) {
+    BsiAttribute<uword> *res = new BsiSigned<uword>();
+    if(this->getNumberOfRows() != a->getNumberOfRows()){
+        return res;
+    }
+    if(!a->twosComplement) {
+        a->signMagnitudeToTwos(a->getNumberOfSlices()+1);
+    }
+    if (!this->twosComplement){
+        this->signMagnitudeToTwos(a->getNumberOfSlices()+1);
+    }
+    
+    int maxSlices = this->getNumberOfSlices() > a->getNumberOfSlices() ? this->getNumberOfSlices() : a->getNumberOfSlices();
+    int minSlices = this->getNumberOfSlices() < a->getNumberOfSlices() ? this->getNumberOfSlices() : a->getNumberOfSlices();
+    
+    HybridBitmap<uword> S;
+    HybridBitmap<uword> C;
+    C.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
+    
+    for(int i=0; i<minSlices; i++){
+        S = this->XOR(this->bsi[i], a->bsi[i], C);
+        C = this->bsi[i].And(a->bsi[i]).Or(this->bsi[i].And(C)).Or(a->bsi[i].And(C));
+        res->addSlice(S);
+    }
+    if(this->getNumberOfSlices() == minSlices){
+        for(int i=minSlices; i<maxSlices; i++){
+            S = this->XOR(this->sign, a->bsi[i], C);
+            C = this->sign.And(a->bsi[i]).Or(this->sign.And(C)).Or(a->bsi[i].And(C));
+            res->addSlice(S);
+        }
+    
+    }else{
+        for(int i=minSlices; i<maxSlices; i++){
+            S = this->XOR(this->bsi[i], a->sign, C);
+            C = this->bsi[i].And(a->sign).Or(this->bsi[i].And(C)).Or(a->sign.And(C));
+            res->addSlice(S);
+        }
+    }
+    
+    res->is_signed = true;
+    res->setNumberOfRows(this->getNumberOfRows());
+    res->twosComplement = true;
+    return res;
+};
 
 /*
  *  twosToSignMagnitude is converting Two'sCompliment form into signeMagnitude form
@@ -924,10 +1033,10 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
 template <class uword>
 void  BsiSigned<uword>::twosToSignMagnitude(BsiAttribute<uword>* a) const{
     
-    HybridBitmap<uword> C = a->sign;
+    HybridBitmap<uword> C = a->bsi[a->getNumberOfSlices()-1];
     HybridBitmap<uword> S,slice;
     for(size_t i=0; i< a->bsi.size(); i++){
-        slice = a->sign.Xor(a->bsi[i]);
+        slice = a->bsi[a->getNumberOfSlices()-1].Xor(a->bsi[i]);
         S = slice.Xor(C);//a->sign.Xor(a->bsi[i]).Xor(C);
         C = slice.And(C);
         a->bsi[i] = S;
@@ -1039,7 +1148,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
                 /* Move the slices of res k positions */
                 HybridBitmap<uword> A, B;
                 if (k >= res->size) {
-                    A = new HybridBitmap(1,false);
+                    A = new HybridBitmap<uword>(1,false);
                 } else {
                     A = res->bsi[k];
                 }

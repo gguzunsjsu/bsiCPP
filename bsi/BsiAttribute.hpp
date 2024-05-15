@@ -82,7 +82,8 @@ public:
     virtual HybridBitmap<uword> topKMax(int k)=0;
     virtual HybridBitmap<uword> topKMin(int k)=0;
 
-    virtual BsiAttribute* SUM(BsiAttribute* a)const=0;
+    virtual BsiAttribute* SUM(BsiAttribute* a)=0;
+    virtual BsiAttribute* SUMsigned(BsiAttribute* a)=0;
     virtual BsiAttribute* SUM(long a)const=0;
     virtual BsiAttribute<uword>* sum_Horizontal(const BsiAttribute<uword> *a) const=0;
 
@@ -102,6 +103,12 @@ public:
     virtual BsiAttribute<uword>* multiplication_array(BsiAttribute<uword> *a)const=0;
     virtual BsiAttribute<uword>* multiplyBSI(BsiAttribute<uword> *a) const=0;
     virtual BsiAttribute<uword>*  multiplyWithBsiHorizontal(const BsiAttribute<uword> *unbsi, int precision) const=0;
+    virtual BsiAttribute<uword>*  multiplyWithBsiHorizontal(const BsiAttribute<uword> *unbsi) const=0;
+    virtual BsiAttribute<uword>* multiplication_Horizontal(const BsiAttribute<uword> *a) const=0;
+    virtual BsiAttribute<uword>* multiplication_Horizontal_Hybrid(const BsiAttribute<uword> *a) const=0;
+    virtual BsiAttribute<uword>* multiplication_Horizontal_Verbatim(const BsiAttribute<uword> *a) const=0;
+    virtual BsiAttribute<uword>* multiplication_Horizontal_compressed(const BsiAttribute<uword> *a) const=0;
+    virtual BsiAttribute<uword>* multiplication_Horizontal_Hybrid_other(const BsiAttribute<uword> *a) const=0;
     virtual long dotProduct(BsiAttribute<uword>* a) const = 0;
     virtual long long int dot(BsiAttribute<uword>* a) const = 0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
