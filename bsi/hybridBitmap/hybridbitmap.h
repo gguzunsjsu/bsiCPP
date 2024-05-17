@@ -1723,6 +1723,7 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
         }
     }else{
         while (pointer < buffer.size()) {
+            size_t temp = buffer.size();
             ConstRunningLengthWord<uword> rlw(buffer[pointer]);
             if (rlw.getRunningBit()) {
                 tot += static_cast<size_t>(rlw.getRunningLength() * wordinbits);
@@ -1882,7 +1883,7 @@ void HybridBitmap<uword>::addVerbatim(const uword newdata,
     
         buffer.push_back(newdata);
         sizeinbits+=bitsthatmatter;
-
+        density = numberOfOnes()/sizeinbits;
 
 }
 
@@ -3155,6 +3156,7 @@ void HybridBitmap<uword>::AndInPlace(const HybridBitmap &a ) {
 
 template <class uword>
 void HybridBitmap<uword>::andVerbatimCompressInPlace(const HybridBitmap &a ){
+    density=density*a.density;
     for (int i = 0; i < buffer.size(); i++) {
          buffer[i] = buffer[i] & a.buffer[i];
     }
@@ -3472,6 +3474,7 @@ template <class uword>
 void HybridBitmap<uword>::andVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const{
 
     container.buffer.reserve(bufferSize());
+    container.density=density*a.density;
     //container.verbatim = false;
     for (int i = 0; i < buffer.size(); i++) {
         container.addWord(buffer[i] & a.buffer[i]);
@@ -3740,7 +3743,7 @@ template <class uword>
 void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &container) const {
     int j = 0;
     int i = 0;
-
+    container.density= (density+a.density)-(density*a.density);
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
       //  a.rlw = new RunningLengthWord(a.buffer);
@@ -3877,11 +3880,10 @@ void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap 
 template <class uword>
 void HybridBitmap<uword>::xorVerbatim(const HybridBitmap &a, HybridBitmap &container)const{
   //  container.reserve(this.actualsizeinwords);
-    double density = container.density;
     container.reset();
     container.buffer.reserve(bufferSize());
     container.verbatim = true;
-    container.density = density;
+    container.density = density*(1-a.density)+a.density*(1-density);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         container.buffer.push_back( buffer[i] ^ a.buffer[i] );
@@ -3895,7 +3897,7 @@ void HybridBitmap<uword>::xorVerbatim(const HybridBitmap &a, HybridBitmap &conta
 
 template <class uword>
 void HybridBitmap<uword>::inPlaceXorVerbatim(const HybridBitmap &a){
-
+    density = density*(1-a.density)+a.density*(1-density);
     for (int i = 0; i < buffer.size(); i++) {
         buffer[i]=buffer[i]^a.buffer[i];
     }
@@ -3907,7 +3909,7 @@ void HybridBitmap<uword>::andNotHybridCompress(const HybridBitmap &a, HybridBitm
     int j = 0;
     int i=0;
     container.verbatim=false;
-    
+    container.density=density*(1-a.density);
 
     if (verbatim) { // this is verbatim
         //container.reserve(a.actualsizeinwords);
@@ -4043,6 +4045,7 @@ void HybridBitmap<uword>::andHybrid(const HybridBitmap &a, HybridBitmap &contain
     int j = 0;
     int i=0;
     int runLength=0;
+    container.density=density*a.density;
 
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
@@ -4134,6 +4137,7 @@ void HybridBitmap<uword>::andNotHybrid(const HybridBitmap &a, HybridBitmap &cont
     int j = 0;
     int i = 0;
     int runLength = 0;
+    container.density=density*(1-a.density);
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
@@ -4309,6 +4313,7 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
 template <class uword>
 void HybridBitmap<uword>::xorVerbatimCompress(const HybridBitmap &a, HybridBitmap &container)const {
     container.buffer.reserve(bufferSize());
+    container.density = density*(1-a.density)+a.density*(1-density);
     container.verbatim = false;
     for (int i = 0; i < bufferSize(); i++) {
         container.add(buffer[i] ^ a.buffer[i]);
@@ -4337,6 +4342,7 @@ template <class uword>
 void HybridBitmap<uword>::xorHybridCompress(const HybridBitmap &a, HybridBitmap &container)const {
     int j = 0;
     int i = 0;
+    container.density = density*(1-a.density)+a.density*(1-density);
     
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());

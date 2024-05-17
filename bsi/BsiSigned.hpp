@@ -247,7 +247,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) {
     if (a->is_signed and a->twosComplement){
         return this->SUMtwosComplement(a);
     }else if(a->is_signed){
-        return this->SUMsignMagnitude(a);
+        return this->SUMsignToMagnitude(a);
     }
     else{
         return this->SUMunsigned(a);
@@ -883,6 +883,8 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
         slice = thisSign.Xor(this->bsi[i]); // converting slice into two's compliment
         aSlice = aSign.Xor(a->bsi[i]);      // converting slice into two's compliment
         S = this->XOR(slice, aSlice, C);
+        HybridBitmap<uword> temp = aSlice.And(C);
+        HybridBitmap<uword> temp2 = aSlice.And(slice);
         C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
         res->addSlice(S);
     }
@@ -900,7 +902,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
             slice =  thisSign.Xor(this->bsi[i]);
             aSlice = aSign;
             S = this->XOR(slice, aSlice, C);
-            C = slice.And(aSlice);
+            C = slice.And(aSlice).Or(slice.And(C)).Or(aSlice.And(C));
             res->addSlice(S);
         }
     }
@@ -910,12 +912,13 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMsignToMagnitude(BsiAttribute<uword>* a
 //        res->addSlice(onlyPositiveNumbersCarry);
 //    }
     res->addSlice(this->XOR(thisSign, aSign, C));
-    res->sign = res->bsi[res->bsi.size()-1].andVerbatim(signOrBitmap);
+    //res->sign = res->bsi[res->bsi.size()-1].andVerbatim(signOrBitmap);
     res->is_signed = true;
     res->setNumberOfRows(this->getNumberOfRows());
+    //res->twosComplement = true;
     res->twosComplement = false;
     twosToSignMagnitude(res);   // Converting back to Sign to magnitude form
-    res->sign = res->sign.Or(signAndBitmap);
+    //res->sign = res->sign.Or(signAndBitmap);
     return res;
 };
 
@@ -1032,18 +1035,18 @@ BsiAttribute<uword>* BsiSigned<uword>::SUMtwosComplement(BsiAttribute<uword>* a)
  */
 template <class uword>
 void  BsiSigned<uword>::twosToSignMagnitude(BsiAttribute<uword>* a) const{
-    
-    HybridBitmap<uword> C = a->bsi[a->getNumberOfSlices()-1];
+    a->sign = a->bsi[a->getNumberOfSlices()-1];
+    HybridBitmap<uword> C = a->sign;
     HybridBitmap<uword> S,slice;
     for(size_t i=0; i< a->bsi.size(); i++){
-        slice = a->bsi[a->getNumberOfSlices()-1].Xor(a->bsi[i]);
+        slice = a->sign.Xor(a->bsi[i]);
         S = slice.Xor(C);//a->sign.Xor(a->bsi[i]).Xor(C);
         C = slice.And(C);
         a->bsi[i] = S;
     }
     
-//    a->bsi.pop_back();
-//    a->setNumberOfSlices(a->bsi.size());
+    a->bsi.pop_back();
+    a->setNumberOfSlices(a->bsi.size());
 };
 
 /*
