@@ -1267,6 +1267,10 @@ BsiAttribute<uword>*  BsiSigned<uword>::multiplyWithBsiHorizontal(const BsiAttri
             res->bsi[j].addVerbatim(answer[j]);
         }
     }
+    for(int j=0; j< res->size; j++){
+        int temp = res->bsi[j].numberOfOnes();
+        res->bsi[j].density = res->bsi[j].numberOfOnes()*1.0/res->bsi[j].sizeInBits();
+    }
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;

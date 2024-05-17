@@ -1883,7 +1883,7 @@ void HybridBitmap<uword>::addVerbatim(const uword newdata,
     
         buffer.push_back(newdata);
         sizeinbits+=bitsthatmatter;
-        density = numberOfOnes()/sizeinbits;
+        //density = numberOfOnes()/sizeinbits;
 
 }
 
