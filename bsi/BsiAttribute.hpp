@@ -158,6 +158,20 @@ public:
     }
 
     /*
+     * calculating the bits used to store the slices
+     */
+    template<typename T>
+    size_t getBitsUsedBSI(T max) const{
+        if (max==0){
+            return 1;
+        }
+        else{
+            return static_cast<size_t>(std::ceil(std::log2(max+1)));
+        }
+    }
+
+
+    /*
     * ------------------------Decalrations for private helper methods------------------------------
     */
 private:
@@ -493,6 +507,9 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     }
     //Finding the maximum length of the bit representation of the numbers
     int slices = sliceLengthFinder(max);
+    //finding bits used in bsi to store values
+//    size_t bits_used = getBitsUsedBSI(max);
+//    std::cout << "Bits used by bsi: " << bits_used << std::endl;
     BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
     res->sign.reset();
     res->sign.verbatim = true;
