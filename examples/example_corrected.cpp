@@ -10,9 +10,9 @@
 #include <chrono>
 #include <random>
 
-#include "BsiUnsigned.hpp"
-#include "BsiSigned.hpp"
-#include "BsiAttribute.hpp"
+#include "../bsi/BsiUnsigned.hpp"
+#include "../bsi/BsiSigned.hpp"
+#include "../bsi/BsiAttribute.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 

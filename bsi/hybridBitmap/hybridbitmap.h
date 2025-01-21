@@ -33,6 +33,11 @@ public:
     bool verbatim = false;
     std::vector<uword> buffer;
 //    std::vector<uword>& buffer = *buffer1;
+    size_t getSizeInMemory() const{
+        size_t total = sizeof(*this);
+        total += buffer.capacity() * sizeof(uword);
+        return total;
+    }
 
 
 

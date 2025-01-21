@@ -43,6 +43,7 @@ public:
     BsiAttribute<uword>* multiplyByConstantNew(int number) const override;
     long dotProduct(BsiAttribute<uword>* unbsi) const override;
     long long int dot(BsiAttribute<uword>* unbsi) const override;
+    long long int dot_withoutCompression(BsiAttribute<uword>* unbsi) const override;
     bool append(long value) override;
     int compareTo(BsiAttribute<uword> *a, int index) override;
     
@@ -2541,6 +2542,21 @@ long long int BsiUnsigned<uword>::dot(BsiAttribute<uword>* unbsi) const{
                 res = res + unbsi->bsi[j].And(this->bsi[i]).numberOfOnes();
             else
                 res = res + unbsi->bsi[j].And(this->bsi[i]).numberOfOnes()*(2<<(j+i-1));
+        }
+    }
+    return res;
+};
+
+template <class uword>
+long long int BsiUnsigned<uword>::dot_withoutCompression(BsiAttribute<uword>* unbsi) const{
+    long long int res =0;
+
+    for(int j=0; j<unbsi->size; j++){
+        for (int i = 0; i < this->size; i++) {
+            if(j==0 && i==0)
+                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).numberOfOnes();
+            else
+                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).numberOfOnes()*(2<<(j+i-1));
         }
     }
     return res;
