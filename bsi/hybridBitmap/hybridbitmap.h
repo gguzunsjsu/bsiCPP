@@ -515,7 +515,7 @@ public:
     }
     HybridBitmap xorC(const HybridBitmap &a)const  {
         HybridBitmap container = new HybridBitmap();
-        container.reserve(bufferSize() + a.bufferSize());
+        container.buffer.reserve(bufferSize() + a.bufferSize());
         logicalxor(a, container);
         return container;
     }

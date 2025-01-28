@@ -86,7 +86,7 @@ int main(){
         cout << "Sum of elements in the First BSI Attribute: " << bsi_1->sumOfBsi() << "\n";
         cout << "Print the elements if the First BSI Attribute" << "\n";
         for (int i = 0; i < array1.size(); i++) {
-            cout << "Element "<<i+1<<": "<<bsi_1->getValue(i) << "\n";
+            cout << "Element "<<i<<": "<<bsi_1->getValue(i) << "\n";
         }
         cout << "Do you want to check again? ";
         cin >> choice;

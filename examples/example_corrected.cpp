@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <chrono>
 #include <random>
+#include <omp.h>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
@@ -41,9 +42,9 @@ int main(){
     vector<double> v2;
     vector<double> vres;
     string line_str;
-    int range1 = 10000;
-    int range2 = 10000;
-    int vectorLen = 1000;
+    int range1 = 50;
+    int range2 = 50;
+    int vectorLen = 10000000;
 
     int arr1[5] = {84, 624, 9, 330, 240};
     int arr2[5] = {3, 6, 7, 9, 8};
@@ -76,6 +77,8 @@ int main(){
 //        }
 //    }
 
+    std::chrono::high_resolution_clock::time_point t10 = std::chrono::high_resolution_clock::now();
+
     bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0.2);
     bsi_1->setPartitionID(0);
     bsi_1->setFirstSliceFlag(true);
@@ -85,6 +88,11 @@ int main(){
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);
     // bsi_result = ubsi.buildBsiAttributeFromArray(result, result.size(), 0.2);
+    std::chrono::high_resolution_clock::time_point t11 = std::chrono::high_resolution_clock::now();
+
+    auto durationBuilding = std::chrono::duration_cast<std::chrono::microseconds>( t11 - t10 ).count();
+    cout <<"Duration to build two bsi arrays: \t\t"<< durationBuilding<<endl;
+
 
 
 //    HybridBitmap<uint64_t> andNot = bsi_1->bsi[1].andNot(bsi_1->bsi[0]);
@@ -111,7 +119,7 @@ int main(){
     ubsi_1.setLastSliceFlag(true);
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-    double sum = 0;
+    long sum = 0;
     long res;
     for (int i=0;i<vectorLen;i++){
         res = array1[i]*array2[i];
@@ -125,7 +133,9 @@ int main(){
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
     cout <<"Duration multiply array: \t\t"<< duration1<<endl;
-    //cout<<"sum is: "<<sum<<endl;
+    cout<<"sum is: "<<sum<<endl;
+    cout<<"first element is: "<<result[0]<<endl;
+    cout<<"last element is: "<<result[result.size()]<<endl;
 
 
     std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
@@ -138,10 +148,12 @@ int main(){
     //bsi_3 = ubsi.SUMunsigned(bsi_2)->SUM(bsi_2)->SUM(bsi_2);
     //bsi_3 = ubsi.multiplyBSI(ubsi_1);
     bsi_3 = ubsi.multiplyWithBsiHorizontal(&ubsi_1,6);
-    //bsi_3.su
+    //bsi_3->dot(&ubsi_1);
     std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
     auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>( t4 - t3 ).count();
-    cout <<"Duration bsi multiply inplace: \t"<< duration2<<endl;
+    cout <<"Duration bsi multiply Horizontal: \t"<< duration2<<endl;
+    cout<<"first element is: "<<bsi_3->getValue(0)<<endl;
+    cout<<"last element is: "<<bsi_3->getValue(bsi_3->rows)<<endl;
 
 
     std::chrono::high_resolution_clock::time_point t5 = std::chrono::high_resolution_clock::now();
@@ -152,10 +164,20 @@ int main(){
     //bsi_3 = ubsi.peasantMultiply(ubsi_1);
 
     //bsi_3 = ubsi.SUMunsigned(bsi_2)->SUM(bsi_2)->SUM(bsi_2);
-    bsi_3 = ubsi.multiplyBSI(&ubsi_1);
+   // bsi_3 = ubsi.multiplyBSI(&ubsi_1);
     std::chrono::high_resolution_clock::time_point t6 = std::chrono::high_resolution_clock::now();
     auto duration3 = std::chrono::duration_cast<std::chrono::microseconds>( t6 - t5 ).count();
     cout <<"Duration bsi multiply : \t\t"<< duration3<<endl;
+
+
+
+    std::chrono::high_resolution_clock::time_point t7 = std::chrono::high_resolution_clock::now();
+
+    long dotresult = bsi_1->dot(bsi_2);
+    std::chrono::high_resolution_clock::time_point t8 = std::chrono::high_resolution_clock::now();
+    auto duration4 = std::chrono::duration_cast<std::chrono::microseconds>( t8 - t7 ).count();
+    cout <<"dotResult = \t\t"<< dotresult<<endl;
+    cout <<"Duration dot : \t\t"<< duration4<<endl;
 
 
 //
