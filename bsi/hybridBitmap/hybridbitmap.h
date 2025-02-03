@@ -101,12 +101,24 @@ public:
         va_list vl;
         va_start(vl, n);
         std::vector<size_t>vectorOfValues(0);
-
-        for (size_t i = 0; i < n; i++) {
-            vectorOfValues.push_back(static_cast<size_t>(va_arg(vl, int)));
+        /**
+         * Since the size n is known, preallocate the vector size and finding the max_val
+         */
+        size_t max_val = 0;
+        for(size_t i=0; i<n; i++){
+            size_t val = static_cast<size_t>(va_arg(vl, int));
+            vectorOfValues[i] = val;
+            if (val>max_val){
+                max_val = val;
+            }
         }
+
+//        for (size_t i = 0; i < n; i++) {
+//            vectorOfValues.push_back(static_cast<size_t>(va_arg(vl, int)));
+//        }
         va_end(vl);
-        size_t wordSize = vectorOfValues.back()>>6;
+//        size_t wordSize = vectorOfValues.back()>>6;
+        size_t wordSize = max_val>>6;
         ans.buffer.resize(wordSize + 1);
 
         for (size_t i = 0; i < n; i++) {
@@ -114,10 +126,13 @@ public:
             long word = 1l << (vectorOfValues[i] % wordinbits);
             ans.buffer[position] = ans.buffer[position] | word;
         }
-        ans.setSizeInBits(vectorOfValues.back() + 1);
-        double aaa = n;
-        double a1 = aaa/ans.sizeinbits;
-        ans.setDensity(a1);
+        ans.setSizeInBits(max_val + 1);
+        /**
+         * Commented below lines as they are not used
+         */
+//        double aaa = n;
+//        double a1 = aaa/ans.sizeinbits;
+        ans.setDensity(static_cast<double>(n)/ans.sizeinbits()); //to ensure floating point division
         return ans;
     }
 
@@ -135,14 +150,21 @@ public:
      *  (This implementation is based on zhenjl's Go version of JavaEWAH.)
      *
      */
+     /**
+      *
+      * Cached constants for quicker extraction
+      */
     bool get(const size_t pos) const {
-        if (pos >= static_cast<size_t>(sizeinbits))
+        if (pos >= static_cast<size_t>(sizeinbits) || buffer.empty())
             return false;
         const size_t wordpos = pos / wordinbits;
         size_t WordChecked = 0;
-        if(buffer.size() == 0){
-            return false;
-        }
+//        if(buffer.size() == 0){
+//            return false;
+//        }
+        /*
+         * Can this if condition be optimized by using a single return statement. cpu branch mispredictions --> can be avoided?
+         */
         if(verbatim){
             uword word = buffer[wordpos];
             if(((word>>(pos%wordinbits))&1)!=0)
@@ -152,14 +174,16 @@ public:
         HybridBitmapRawIterator<uword> j = raw_iterator();
         while (j.hasNext()) {
             BufferedRunningLengthWord<uword> &rle = j.next();
-            WordChecked += static_cast<size_t>(rle.getRunningLength());
+            size_t runningLength = static_cast<size_t>(rle.getRunningLength());
+            size_t literalWords = static_cast<size_t>(rle.getNumberOfLiteralWords());
+            WordChecked += runningLength;
             if (wordpos < WordChecked)
                 return rle.getRunningBit();
-            if (wordpos < WordChecked + rle.getNumberOfLiteralWords()) {
+            if (wordpos < WordChecked + literalWords) {
                 const uword w = j.dirtyWords()[wordpos - WordChecked];
                 return (w & (static_cast<uword>(1) << (pos % wordinbits))) != 0;
             }
-            WordChecked += static_cast<size_t>(rle.getNumberOfLiteralWords());
+            WordChecked += literalWords;
         }
         return false;
     }
@@ -181,8 +205,10 @@ public:
         size_t pointer(0);
         while (pointer < buffer.size()) {
             ConstRunningLengthWord<uword> rlw(buffer[pointer]);
-            if (rlw.getRunningBit()) {
-                if(rlw.getRunningLength() > 0) return false;
+            if (rlw.getRunningBit() && rlw.getRunningLength()) {
+                return false;
+//                if(rlw.getRunningLength() > 0) return false;
+
             }
             ++pointer;
             for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
@@ -352,7 +378,10 @@ public:
      */
     void logicaland(const HybridBitmap &a, HybridBitmap &container) const;
 
-
+    /*
+     * Updated push_back to [i] allocation to avoid dynamic reallocation of vector and resized
+     * the vector to avoid using extra space
+     */
     void maj(const HybridBitmap &a,const HybridBitmap &b, HybridBitmap &container) const;
     HybridBitmap maj(const HybridBitmap &a, const HybridBitmap &b) const {
         HybridBitmap answer;
@@ -363,6 +392,10 @@ public:
      * selectMultiplication perform following operation used in multiplication method.
      * container = ~it.res + it.FS
      *
+     */
+    /*
+     * Since we know the size of the container buffer, trying to avoid dynamic allocation and
+     * use resize and [i], instead of push_back and reserve
      */
     HybridBitmap selectMultiplication(const HybridBitmap &res,const HybridBitmap &FS)const{
         HybridBitmap answer;
@@ -2984,13 +3017,14 @@ void HybridBitmap<uword>::maj(const HybridBitmap &a,const HybridBitmap &b, Hybri
     //HybridBitmap container = new HybridBitmap(true, this.actualsizeinwords);
     container.reset();
     container.verbatim = true;
-    container.buffer.reserve(bufferSize());
+    size_t bufferSize_reserve  = bufferSize();
+    container.buffer.resize(bufferSize_reserve);
     double ab = density*a.density;
     double bc = a.density*b.density;
     double ac = density*b.density;
     container.density = ab+bc-ab*bc+ac-(ab+bc-ab*bc)*ac;
     for (int i = 0; i < buffer.size(); i++) {
-        container.buffer.push_back( (buffer[i] & a.buffer[i]) | (a.buffer[i] & b.buffer[i])
+        container.buffer[i] = ( (buffer[i] & a.buffer[i]) | (a.buffer[i] & b.buffer[i])
                               | (buffer[i] & b.buffer[i]) );
     }
     //container.actualsizeinwords = this.actualsizeinwords;
@@ -3047,12 +3081,12 @@ void HybridBitmap<uword>::selectMultiplication(const HybridBitmap &res,const Hyb
     //HybridBitmap container = new HybridBitmap(true, this.actualsizeinwords);
     container.reset();
     container.verbatim = true;
-    container.buffer.reserve(bufferSize());
+    container.buffer.resize(bufferSize());
     double ab = (1 - density)*res.density;
     double bc = density*FS.density;
     container.density = ab+bc-ab*bc;
-    for (int i = 0; i < buffer.size(); i++) {
-        container.buffer.push_back( (~buffer[i] & res.buffer[i]) | (buffer[i] & FS.buffer[i]) );
+    for (size_t i = 0; i < buffer.size(); i++) {
+        container.buffer[i] = ( (~buffer[i] & res.buffer[i]) | (buffer[i] & FS.buffer[i]) );
     }
     //container.actualsizeinwords = this.actualsizeinwords;
     container.sizeinbits = sizeinbits;
@@ -3699,13 +3733,15 @@ void HybridBitmap<uword>::orAndV(const HybridBitmap &a, const HybridBitmap &b, H
 
 }
 
-
+/*
+ * removed push_back
+ */
 template <class uword>
 void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, const HybridBitmap &b, HybridBitmap &container) const{
     //container.buffer.reserve(bufferSize());
     container.density = density*a.density*b.density;
     for(int i=0; i<buffer.size();i++){
-        container.buffer.push_back(buffer[i]& a.buffer[i]&b.buffer[i]);
+        container.buffer[i] = (buffer[i]& a.buffer[i]&b.buffer[i]);
     }
     //container.actualsizeinwords=actualsizeinwords;
     container.sizeinbits =  sizeinbits;

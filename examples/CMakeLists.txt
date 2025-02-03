@@ -7,7 +7,8 @@ file(GLOB SOURCES
     "testBSI.hpp"
 )
 add_executable(tests ${SOURCES} zipf.h)
-add_executable(example example.cpp)
+add_executable(example example.cpp
+        example_corrected.cpp)
 
 target_link_libraries(example PUBLIC bsi)
 target_link_libraries(tests PUBLIC bsi)
