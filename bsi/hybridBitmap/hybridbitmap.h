@@ -1818,13 +1818,16 @@ void HybridBitmap<uword>::logicalnot(HybridBitmap &x) const {
     if (verbatim){
         x.verbatim = true;
         for(int i=0; i < bufferSize(); i++){
-            x.buffer.push_back(~buffer[i]);
+            x.buffer[i] = (~buffer[i]);
         }
         x.sizeinbits = this->sizeinbits;
         return;
     }
-    x.buffer.push_back(0);
+//    x.buffer.push_back(0);
+    x.buffer.clear();
     x.buffer.reserve(buffer.size());
+    x.buffer.resize(1);
+    x[0] = 0;
     HybridBitmapRawIterator<uword> i = this->raw_iterator();
     if (!i.hasNext())
         return; // nothing to do
@@ -2526,7 +2529,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
     container.verbatim =true;
     if (RESERVEMEMORY)
         container.buffer.reserve(buffer.size() + a.buffer.size());
-    
+    size_t pos = 0;
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
     if (!(i.hasNext() and j.hasNext())) { // hopefully this never happens...
@@ -2546,7 +2549,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
             if (predator.getRunningBit()) {
                 //container.fastaddStreamOfEmptyWords(true, predator.getRunningLength());
                 for(int i = 0; i< predator.getRunningLength(); i++){
-                    container.buffer.push_back(~0L);
+                    container.buffer[pos++] = ~static_cast<uword>(0);
                 }
 //                std::fill(container.buffer.begin()+actualsizeinwords,
 //                        container.buffer.begin()+actualsizeinwords+predator.getRunningLength(), ~0L);
@@ -2560,7 +2563,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                // container.fastaddStreamOfEmptyWords(false, predator.getRunningLength() -
                //                                            index);
                 for(int i = actualsizeinwords; i< actualsizeinwords+predator.getRunningLength() - index; i++){
-                    container.buffer.push_back(0);
+                    container.buffer[pos++] = 0;
                 }
                 
 //                std::fill(container.buffer.begin()+actualsizeinwords,
@@ -2575,7 +2578,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                                              rlwj.getNumberOfLiteralWords());
         if (nbre_literal > 0) {
             for (size_t k = 0; k < nbre_literal; ++k) {
-                container.buffer.push_back((rlwi.getLiteralWordAt(k) | rlwj.getLiteralWordAt(k)));
+                container.buffer[pos++] = ((rlwi.getLiteralWordAt(k) | rlwj.getLiteralWordAt(k)));
                 //container.addWord(rlwi.getLiteralWordAt(k) | rlwj.getLiteralWordAt(k));
                 actualsizeinwords++;
             }
@@ -3709,7 +3712,7 @@ void HybridBitmap<uword>::orAndNotV(const HybridBitmap &a, const HybridBitmap &b
     double multDens = a.density*(1-b.density);
     container.density = density+multDens - (density*multDens);
     for(int i=0; i<buffer.size();i++){
-        container.buffer.push_back(buffer[i]|(a.buffer[i]&(~b.buffer[i])));
+        container.buffer[i] = (buffer[i]|(a.buffer[i]&(~b.buffer[i])));
     }
     // container.actualsizeinwords=this.actualsizeinwords;
     container.sizeinbits = sizeinbits;
@@ -3726,7 +3729,7 @@ void HybridBitmap<uword>::orAndV(const HybridBitmap &a, const HybridBitmap &b, H
     double andDens = a.density*b.density;
     container.density = density+andDens-(density*andDens);
     for(int i=0; i<buffer.size();i++){
-        container.buffer.push_back( buffer[i]|(a.buffer[i]&b.buffer[i]));
+        container.buffer[i] = ( buffer[i]|(a.buffer[i]&b.buffer[i]));
     }
     //   container.actualsizeinwords=this.actualsizeinwords;
     container.sizeinbits = sizeinbits;
@@ -3738,7 +3741,7 @@ void HybridBitmap<uword>::orAndV(const HybridBitmap &a, const HybridBitmap &b, H
  */
 template <class uword>
 void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, const HybridBitmap &b, HybridBitmap &container) const{
-    //container.buffer.reserve(bufferSize());
+    container.buffer.reserve(bufferSize());
     container.density = density*a.density*b.density;
     for(int i=0; i<buffer.size();i++){
         container.buffer[i] = (buffer[i]& a.buffer[i]&b.buffer[i]);
@@ -3757,7 +3760,7 @@ void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, HybridBitmap &conta
     container.buffer.reserve(bufferSize()
                              );
     for(int i=0; i<buffer.size();i++){
-        container.buffer.push_back(buffer[i] & a.buffer[i]);
+        container.buffer[i] = (buffer[i] & a.buffer[i]);
     }
     //container.actualsizeinwords=actualsizeinwords;
     container.sizeinbits =  sizeinbits;
@@ -3772,7 +3775,7 @@ void HybridBitmap<uword>::orVerbatim(const HybridBitmap &a, HybridBitmap &contai
     container.density= (density+a.density)-(density*a.density);
     container.buffer.reserve(bufferSize());
     for (int i = 0; i < buffer.size(); i++) {
-        container.buffer.push_back(buffer[i] | a.buffer[i]);
+        container.buffer[i] = (buffer[i] | a.buffer[i]);
     }
 
     //container.sizeinbits = this.actualsizeinwords <<6;
@@ -3927,7 +3930,7 @@ void HybridBitmap<uword>::xorVerbatim(const HybridBitmap &a, HybridBitmap &conta
     container.density = density*(1-a.density)+a.density*(1-density);
 
     for (size_t i = 0; i < buffer.size(); i++) {
-        container.buffer.push_back( buffer[i] ^ a.buffer[i] );
+        container.buffer[i] = ( buffer[i] ^ a.buffer[i] );
     }
 
    // container.actualsizeinwords = this->actualsizeinwords;
@@ -4162,7 +4165,7 @@ void HybridBitmap<uword>::andNotVerbatim(const HybridBitmap &a, HybridBitmap &co
     container.verbatim = true;
     container.density=density*(1-a.density);
     for (int i = 0; i < bufferSize(); i++) {
-        container.buffer.push_back(buffer[i] & (~a.buffer[i]));
+        container.buffer[i] = (buffer[i] & (~a.buffer[i]));
     }
     //container.actualsizeinwords = this.actualsizeinwords;
     //container.sizeinbits = this.actualsizeinwords <<6;
@@ -4370,7 +4373,7 @@ void HybridBitmap<uword>::xorNotVerbatim(const HybridBitmap &a, HybridBitmap &co
     container.verbatim = true;
     
     for (int i = 0; i < bufferSize(); i++) {
-        container.buffer.push_back(buffer[i] ^ (~a.buffer[i]));
+        container.buffer[i] = (buffer[i] ^ (~a.buffer[i]));
     }
     
     //container.buffer.rse = bufferSize();
@@ -4464,26 +4467,27 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
     
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
+        size_t pos=0;
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
         size_t lastrlwa = 0;
         //a.rlw = new RunningLengthWord(a.buffer, 0);
         
         while (i < bufferSize()) {
-            runLength=(int) rlwa.getRunningLength();
+            runLength=static_cast<int>(rlwa.getRunningLength());
             if (rlwa.getRunningBit()) { // fill of ones
                 for (j = 0; j < runLength; j++) {
-                    container.buffer.push_back(~(buffer[i]));
+                    container.buffer[pos++] = (~(buffer[i]));
                     i++;
                 }
             } else {
                 for (j = 0; j < runLength; j++) {
-                    container.buffer.push_back((buffer[i]));
+                    container.buffer[pos++] = ((buffer[i]));
                     i++;
                 }
             }
             
             for( j=0; j<rlwa.getNumberOfLiteralWords(); j++){
-                container.buffer.push_back(buffer[i]^(a.buffer[lastrlwa+j+1]));
+                container.buffer[pos++] = (buffer[i]^(a.buffer[lastrlwa+j+1]));
                 i++;
             }
             
@@ -4498,6 +4502,7 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
         }
     } else { // a is verbatim
         container.buffer.reserve(a.bufferSize());
+        size_t pos = 0;
         ConstRunningLengthWord<uword> rlw(buffer[0]);
         size_t lastrlw = 0;
         
@@ -4505,18 +4510,18 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
             runLength=(int) rlw.getRunningLength();
             if (rlw.getRunningBit()) { // fill of ones
                 for (j = 0; j < runLength; j++) {
-                    container.buffer.push_back(~(a.buffer[i]));
+                    container.buffer[pos++] = (~(a.buffer[i]));
                     i++;
                 }
             } else {
                 for (j = 0; j < runLength; j++) {
-                    container.buffer.push_back(a.buffer[i]);
+                    container.buffer[pos++] = (a.buffer[i]);
                     i++;
                 }
             }
             
             for( j=0; j<rlw.getNumberOfLiteralWords(); j++){
-                container.buffer.push_back(a.buffer[i]^(buffer[lastrlw+j+1]));
+                container.buffer[pos++] = (a.buffer[i]^(buffer[lastrlw+j+1]));
                 i++;
             }
             lastrlw +=rlw.getNumberOfLiteralWords()+1;
@@ -4678,13 +4683,18 @@ void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &cont
     
 }
 
-
+/*
+ * used std::fill instead of push_back, cause this is much more cache friendly used a pos variable
+ * to track write position
+ */
 template <class uword>
     void HybridBitmap<uword>::logicalxorDecompress(const HybridBitmap &a, HybridBitmap &container)const{
     container.reset();
     container.verbatim=true;
-        if (RESERVEMEMORY){
-            container.buffer.reserve(buffer.size() + a.buffer.size());}
+    if (RESERVEMEMORY){
+        container.buffer.resize(buffer.size() + a.buffer.size());
+    }
+    size_t pos = 0;
             
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
@@ -4702,22 +4712,28 @@ template <class uword>
             const bool i_is_prey = rlwi.getRunningLength() < rlwj.getRunningLength();
             BufferedRunningLengthWord<uword> &prey = i_is_prey ? rlwi : rlwj;
             BufferedRunningLengthWord<uword> &predator = i_is_prey ? rlwj : rlwi;
-            
+            const size_t index = 0;
             if (predator.getRunningBit() == false) {
-                const size_t index = prey.dischargeDecompressed(container, predator.getRunningLength());
+                index = prey.dischargeDecompressed(container, predator.getRunningLength());
                 //container.addStreamOfEmptyWords(false, predator.getRunningLength()
                 // - index);
-                for(int i = 0; i< predator.getRunningLength() - index; i++){
-                    container.buffer.push_back(0);
-                }
+//                for(int i = 0; i< predator.getRunningLength() - index; i++){
+//                    container.buffer.push_back(0);
+//                }
+                std::fill(container.buffer.begin()+pos,
+                          container.buffer.begin()+pos+(predator.getRunningLength()-index),
+                          0);
                 
             } else {
-                 const size_t index = prey.dischargeNegatedDecompressed(container, predator.getRunningLength());
+                 index = prey.dischargeNegatedDecompressed(container, predator.getRunningLength());
                 // container.addStreamOfEmptyWords(true, predator.getRunningLength()
                 //  - index);
-                for(int i = 0; i< predator.getRunningLength() - index; i++){
-                    container.buffer.push_back(~0L);
-                }
+//                for(int i = 0; i< predator.getRunningLength() - index; i++){
+//                    container.buffer.push_back(~0L);
+//                }
+                std::fill(container.buffer.begin()+pos,
+                          container.buffer.begin()+(predator.getRunningLength()-index),
+                          (~0L));
             }
 //            ? prey.dischargeDecompressed(container, predator.getRunningLength())
 //            : prey.dischargeNegatedDecompressed(container, predator.getRunningLength());
@@ -4725,15 +4741,16 @@ template <class uword>
 //                container.buffer.push_back(0);
 //            }
 //            std::fill(container.buffer.begin()+actualsizeinwords, container.buffer.begin()+actualsizeinwords+predator.getRunningLength()-index, 0);
-            actualsizeinwords += predator.getRunningLength();
+//            actualsizeinwords += predator.getRunningLength();
+            pos += predator.getRunningLength();
             predator.discardRunningWordsWithReload();
         }
         const size_t nbre_literal = std::min(rlwi.getNumberOfLiteralWords(), rlwj.getNumberOfLiteralWords());
         if (nbre_literal > 0) {
             for (size_t k = 0; k < nbre_literal; ++k){
-                container.buffer.push_back((rlwi.getLiteralWordAt(k) ^ rlwj.getLiteralWordAt(k)));
+                container.buffer[pos++] = ((rlwi.getLiteralWordAt(k) ^ rlwj.getLiteralWordAt(k)));
 //                container.addWord(rlwi.getLiteralWordAt(k) ^ rlwj.getLiteralWordAt(k));
-                actualsizeinwords++;
+//                actualsizeinwords++;
             }
             rlwi.discardLiteralWordsWithReload(nbre_literal);
             rlwj.discardLiteralWordsWithReload(nbre_literal);
