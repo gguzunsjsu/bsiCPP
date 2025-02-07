@@ -35,16 +35,17 @@ int main(){
     //fout1.open("/Users/adityapatel/multiplicationTestResult1.txt");
 
     vector<uint64_t> result_arr;
-    vector<long> array1;
-    vector<long> array2;
-    vector<long> result;
     vector<double> v1;
     vector<double> v2;
     vector<double> vres;
     string line_str;
     int range1 = 50;
     int range2 = 50;
-    int vectorLen = 10000000;
+    int vectorLen = 100000;
+    vector<long> array1(vectorLen);
+    vector<long> array2(vectorLen);
+    vector<long> result(vectorLen);
+
 
     int arr1[5] = {84, 624, 9, 330, 240};
     int arr2[5] = {3, 6, 7, 9, 8};
@@ -124,7 +125,7 @@ int main(){
     for (int i=0;i<vectorLen;i++){
         res = array1[i]*array2[i];
         //res = v1[i]*v2[i];
-        result.push_back(res);
+        result[i]=(res);
         //vres.push_back(res);
         sum= sum+res;
     }
@@ -134,8 +135,8 @@ int main(){
     auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
     cout <<"Duration multiply array: \t\t"<< duration1<<endl;
     cout<<"sum is: "<<sum<<endl;
-    cout<<"first element is: "<<result[0]<<endl;
-    cout<<"last element is: "<<result[result.size()]<<endl;
+   // cout<<"first element is: "<<result[0]<<endl;
+   // cout<<"last element is: "<<result[result.size()]<<endl;
 
 
     std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
@@ -147,7 +148,7 @@ int main(){
 
     //bsi_3 = ubsi.SUMunsigned(bsi_2)->SUM(bsi_2)->SUM(bsi_2);
     //bsi_3 = ubsi.multiplyBSI(ubsi_1);
-    bsi_3 = ubsi.multiplyWithBsiHorizontal(&ubsi_1,6);
+    bsi_3 = ubsi.multiplyWithBsiHorizontal(&ubsi_1,4);
     //bsi_3->dot(&ubsi_1);
     std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
     auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>( t4 - t3 ).count();
@@ -164,7 +165,7 @@ int main(){
     //bsi_3 = ubsi.peasantMultiply(ubsi_1);
 
     //bsi_3 = ubsi.SUMunsigned(bsi_2)->SUM(bsi_2)->SUM(bsi_2);
-   // bsi_3 = ubsi.multiplyBSI(&ubsi_1);
+    bsi_3 = ubsi.multiplication(&ubsi_1);
     std::chrono::high_resolution_clock::time_point t6 = std::chrono::high_resolution_clock::now();
     auto duration3 = std::chrono::duration_cast<std::chrono::microseconds>( t6 - t5 ).count();
     cout <<"Duration bsi multiply : \t\t"<< duration3<<endl;
@@ -173,7 +174,7 @@ int main(){
 
     std::chrono::high_resolution_clock::time_point t7 = std::chrono::high_resolution_clock::now();
 
-    long dotresult = bsi_1->dot(bsi_2);
+    long dotresult = bsi_1->dot_withoutCompression(bsi_2);
     std::chrono::high_resolution_clock::time_point t8 = std::chrono::high_resolution_clock::now();
     auto duration4 = std::chrono::duration_cast<std::chrono::microseconds>( t8 - t7 ).count();
     cout <<"dotResult = \t\t"<< dotresult<<endl;
