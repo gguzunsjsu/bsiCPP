@@ -17,7 +17,7 @@
 
 int main(){
     int range = 50;
-    int vectorLength = 10;
+    int vectorLength = 100000;
     std::vector<long> array1;
 
     for(int i=1;i<vectorLength+1;i++){

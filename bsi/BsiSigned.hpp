@@ -79,7 +79,10 @@ public:
     BsiAttribute<uword>* sum_Horizontal(const BsiAttribute<uword> *a) const;
     void sum(uword a[],int size_a, uword b[], int size_b, uword ans[], int size_ans)const;
     
-    
+    /*
+     * division
+     */
+    virtual std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(const BsiAttribute<uword>& divisor) const override;
     
     void multiplyKaratsuba(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const;
     void sumOfWordsKaratsuba(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const;
@@ -2813,4 +2816,13 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal(const BsiAttribute<uword> 
         }
     }
 }
+
+/*
+ * division function definition
+ */
+template<class uword>
+std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiSigned<uword>::divide(const BsiAttribute<uword>& divisor) const {
+    throw std::runtime_error("BsiSigned::divide is not implemented yet.");
+}
+
 #endif /* BsiSigned_hpp */
