@@ -117,8 +117,9 @@ public:
     /*
      * division implementation
      */
-    virtual std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(const BsiAttribute<uword>& divisor) const = 0;
-
+    virtual std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
+            const BsiAttribute<uword>& dividend,
+            const BsiAttribute<uword>& divisor) const = 0;
 
 
     virtual BsiAttribute<uword>* negate()=0;

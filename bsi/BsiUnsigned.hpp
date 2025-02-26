@@ -60,15 +60,11 @@ public:
     /*
      * unsigned division implementation
      */
-    virtual std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(const BsiAttribute<uword>& divisor) const override;
-    BsiUnsigned<uword> shiftLeft(int shift) const;
-    BsiUnsigned<uword>* subtract(const BsiUnsigned<uword>& y) const;
-    HybridBitmap<uword> compare(const BsiUnsigned<uword> &y) const;
+    std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
+            const BsiAttribute<uword>& dividend,
+            const BsiAttribute<uword>& divisor
+    ) const override;
 
-    std::pair<BsiUnsigned<uword>*, BsiUnsigned<uword>*> divideVerbatim(const BsiUnsigned<uword>& divisor) const;
-    std::pair<BsiUnsigned<uword>*, BsiUnsigned<uword>*> divideCompressed(const BsiUnsigned<uword>& divisor) const;
-
-  
     
     /*
      Declaring Other Functions
@@ -2681,192 +2677,367 @@ int BsiUnsigned<uword>::compareTo(BsiAttribute<uword> *a, int index) {
 /*
  * divide funtion implementations
  */
-template<class uword>
-BsiUnsigned<uword> BsiUnsigned<uword>::shiftLeft(int shift) const {
-    BsiUnsigned<uword> result;
-    int newSize = this->size + shift;
-    result.size = newSize;
-    result.offset = this->offset;
-    result.bsi.resize(newSize);
-    HybridBitmap<uword> zero;
-    zero.reset();
-    zero.setSizeInBits(this->existenceBitmap.sizeInBits(), false);
-    for (int i = 0; i < shift; i++) {
-        result.bsi[i] = zero;
-    }
-    for (int i = shift; i < newSize; i++) {
-        result.bsi[i] = this->bsi[i - shift];
-    }
-    result.existenceBitmap = this->existenceBitmap;
-    result.rows = this->rows;
-    result.index = this->index;
-    result.is_signed = this->is_signed;
-    return result;
-
-}
-
-template<class uword>
-BsiUnsigned<uword>* BsiUnsigned<uword>::subtract(const BsiUnsigned<uword> &y) const {
-    int maxSize = std::max(this->size, y.size);
-    BsiUnsigned<uword>* result = new BsiUnsigned<uword>();
-    result->size = maxSize;
-    result->offset = this->offset;
-    result->bsi.resize(maxSize);
-    HybridBitmap<uword> zero;
-    zero.reset();
-    zero.setSizeInBits(this->existenceBitmap.sizeInBits(), false);
-    HybridBitmap<uword> borrow = zero;
-    for (int i = 0; i < maxSize; i++) {
-        HybridBitmap<uword> bitX, bitY;
-        if (i < this->size)
-            bitX = this->bsi[i];
-        else
-            bitX = zero;
-        if (i < y.size)
-            bitY = y.bsi[i];
-        else
-            bitY = zero;
-        // difference = bitX XOR bitY XOR borrow
-        HybridBitmap<uword> diff = bitX.Xor(bitY).Xor(borrow);
-        result->bsi[i] = diff;
-        // borrow = (NOT bitX AND (bitY OR borrow)) OR (bitY AND borrow)
-        HybridBitmap<uword> new_borrow = (bitX.Not()).And(bitY.Or(borrow)).Or(bitY.And(borrow));
-        borrow = new_borrow;
-    }
-    result->existenceBitmap = this->existenceBitmap;
-    result->rows = this->rows;
-    result->index = this->index;
-    result->is_signed = this->is_signed;
-    return result;
-
-}
-
-template<class uword>
-HybridBitmap<uword> BsiUnsigned<uword>::compare(const BsiUnsigned<uword> &y) const {
-    int n = std::max(this->size, y.size);
-    HybridBitmap<uword> ones;
-    ones.reset();
-    ones.setSizeInBits(this->existenceBitmap.sizeInBits(), true);
-    HybridBitmap<uword> equal = ones;
-    HybridBitmap<uword> zero;
-    zero.reset();
-    zero.setSizeInBits(this->existenceBitmap.sizeInBits(), false);
-    HybridBitmap<uword> greater = zero;
-    for (int i = n - 1; i >= 0; i--) {
-        HybridBitmap<uword> bitX, bitY;
-        if (i < this->size)
-            bitX = this->bsi[i];
-        else
-            bitX = zero;
-        if (i < y.size)
-            bitY = y.bsi[i];
-        else
-            bitY = zero;
-        HybridBitmap<uword> temp = equal.And(bitX.And(bitY.Not()));
-        greater = greater.Or(temp);
-        HybridBitmap<uword> temp2 = equal.And((bitX.Xor(bitY)).Not());
-        equal = temp2;
-    }
-    HybridBitmap<uword> result = greater.Or(equal);
-    return result;
-
-}
-
-template<class uword>
-std::pair<BsiUnsigned<uword>*, BsiUnsigned<uword>*> BsiUnsigned<uword>::divideVerbatim(const BsiUnsigned<uword>& divisor) const {
-    int n = this->size;       // number of slices in dividend
-    int d = divisor.size;     // number of slices in divisor
-    int qSize = (n >= d) ? (n - d + 1) : 1;
-    BsiUnsigned<uword>* quotient = new BsiUnsigned<uword>();
-    quotient->size = qSize;
-    quotient->offset = this->offset;
-    quotient->bsi.resize(qSize);
-    HybridBitmap<uword> zero;
-    zero.reset();
-    zero.setSizeInBits(this->existenceBitmap.sizeInBits(), false);
-    for (int i = 0; i < qSize; i++) {
-        quotient->bsi[i] = zero;
-    }
-    BsiUnsigned<uword>* remainder = new BsiUnsigned<uword>();
-    remainder->size = n;
-    remainder->offset = this->offset;
-    remainder->bsi = this->bsi;  // shallow copy (assumed to be immutable here)
-    remainder->existenceBitmap = this->existenceBitmap;
-    remainder->rows = this->rows;
-    remainder->index = this->index;
-    remainder->is_signed = this->is_signed;
-
-    // For each possible shift from (n-d) downto 0:
-    for (int shift = n - d; shift >= 0; shift--) {
-        // Compute shiftedDivisor = divisor shifted left by 'shift' slices.
-        BsiUnsigned<uword> shiftedDivisor = divisor.shiftLeft(shift);
-        // For each row, compute mask = 1 where remainder >= shiftedDivisor.
-        HybridBitmap<uword> mask = remainder->compare(shiftedDivisor);
-        quotient->bsi[shift] = quotient->bsi[shift].Or(mask);
-        // Compute product = shiftedDivisor AND mask (slice by slice).
-        BsiUnsigned<uword>* product = new BsiUnsigned<uword>();
-        product->size = shiftedDivisor.size;
-        product->offset = shiftedDivisor.offset;
-        product->bsi.resize(shiftedDivisor.size);
-        for (int i = 0; i < shiftedDivisor.size; i++) {
-            product->bsi[i] = shiftedDivisor.bsi[i].And(mask);
-        }
-        product->existenceBitmap = shiftedDivisor.existenceBitmap.And(mask);
-        product->rows = shiftedDivisor.rows;
-        product->index = shiftedDivisor.index;
-        product->is_signed = shiftedDivisor.is_signed;
-        // Subtract product from the remainder.
-        BsiUnsigned<uword>* newRemainder = remainder->subtract(*product);
-        delete remainder;
-        remainder = newRemainder;
-        delete product;
-    }
-    return std::make_pair(quotient, remainder);
-
-}
-
+//template <class uword>
+//std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiUnsigned<uword>::divide(
+//        const BsiAttribute<uword>& dividend,
+//        const BsiAttribute<uword>& divisor
+//) const {
+//    // Check for division by zero
+//    bool isDivisorZero = true;
+//    for (int i = 0; i < divisor.size; i++) {
+//        if (divisor.bsi[i].numberOfOnes() > 0) {
+//            isDivisorZero = false;
+//            break;
+//        }
+//    }
+//
+//    if (isDivisorZero) {
+//        throw std::runtime_error("Division by zero");
+//    }
+//
+//    // Initialize quotient and remainder
+//    BsiUnsigned<uword>* quotient = new BsiUnsigned<uword>();
+//    BsiUnsigned<uword>* remainder = new BsiUnsigned<uword>();
+//
+//    // Set metadata
+//    quotient->existenceBitmap = dividend.existenceBitmap;
+//    quotient->rows = dividend.rows;
+//    quotient->index = dividend.index;
+//    quotient->firstSlice = true;
+//    quotient->lastSlice = true;
+//
+//    remainder->existenceBitmap = dividend.existenceBitmap;
+//    remainder->rows = dividend.rows;
+//    remainder->index = dividend.index;
+//    remainder->firstSlice = true;
+//    remainder->lastSlice = true;
+//
+//    // Initialize quotient with zero bitmaps
+//    for (int i = 0; i < dividend.size; i++) {
+//        HybridBitmap<uword> zeroBitmap;
+//        zeroBitmap.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+//        quotient->addSlice(zeroBitmap);
+//    }
+//
+//    // Initialize remainder with zero bitmaps
+//    for (int i = 0; i < divisor.size; i++) {
+//        HybridBitmap<uword> zeroBitmap;
+//        zeroBitmap.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+//        remainder->addSlice(zeroBitmap);
+//    }
+//
+//    // Get existential bitmap for valid rows
+//    HybridBitmap<uword> validRows = dividend.existenceBitmap;
+//
+//    // For each row that exists in the divisor bitmap, we need to check if divisor value is zero
+//    // and exclude those rows from our division operation
+//    for (int rowIndex = 0; rowIndex < divisor.rows; rowIndex++) {
+//        if (validRows.get(rowIndex)) {
+//            // Check if divisor is zero for this row
+//            bool isZero = true;
+//            for (int i = 0; i < divisor.size; i++) {
+//                if (divisor.bsi[i].get(rowIndex)) {
+//                    isZero = false;
+//                    break;
+//                }
+//            }
+//
+//            if (isZero) {
+//                // Mark this row as invalid
+//                HybridBitmap<uword> rowBitmap;
+//                rowBitmap.setSizeInBits(validRows.sizeInBits(), false);
+//                rowBitmap.set(rowIndex);
+//                validRows = validRows.andNot(rowBitmap);
+//            }
+//        }
+//    }
+//
+//    // Binary long division
+//    // We'll perform division by examining one bit at a time from most to least significant bit
+//
+//    // First, create a working partial remainder
+//    std::vector<HybridBitmap<uword>> partialRemainder;
+//    for (int i = 0; i < divisor.size; i++) {
+//        HybridBitmap<uword> zeroBitmap;
+//        zeroBitmap.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+//        partialRemainder.push_back(zeroBitmap);
+//    }
+//
+//    // Process bits from most significant to least significant
+//    for (int pos = dividend.size - 1; pos >= 0; pos--) {
+//        // Shift left the partial remainder (multiply by 2)
+//        for (int i = partialRemainder.size() - 1; i > 0; i--) {
+//            partialRemainder[i] = partialRemainder[i-1];
+//        }
+//
+//        // Bring down next bit from dividend
+//        partialRemainder[0] = dividend.bsi[pos];
+//
+//        // Before comparing/subtracting, we need to apply validRows to ensure we're only
+//        // operating on rows where division is valid
+//        for (int i = 0; i < partialRemainder.size(); i++) {
+//            partialRemainder[i] = partialRemainder[i].And(validRows);
+//        }
+//
+//        // Now determine for each valid row if subtraction is possible
+//        // Subtraction is possible if partial remainder >= divisor
+//
+//        // Create a bitmap marking rows where subtraction is possible
+//        HybridBitmap<uword> canSubtractRows = validRows;
+//
+//        // Compare starting from most significant bits
+//        for (int i = divisor.size - 1; i >= 0; i--) {
+//            HybridBitmap<uword> remainderBit;
+//            if (i < partialRemainder.size()) {
+//                remainderBit = partialRemainder[i];
+//            } else {
+//                remainderBit.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+//            }
+//
+//            HybridBitmap<uword> divisorBit = divisor.bsi[i];
+//
+//            // Cases for comparison:
+//            // 1. If remainder bit is 1 and divisor bit is 0 -> can subtract
+//            // 2. If remainder bit is 0 and divisor bit is 1 -> cannot subtract
+//            // 3. If bits are the same -> check next bit
+//
+//            // Case 1: remainder bit is 1, divisor bit is 0
+//            HybridBitmap<uword> case1 = remainderBit.And(divisorBit.Not());
+//
+//            // Case 2: remainder bit is 0, divisor bit is 1
+//            HybridBitmap<uword> case2 = remainderBit.Not().And(divisorBit);
+//
+//            // We update canSubtractRows for the decisive cases (1 and 2)
+//            canSubtractRows = canSubtractRows.And(case1.Or(canSubtractRows.And(case2.Not())));
+//
+//            // If any row has case 2, it cannot subtract - break for that row
+//            // For rows where both bits are the same, continue comparison with next bit
+//        }
+//
+//        // For rows where we can subtract, update the quotient bit and subtract
+//        // For the current position in quotient, set bits where subtraction is possible
+//        quotient->bsi[pos] = canSubtractRows;
+//
+//        // Subtract the divisor from the partial remainder for rows where subtraction is possible
+//        // This is a binary subtraction with borrow
+//        HybridBitmap<uword> borrow;
+//        borrow.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+//
+//        for (int i = 0; i < divisor.size; i++) {
+//            // We only operate on rows where subtraction is possible
+//            HybridBitmap<uword> remainderBit;
+//            if (i < partialRemainder.size()) {
+//                remainderBit = partialRemainder[i].And(canSubtractRows);
+//            } else {
+//                remainderBit.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+//            }
+//
+//            HybridBitmap<uword> divisorBit = divisor.bsi[i].And(canSubtractRows);
+//            HybridBitmap<uword> notDivisorBit = divisorBit.Not().And(canSubtractRows);
+//
+//            // Calculate difference bit: diff = a ⊕ b ⊕ borrow
+//            HybridBitmap<uword> diffBit = remainderBit.Xor(divisorBit).Xor(borrow);
+//
+//            // Calculate new borrow: borrow = (a'.b) + (a'.borrow) + (b.borrow)
+//            HybridBitmap<uword> newBorrow = remainderBit.Not().And(divisorBit)
+//                    .Or(remainderBit.Not().And(borrow))
+//                    .Or(divisorBit.And(borrow));
+//
+//            // Update the partial remainder for this bit position
+//            if (i < partialRemainder.size()) {
+//                // For rows where subtraction is possible, use the calculated difference
+//                // For rows where subtraction isn't possible, keep the original value
+//                partialRemainder[i] = diffBit.Or(partialRemainder[i].And(canSubtractRows.Not()));
+//            }
+//
+//            // Update borrow for next bit
+//            borrow = newBorrow;
+//        }
+//    }
+//
+//    // Copy the final partial remainder to the remainder result
+//    for (int i = 0; i < partialRemainder.size(); i++) {
+//        remainder->bsi[i] = partialRemainder[i];
+//    }
+//
+//    // Trim unnecessary leading zero slices from quotient
+//    while (quotient->size > 1) {
+//        if (quotient->bsi[quotient->size - 1].numberOfOnes() == 0) {
+//            quotient->bsi.pop_back();
+//            quotient->size--;
+//        } else {
+//            break;
+//        }
+//    }
+//
+//    // Trim unnecessary leading zero slices from remainder
+//    while (remainder->size > 1) {
+//        if (remainder->bsi[remainder->size - 1].numberOfOnes() == 0) {
+//            remainder->bsi.pop_back();
+//            remainder->size--;
+//        } else {
+//            break;
+//        }
+//    }
+//
+//    // Update density for all bitmaps
+//    for (int i = 0; i < quotient->size; i++) {
+//        quotient->bsi[i].density = quotient->bsi[i].numberOfOnes() / static_cast<double>(quotient->rows);
+//    }
+//
+//    for (int i = 0; i < remainder->size; i++) {
+//        remainder->bsi[i].density = remainder->bsi[i].numberOfOnes() / static_cast<double>(remainder->rows);
+//    }
+//
+//    return std::make_pair(quotient, remainder);
+//}
 template <class uword>
-std::pair<BsiUnsigned<uword>*, BsiUnsigned<uword>*> BsiUnsigned<uword>::divideCompressed(const BsiUnsigned<uword>& divisor) const {
-    BsiUnsigned<uword> verbatimDividend = *this;
-    BsiUnsigned<uword> verbatimDivisor = divisor;
-    for (int i = 0; i < verbatimDividend.size; i++) {
-        verbatimDividend.bsi[i].verbatim = true;
-    }
-    for (int i = 0; i < verbatimDivisor.size; i++) {
-        verbatimDivisor.bsi[i].verbatim = true;
-    }
-    return verbatimDividend.divideVerbatim(verbatimDivisor);
-
-}
-
-template<class uword>
-std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiUnsigned<uword>::divide(const BsiAttribute<uword>& divisor) const {
-    // checking sign
-    const BsiUnsigned<uword>* uDivisor = dynamic_cast<const BsiUnsigned<uword>*>(&divisor);
-    if(!uDivisor)
-        throw std::runtime_error("BsiUnsigned::divide: Divisor must be of type BsiUnsigned.");
-    // guard to check if divisor is zero
+std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiUnsigned<uword>::divide(
+        const BsiAttribute<uword>& dividend,
+        const BsiAttribute<uword>& divisor
+) const {
+    // Check for division by zero
     bool isDivisorZero = true;
-    for (int i = 0; i < uDivisor->size; i++) {
-        if (uDivisor->bsi[i].numberOfOnes() > 0) {
+    for (int i = 0; i < divisor.size; i++) {
+        if (divisor.bsi[i].numberOfOnes() > 0) {
             isDivisorZero = false;
             break;
         }
     }
-    if(isDivisorZero)
-        throw std::runtime_error("Division by zero in BsiUnsigned::divide");
-    if(this->bsi.empty() || uDivisor->bsi.empty())
-        throw std::runtime_error("Empty BSI encountered in division");
 
-    if(this->bsi[0].verbatim && uDivisor->bsi[0].verbatim){
-        auto res = divideVerbatim(*uDivisor);
-        return std::make_pair(static_cast<BsiAttribute<uword>*>(res.first),
-                              static_cast<BsiAttribute<uword>*>(res.second));
-    } else {
-        auto res = divideCompressed(*uDivisor);
-        return std::make_pair(static_cast<BsiAttribute<uword>*>(res.first),
-                              static_cast<BsiAttribute<uword>*>(res.second));
+    if (isDivisorZero) {
+        throw std::runtime_error("Division by zero");
     }
+
+    // Initialize quotient and remainder
+    BsiUnsigned<uword>* quotient = new BsiUnsigned<uword>();
+    BsiUnsigned<uword>* remainder = new BsiUnsigned<uword>();
+
+    quotient->existenceBitmap = dividend.existenceBitmap;
+    quotient->rows = dividend.rows;
+    quotient->index = dividend.index;
+    quotient->firstSlice = true;
+    quotient->lastSlice = true;
+
+    remainder->existenceBitmap = dividend.existenceBitmap;
+    remainder->rows = dividend.rows;
+    remainder->index = dividend.index;
+    remainder->firstSlice = true;
+    remainder->lastSlice = true;
+
+    int max_dividend_bits = 0;
+    for (int i = dividend.size - 1; i >= 0; i--) {
+        if (dividend.bsi[i].numberOfOnes() > 0) {
+            max_dividend_bits = i + 1;
+            break;
+        }
+    }
+
+    int max_divisor_bits = 0;
+    for (int i = divisor.size - 1; i >= 0; i--) {
+        if (divisor.bsi[i].numberOfOnes() > 0) {
+            max_divisor_bits = i + 1;
+            break;
+        }
+    }
+
+    int max_quotient_bits = max_dividend_bits;
+    int max_remainder_bits = max_divisor_bits;
+
+    HybridBitmap<uword> zeroBitmap;
+    zeroBitmap.verbatim = true;
+    zeroBitmap.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
+
+    for (int i = 0; i < max_quotient_bits; i++) {
+        HybridBitmap<uword> bitmap = zeroBitmap;
+        quotient->addSlice(bitmap);
+    }
+
+    for (int i = 0; i < max_remainder_bits; i++) {
+        HybridBitmap<uword> bitmap = zeroBitmap;
+        remainder->addSlice(bitmap);
+    }
+
+    for (size_t rowIndex = 0; rowIndex < dividend.rows; rowIndex++) {
+        if (!dividend.existenceBitmap.get(rowIndex)) {
+            continue;
+        }
+
+        long dividendValue = 0;
+        for (int i = 0; i < dividend.size; i++) {
+            if (i < dividend.bsi.size() && dividend.bsi[i].get(rowIndex)) {
+                dividendValue |= (1L << i);
+            }
+        }
+
+        long divisorValue = 0;
+        for (int i = 0; i < divisor.size; i++) {
+            if (i < divisor.bsi.size() && divisor.bsi[i].get(rowIndex)) {
+                divisorValue |= (1L << i);
+            }
+        }
+
+        if (divisorValue == 0) {
+            continue;
+        }
+
+        long quotientValue = dividendValue / divisorValue;
+        long remainderValue = dividendValue % divisorValue;
+
+        int wordPos = rowIndex / (sizeof(uword) * 8);
+        int bitOffset = rowIndex % (sizeof(uword) * 8);
+
+        for (int i = 0; i < quotient->size; i++) {
+            if (wordPos >= quotient->bsi[i].buffer.size()) {
+                quotient->bsi[i].buffer.resize(wordPos + 1, 0);
+            }
+        }
+
+        for (int i = 0; i < remainder->size; i++) {
+            if (wordPos >= remainder->bsi[i].buffer.size()) {
+                remainder->bsi[i].buffer.resize(wordPos + 1, 0);
+            }
+        }
+
+        for (int i = 0; i < quotient->size; i++) {
+            quotient->bsi[i].buffer[wordPos] &= ~(static_cast<uword>(1) << bitOffset);
+        }
+
+        for (int i = 0; i < remainder->size; i++) {
+            remainder->bsi[i].buffer[wordPos] &= ~(static_cast<uword>(1) << bitOffset);
+        }
+
+        for (int i = 0; i < quotient->size; i++) {
+            if ((quotientValue & (1L << i)) != 0) {
+                quotient->bsi[i].buffer[wordPos] |= (static_cast<uword>(1) << bitOffset);
+            }
+        }
+
+        for (int i = 0; i < remainder->size; i++) {
+            if ((remainderValue & (1L << i)) != 0) {
+                remainder->bsi[i].buffer[wordPos] |= (static_cast<uword>(1) << bitOffset);
+            }
+        }
+    }
+
+    for (int i = 0; i < quotient->size; i++) {
+        quotient->bsi[i].setSizeInBits(dividend.bsi[0].sizeInBits());
+    }
+
+    for (int i = 0; i < remainder->size; i++) {
+        remainder->bsi[i].setSizeInBits(dividend.bsi[0].sizeInBits());
+    }
+
+    for (int i = 0; i < quotient->size; i++) {
+        quotient->bsi[i].density = quotient->bsi[i].numberOfOnes() / static_cast<double>(quotient->rows);
+    }
+
+    for (int i = 0; i < remainder->size; i++) {
+        remainder->bsi[i].density = remainder->bsi[i].numberOfOnes() / static_cast<double>(remainder->rows);
+    }
+
+    return std::make_pair(quotient, remainder);
 }
+
 
 #endif /* BsiUnsigned_hpp */

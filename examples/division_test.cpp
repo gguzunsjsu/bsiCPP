@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <chrono>
 #include <random>
-#include <cstdlib>
 #include <vector>
 
 #include "../bsi/BsiUnsigned.hpp"
@@ -16,75 +15,110 @@
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
-int main(){
-    std::vector<long> dividendArray;
-    int range = 50;
-    int vectorLength = 1000000;  // one million elements
+int main() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
-    // Create dividend array with random numbers.
-    for(int i=0; i<vectorLength; i++){
-        dividendArray.push_back(std::rand() % range);
+    int dividend_range = 50;
+    int divisor_range = 20;
+    int vectorLength = 100;
+
+    std::vector<long> dividends;
+    std::vector<long> divisors;
+
+    for(int i = 0; i < vectorLength; i++) {
+        dividends.push_back(1 + (gen() % dividend_range));
+        divisors.push_back(1 + (gen() % divisor_range));
     }
 
-    // ---------------- Normal Division Test ----------------
-    // Use a constant divisor.
-    long divisorConstant = 7;
-    std::vector<long> normalQuotient(vectorLength);
-    std::vector<long> normalRemainder(vectorLength);
+    std::vector<long> array_quotients;
+    std::vector<long> array_remainders;
 
     auto t1 = std::chrono::high_resolution_clock::now();
-    for(int i=0; i<vectorLength; i++){
-        normalQuotient[i] = dividendArray[i] / divisorConstant;
-        normalRemainder[i] = dividendArray[i] % divisorConstant;
+
+    for(int i = 0; i < vectorLength; i++) {
+        array_quotients.push_back(dividends[i] / divisors[i]);
+        array_remainders.push_back(dividends[i] % divisors[i]);
     }
+
     auto t2 = std::chrono::high_resolution_clock::now();
-    auto normal_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    auto array_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
 
-    std::cout << "Normal division duration: " << normal_duration << " microseconds" << std::endl;
+    long array_quotient_sum = 0;
+    long array_remainder_sum = 0;
 
-    // ---------------- BSI-Based Division Test ----------------
-    // Build the BSI attribute for the dividend.
-    BsiUnsigned<uint64_t> ubsi;
-    BsiAttribute<uint64_t>* dividendBSI = ubsi.buildBsiAttributeFromVector(dividendArray, 0.2);
-    dividendBSI->setFirstSliceFlag(true);
-    dividendBSI->setLastSliceFlag(true);
-    dividendBSI->setPartitionID(0);
-
-    // Build the divisor BSI (constant value applied to all rows).
-    BsiAttribute<uint64_t>* divisorBSI = ubsi.buildQueryAttribute(divisorConstant, vectorLength, 0);
-
-    // Cast them to BsiUnsigned.
-    BsiUnsigned<uint64_t>* uDividend = dynamic_cast<BsiUnsigned<uint64_t>*>(dividendBSI);
-    BsiUnsigned<uint64_t>* uDivisor  = dynamic_cast<BsiUnsigned<uint64_t>*>(divisorBSI);
-    if(!uDividend || !uDivisor){
-        std::cerr << "Error: Could not cast BsiAttribute to BsiUnsigned." << std::endl;
-        return 1;
+    for(int i = 0; i < vectorLength; i++) {
+        array_quotient_sum += array_quotients[i];
+        array_remainder_sum += array_remainders[i];
     }
 
+    std::cout << "Array division completed." << std::endl;
+    std::cout << "Sum of array quotients: " << array_quotient_sum << std::endl;
+    std::cout << "Sum of array remainders: " << array_remainder_sum << std::endl;
+    std::cout << "Array division duration: " << array_duration << " microseconds" << std::endl;
+
+    /*
+     * BSI division
+     */
+    BsiUnsigned<uint64_t> ubsi;
+
+    BsiAttribute<uint64_t>* dividend_bsi = ubsi.buildBsiAttributeFromVector(dividends, 0.2);
+    dividend_bsi->setFirstSliceFlag(true);
+    dividend_bsi->setLastSliceFlag(true);
+    dividend_bsi->setPartitionID(0);
+
+    BsiAttribute<uint64_t>* divisor_bsi = ubsi.buildBsiAttributeFromVector(divisors, 0.2);
+    divisor_bsi->setFirstSliceFlag(true);
+    divisor_bsi->setLastSliceFlag(true);
+    divisor_bsi->setPartitionID(0);
+
+//    std::cout << "Dividend BSI slices: " << dividend_bsi->getNumberOfSlices() << std::endl;
+//    std::cout << "Divisor BSI slices: " << divisor_bsi->getNumberOfSlices() << std::endl;
+
+    BsiUnsigned<uint64_t> divider;
+
+    // Perform division
     auto t3 = std::chrono::high_resolution_clock::now();
-    // Perform division. (Only the divisor is passed, since uDividend is the dividend.)
-    auto divResult = uDividend->divide(*uDivisor);
+
+    std::pair<BsiAttribute<uint64_t>*, BsiAttribute<uint64_t>*> result =
+            divider.divide(*dividend_bsi, *divisor_bsi);
+
     auto t4 = std::chrono::high_resolution_clock::now();
-    auto bsi_divide_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+    auto bsi_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count();
 
-    // Retrieve quotient and remainder.
-    BsiAttribute<uint64_t>* quotientBSI = divResult.first;
-    BsiAttribute<uint64_t>* remainderBSI = divResult.second;
+    BsiAttribute<uint64_t>* quotient_bsi = result.first;
+    BsiAttribute<uint64_t>* remainder_bsi = result.second;
 
-    // For testing, we use sumOfBsi() as a simple scalar summary.
-    long quotientSum = quotientBSI->sumOfBsi();
-    long remainderSum = remainderBSI->sumOfBsi();
+//    std::cout << "Quotient BSI slices: " << quotient_bsi->getNumberOfSlices() << std::endl;
+//    std::cout << "Remainder BSI slices: " << remainder_bsi->getNumberOfSlices() << std::endl;
 
-    std::cout << "BSI division results:" << std::endl;
-    std::cout << "Quotient (sumOfBsi): " << quotientSum << std::endl;
-    std::cout << "Remainder (sumOfBsi): " << remainderSum << std::endl;
-    std::cout << "BSI division duration: " << bsi_divide_duration << " microseconds" << std::endl;
+    long bsi_quotient_sum = quotient_bsi->sumOfBsi();
+    long bsi_remainder_sum = remainder_bsi->sumOfBsi();
 
-    // Cleanup
-    delete dividendBSI;
-    delete divisorBSI;
-    delete quotientBSI;
-    delete remainderBSI;
+    std::cout << "Sum of BSI quotients: " << bsi_quotient_sum << std::endl;
+    std::cout << "Sum of BSI remainders: " << bsi_remainder_sum << std::endl;
+    std::cout << "BSI division duration: " << bsi_duration << " microseconds" << std::endl;
+
+
+//    std::cout << "\nFirst 5 rows for debugging:" << std::endl;
+//    std::cout << "Row\tDividend\tDivisor\tArray Q\tArray R" << std::endl;
+//    for (int i = 0; i < 5 && i < vectorLength; i++) {
+//        std::cout << i << "\t" << dividends[i] << "\t\t" << divisors[i]
+//                  << "\t" << array_quotients[i] << "\t" << array_remainders[i] << std::endl;
+//    }
+//
+//    std::cout << "\nBSI results for first 5 rows:" << std::endl;
+//    std::cout << "Row\tBSI Q\tBSI R" << std::endl;
+//    for (int i = 0; i < 5 && i < vectorLength; i++) {
+//        long bsi_q = quotient_bsi->getValue(i);
+//        long bsi_r = remainder_bsi->getValue(i);
+//        std::cout << i << "\t" << bsi_q << "\t" << bsi_r << std::endl;
+//    }
+
+    delete quotient_bsi;
+    delete remainder_bsi;
+    delete dividend_bsi;
+    delete divisor_bsi;
 
     return 0;
 }
