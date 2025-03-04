@@ -20,8 +20,8 @@ int main() {
     std::mt19937 gen(rd());
 
     int dividend_range = 50;
-    int divisor_range = 20;
-    int vectorLength = 100;
+    int divisor_range = 50;
+    int vectorLength = 1000;
 
     std::vector<long> dividends;
     std::vector<long> divisors;
