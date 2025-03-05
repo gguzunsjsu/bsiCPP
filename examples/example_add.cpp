@@ -23,6 +23,13 @@ int main(){
         array1.push_back(std::rand()%range);
     }
 
+    /*
+     * Printing array
+     */
+    for(auto i=0; i<vectorLength; i++){
+        std::cout << array1[i] << std::endl;
+    }
+
     long arraySum = 0;
 
     auto t1 = std::chrono::high_resolution_clock::now();

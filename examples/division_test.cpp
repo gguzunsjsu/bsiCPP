@@ -21,7 +21,7 @@ int main() {
 
     int dividend_range = 50;
     int divisor_range = 50;
-    int vectorLength = 1000;
+    int vectorLength = 1000000;
 
     std::vector<long> dividends;
     std::vector<long> divisors;
@@ -62,12 +62,12 @@ int main() {
      */
     BsiUnsigned<uint64_t> ubsi;
 
-    BsiAttribute<uint64_t>* dividend_bsi = ubsi.buildBsiAttributeFromVector(dividends, 0.2);
+    BsiAttribute<uint64_t>* dividend_bsi = ubsi.buildBsiAttributeFromVector(dividends, 0.0);
     dividend_bsi->setFirstSliceFlag(true);
     dividend_bsi->setLastSliceFlag(true);
     dividend_bsi->setPartitionID(0);
 
-    BsiAttribute<uint64_t>* divisor_bsi = ubsi.buildBsiAttributeFromVector(divisors, 0.2);
+    BsiAttribute<uint64_t>* divisor_bsi = ubsi.buildBsiAttributeFromVector(divisors, 0.0);
     divisor_bsi->setFirstSliceFlag(true);
     divisor_bsi->setLastSliceFlag(true);
     divisor_bsi->setPartitionID(0);

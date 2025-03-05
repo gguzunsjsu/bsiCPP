@@ -1,73 +1,103 @@
-//
-// Created by poorna on 2/6/25.
-//
-
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <iomanip>
+#include <vector>
 #include <chrono>
-#include <random>
+#include <memory>
+#include <ctime>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
-#include "../bsi/hybridBitmap/hybridbitmap.h"
-#include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
-int main(){
+int main() {
+    const size_t vectorLength = 10000000;
+    std::vector<long> vector1;
+    std::vector<long> vector2;
+
     int range = 50;
-    int vectorLength = 100000;
-    std::vector<long> array1;
 
-    for(int i=1;i<vectorLength+1;i++){
-        array1.push_back(i);
+    for(size_t i = 0; i < vectorLength; i++) {
+        vector1.push_back(std::rand() % range);
+        vector2.push_back(std::rand() % range);
     }
 
-//    for(std::vector<long>::iterator it = array1.begin(); it!=array1.end(); ++it){
-//        std::cout<<*it<<"\t";
-//    }
-//    std::cout<<std::endl;
-
-    auto t1 = std::chrono::high_resolution_clock::now();
-    long vector_mul = 1;
-    for(int i=1;i<vectorLength+1;i++){
-        vector_mul*=i;
-    }
-    std::cout<<"Vector multiply sum: \t"<<vector_mul<<std::endl;
-    auto t2 = std::chrono::high_resolution_clock::now();
-
-    std::cout << "vector array multiply duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count() << std::endl;
-
     /*
-     * bsi multiply
+     * Normal multiplication
      */
-    BsiUnsigned<uint64_t> ubsi;
-    BsiAttribute<uint64_t>* bsi;
-    bsi = ubsi.buildBsiAttributeFromVector(array1, 0.2);
-    bsi->setPartitionID(0);
-    bsi->setFirstSliceFlag(true);
-    bsi->setLastSliceFlag(true);
-
-    BsiAttribute<uint64_t>* bsi_res;
-
-    /*
-     * print values of bsi
-     */
-//    for(auto i=0; i<vectorLength; i++){
-//        std::cout<<"bsi value "<<i<<" "<<bsi->getValue(i)<<std::endl;
-//    }
-
+    std::vector<long> mul_res(vectorLength);
     auto t3 = std::chrono::high_resolution_clock::now();
-    uint64_t product = 1;
-    for(size_t i=0; i<bsi->getNumberOfRows(); i++){
-        product *= bsi->getValue(i);
+    for(auto i=0; i<vectorLength; i++){
+        mul_res[i] = vector1[i] * vector2[i];
     }
     auto t4 = std::chrono::high_resolution_clock::now();
+    auto normalMul_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count();
+    long normalMul_sum = 0;
+    for(auto i=0; i<vectorLength; i++){
+        normalMul_sum += mul_res[i];
+    }
 
-    std::cout << "bsi multiply duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count() << std::endl;
+    std::cout << "Normal multiplication duration: " << normalMul_duration << std::endl;
+    std::cout << "Normal multiplication result sum: " << normalMul_sum << std::endl;
 
-    std::cout<<"bsi product is: \t"<<product<<std::endl;
+    /*
+     * bsi multiplication
+     */
+    try {
+        BsiUnsigned<uint64_t> ubsi;
+        double compressionThreshold = 0.2;
+
+        BsiAttribute<uint64_t>* bsi1 = ubsi.buildBsiAttributeFromVector(vector1, compressionThreshold);
+        BsiAttribute<uint64_t>* bsi2 = ubsi.buildBsiAttributeFromVector(vector2, compressionThreshold);
+
+        if (!bsi1 || !bsi2) {
+            std::cerr << "Failed to create BSI structures" << std::endl;
+            delete bsi1;
+            delete bsi2;
+            return 1;
+        }
+
+        std::cout << "Performing BSI multiplication..." << std::endl;
+        auto t1 = std::chrono::high_resolution_clock::now();
+        BsiAttribute<uint64_t>* resultBsi = bsi1->multiplication_Horizontal(bsi2);
+        auto t2 = std::chrono::high_resolution_clock::now();
+
+        if (!resultBsi) {
+            std::cerr << "Multiplication failed" << std::endl;
+            delete bsi1;
+            delete bsi2;
+            return 1;
+        }
+
+        std::cout << "BSI multiplication duration: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
+                  << " microseconds" << std::endl;
 
 
+//        long bsiMul_sum = 0;
+//        for(size_t i = 0; i < vectorLength; i++) {
+//            long bsiValue = resultBsi->getValue(i);
+//            long expectedValue = vector1[i] * vector2[i];
+//            bsiMul_sum += bsiValue;
+//
+//            std::cout << i << ": " << vector1[i] << " * " << vector2[i]
+//                      << " = " << bsiValue << " (Expected: "
+//                      << expectedValue << ")" << std::endl;
+//        }
+//
+//        std::cout << "BSI multiplication manual sum: " << bsiMul_sum << std::endl;
+        std::cout << "BSI sumOfBsi() method result: " << resultBsi->sumOfBsi() << std::endl;
+
+        // Clean up
+        delete bsi1;
+        delete bsi2;
+        delete resultBsi;
+
+    } catch (const std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Unknown exception occurred" << std::endl;
+        return 1;
+    }
+
+    return 0;
 }

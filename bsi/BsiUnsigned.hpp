@@ -64,19 +64,6 @@ public:
             const BsiAttribute<uword>& dividend,
             const BsiAttribute<uword>& divisor
     ) const override;
-
-    void addDivisor(
-            BsiUnsigned<uword>* remainder,
-            const BsiAttribute<uword>& divisor,
-            int high_divisor_bit) const;
-
-    void subtractDivisor(
-            BsiUnsigned<uword>* remainder,
-            const BsiAttribute<uword>& divisor,
-            int high_divisor_bit) const;
-
-
-
     
     /*
      Declaring Other Functions
