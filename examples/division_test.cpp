@@ -100,20 +100,20 @@ int main() {
     std::cout << "BSI division duration: " << bsi_duration << " microseconds" << std::endl;
 
 
-//    std::cout << "\nFirst 5 rows for debugging:" << std::endl;
-//    std::cout << "Row\tDividend\tDivisor\tArray Q\tArray R" << std::endl;
-//    for (int i = 0; i < 5 && i < vectorLength; i++) {
-//        std::cout << i << "\t" << dividends[i] << "\t\t" << divisors[i]
-//                  << "\t" << array_quotients[i] << "\t" << array_remainders[i] << std::endl;
-//    }
-//
-//    std::cout << "\nBSI results for first 5 rows:" << std::endl;
-//    std::cout << "Row\tBSI Q\tBSI R" << std::endl;
-//    for (int i = 0; i < 5 && i < vectorLength; i++) {
-//        long bsi_q = quotient_bsi->getValue(i);
-//        long bsi_r = remainder_bsi->getValue(i);
-//        std::cout << i << "\t" << bsi_q << "\t" << bsi_r << std::endl;
-//    }
+    std::cout << "\nFirst 5 rows for debugging:" << std::endl;
+    std::cout << "Row\tDividend\tDivisor\tArray Q\tArray R" << std::endl;
+    for (int i = 0; i < 5 && i < vectorLength; i++) {
+        std::cout << i << "\t" << dividends[i] << "\t\t" << divisors[i]
+                  << "\t" << array_quotients[i] << "\t" << array_remainders[i] << std::endl;
+    }
+
+    std::cout << "\nBSI results for first 5 rows:" << std::endl;
+    std::cout << "Row\tBSI Q\tBSI R" << std::endl;
+    for (int i = 0; i < 5 && i < vectorLength; i++) {
+        long bsi_q = quotient_bsi->getValue(i);
+        long bsi_r = remainder_bsi->getValue(i);
+        std::cout << i << "\t" << bsi_q << "\t" << bsi_r << std::endl;
+    }
 
     delete quotient_bsi;
     delete remainder_bsi;
