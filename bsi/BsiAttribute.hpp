@@ -138,7 +138,9 @@ public:
     HybridBitmap<uword> orAndNot(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> orAnd(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
     HybridBitmap<uword> And(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
-   
+
+    BsiAttribute<uword>* maskAssign(BsiAttribute<uword>* other,const HybridBitmap<uword> &mask);
+
     BsiAttribute* signMagnToTwos(int bits);
     BsiAttribute* TwosToSignMagnitue();    
     void signMagnitudeToTwos(int bits);
@@ -146,7 +148,7 @@ public:
     void addOneSliceSameOffset(const HybridBitmap<uword> &slice);
     void addOneSliceDiscardCarry(const HybridBitmap<uword> &slice);
     void addOneSliceNoSignExt(const HybridBitmap<uword> &slice);
-    void applyExsistenceBitmap(const HybridBitmap<uword> &ex);    
+    void applyExistenceBitmap(const HybridBitmap<uword> &ex);
     virtual ~BsiAttribute();
 //    size_t getSizeInMemory() const {
 //        size_t size_in_memory = sizeof(*this);
@@ -181,9 +183,17 @@ public:
         }
     }
 
+    /*
+    * ------------------------Declarations for overloaded operators ------------------------------
+    */
+
+    BsiAttribute<uword>* operator+(const BsiAttribute<uword> &other);
+    BsiAttribute<uword>* operator*(const BsiAttribute<uword> &other);
+    BsiAttribute<uword>* operator*(const int &other);
+    BsiAttribute<uword>* operator/(const BsiAttribute<uword> &other);
 
     /*
-    * ------------------------Decalrations for private helper methods------------------------------
+    * ------------------------Declarations for private helper methods------------------------------
     */
 private:
     void bringTheBitsHelper(const std::vector<long> &array, int slice, int numberOfElements, std::vector<std::vector<uword>> &bitmapDataRaw) const;
@@ -219,7 +229,7 @@ protected:
 * addOneSliceSameOffset
   addOneSliceDiscardCarry
   addOneSliceNoSignExt
-  applyExsistenceBitmap
+  applyExistenceBitmap
 */
 
 /*
@@ -1064,7 +1074,7 @@ void BsiAttribute<uword>::addOneSliceNoSignExt(const HybridBitmap<uword> &slice)
 };
 
 template <class uword>
-void BsiAttribute<uword>::applyExsistenceBitmap(const HybridBitmap<uword> &ex){
+void BsiAttribute<uword>::applyExistenceBitmap(const HybridBitmap<uword> &ex){
     existenceBitmap = ex;
     for(int i=0; i< size; i++){
         this->bsi[i] = bsi[i].And(ex);
@@ -1186,5 +1196,35 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildCompressedBsiFromVector(std::vect
     res->is_signed = true;
     return res;
 };
+
+/*
+ * Mask values of this bsi with mask, mask values of the other bsi with the negation of mask, then return the combined result
+ */
+template <class uword>
+BsiAttribute<uword>* BsiAttribute<uword>::maskAssign(BsiAttribute<uword>* other,const HybridBitmap<uword> &mask) {
+    this->applyExistenceBitmap(mask);
+    other->applyExistenceBitmap(mask->Not());
+    return this+other;
+}
+
+BsiAttribute<uword>* BsiAttribute<uword>::operator+(const BsiAttribute<uword> &other) {
+    return this->SUM(other);
+}
+BsiAttribute<uword>* BsiAttribute<uword>::operator*(const BsiAttribute<uword> &other) {
+    return this->multiplyWithBsiHorizontal(other);
+}
+BsiAttribute<uword>* BsiAttribute<uword>::operator*(const int &other) {
+    return this->multiplyByConstant(other);
+}
+BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword> &other) {
+    return this->divide(other)->first; // TODO: return only quotient for now
+}
+
+/*
+ * Delete first n values and add n 0's, keeping rows constant
+ * Shift existbitmap and sign
+ * If not compressed, add 0 bits at the end of each slice and remove bits from the beginning
+ * If compressed, addword, then recompress everything
+ */
 
 #endif /* BsiAttribute_hpp */
