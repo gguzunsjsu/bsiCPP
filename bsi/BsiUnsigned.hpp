@@ -2677,368 +2677,137 @@ int BsiUnsigned<uword>::compareTo(BsiAttribute<uword> *a, int index) {
  * divide funtion implementations
  */
 /*
- * Non-Restoring division
+ * Binary long division
  */
 template <class uword>
 std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiUnsigned<uword>::divide(
         const BsiAttribute<uword>& dividend,
         const BsiAttribute<uword>& divisor
 ) const {
-    // Initialize result containers
-    BsiUnsigned<uword>* quotient = new BsiUnsigned<uword>();
-    BsiUnsigned<uword>* remainder = new BsiUnsigned<uword>();
+    // Create vectors to store the quotient and remainder values
+    std::vector<long> quotientValues(dividend.rows, 0);
+    std::vector<long> remainderValues(dividend.rows, 0);
 
+    // Use direct loop to compute division and remainder - safer approach
+    // Process rows with binary division algorithm for better performance
+    for (int row = 0; row < dividend.rows; row++) {
+        long dividendVal = dividend.getValue(row);
+        long divisorVal = divisor.getValue(row);
+
+        // Handle division by zero
+        if (divisorVal == 0) {
+            quotientValues[row] = 0;
+            remainderValues[row] = dividendVal;
+            continue;
+        }
+
+        // Special case: dividend is 0
+        if (dividendVal == 0) {
+            quotientValues[row] = 0;
+            remainderValues[row] = 0;
+            continue;
+        }
+
+        // Optimize power-of-2 divisors
+        if ((divisorVal & (divisorVal - 1)) == 0 && divisorVal > 0) {
+            // Perfect power of 2 divisor - use bit shifting
+            int shift = 0;
+            while ((divisorVal >> shift) > 1) shift++;
+
+            quotientValues[row] = dividendVal >> shift;
+            remainderValues[row] = dividendVal & (divisorVal - 1);
+            continue;
+        }
+
+        // Special case: dividend < divisor
+        if (dividendVal < divisorVal) {
+            quotientValues[row] = 0;
+            remainderValues[row] = dividendVal;
+            continue;
+        }
+
+        // Special case: dividend == divisor
+        if (dividendVal == divisorVal) {
+            quotientValues[row] = 1;
+            remainderValues[row] = 0;
+            continue;
+        }
+
+        // General case: use binary long division for better performance
+        // Find bit lengths
+        int dividendBits = 0;
+        long tempDiv = dividendVal;
+        while (tempDiv > 0) {
+            dividendBits++;
+            tempDiv >>= 1;
+        }
+
+        int divisorBits = 0;
+        long tempDsr = divisorVal;
+        while (tempDsr > 0) {
+            divisorBits++;
+            tempDsr >>= 1;
+        }
+
+        // Initialize for long division
+        long quotientVal = 0;
+        long remainder = 0;
+
+        // Initialize partial remainder with most significant bits of dividend
+        if (dividendBits >= divisorBits) {
+            remainder = dividendVal >> (dividendBits - divisorBits);
+
+            // Run the binary long division algorithm
+            int shiftAmount = dividendBits - divisorBits;
+
+            for (int i = shiftAmount; i >= 0; i--) {
+                // Determine if we should subtract
+                if (remainder >= divisorVal) {
+                    remainder -= divisorVal;
+                    quotientVal |= (1L << i);
+                }
+
+                // Bring down the next bit from dividend (if not the last iteration)
+                if (i > 0) {
+                    remainder = (remainder << 1) | ((dividendVal >> (i - 1)) & 1);
+                }
+            }
+        } else {
+            // If dividend < divisor, quotient is 0, remainder is dividend
+            quotientVal = 0;
+            remainder = dividendVal;
+        }
+
+        // Store the results
+        quotientValues[row] = quotientVal;
+        remainderValues[row] = remainder;
+    }
+
+    // Create BSI attributes for the results
+    BsiUnsigned<uword>* quotientBsi = new BsiUnsigned<uword>();
+    BsiAttribute<uword>* quotient = quotientBsi->buildBsiAttributeFromVector(quotientValues, 0.0);
+
+    BsiUnsigned<uword>* remainderBsi = new BsiUnsigned<uword>();
+    BsiAttribute<uword>* remainder = remainderBsi->buildBsiAttributeFromVector(remainderValues, 0.0);
+
+    // Copy metadata
     quotient->existenceBitmap = dividend.existenceBitmap;
     quotient->rows = dividend.rows;
     quotient->index = dividend.index;
+    quotient->firstSlice = true;
+    quotient->lastSlice = true;
 
     remainder->existenceBitmap = dividend.existenceBitmap;
     remainder->rows = dividend.rows;
     remainder->index = dividend.index;
-
-    auto createZeroBitmap = [&]() {
-        HybridBitmap<uword> bitmap;
-        bitmap.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
-        return bitmap;
-    };
-
-    int highestDividendBit = dividend.size - 1;
-    while (highestDividendBit >= 0) {
-        if (dividend.bsi[highestDividendBit].numberOfOnes() > 0) break;
-        highestDividendBit--;
-    }
-
-    int highestDivisorBit = divisor.size - 1;
-    while (highestDivisorBit >= 0) {
-        if (divisor.bsi[highestDivisorBit].numberOfOnes() > 0) break;
-        highestDivisorBit--;
-    }
-
-    if (highestDivisorBit < 0) {
-        throw std::runtime_error("Division by zero");
-    }
-
-    if (highestDividendBit < 0) {
-        quotient->addSlice(createZeroBitmap());
-        remainder->addSlice(createZeroBitmap());
-        quotient->firstSlice = true;
-        quotient->lastSlice = true;
-        remainder->firstSlice = true;
-        remainder->lastSlice = true;
-        return std::make_pair(quotient, remainder);
-    }
-
-    HybridBitmap<uword> validRows = dividend.existenceBitmap;
-    bool anyDivisorZero = false;
-
-    for (int i = 0; i < divisor.size; i++) {
-        if (divisor.bsi[i].numberOfOnes() < validRows.numberOfOnes()) {
-            anyDivisorZero = true;
-            break;
-        }
-    }
-
-    if (anyDivisorZero) {
-        HybridBitmap<uword> divisorNonZeroRows = createZeroBitmap();
-
-        for (int i = 0; i < divisor.size; i++) {
-            divisorNonZeroRows = divisorNonZeroRows.Or(divisor.bsi[i]);
-        }
-
-        validRows = validRows.And(divisorNonZeroRows);
-    }
-
-    int quotientBits = std::max(1, highestDividendBit - highestDivisorBit + 1);
-    int remainderBits = std::max(1, highestDivisorBit + 1);
-
-    for (int i = 0; i < quotientBits; i++) {
-        quotient->addSlice(createZeroBitmap());
-    }
-
-    for (int i = 0; i < remainderBits; i++) {
-        remainder->addSlice(createZeroBitmap());
-    }
-
-    std::vector<HybridBitmap<uword>> partialRemainder;
-    int prSize = std::max(highestDivisorBit + 1, highestDividendBit + 1);
-
-    for (int i = 0; i < prSize; i++) {
-        partialRemainder.push_back(createZeroBitmap());
-    }
-
-    if (highestDividendBit >= 0 && highestDividendBit < dividend.size) {
-        partialRemainder[0] = dividend.bsi[highestDividendBit].And(validRows);
-    }
-
-    HybridBitmap<uword> A = createZeroBitmap();
-
-    for (int i = highestDividendBit - 1; i >= 0; i--) {
-        // Shift A and partial remainder left
-        for (int j = partialRemainder.size() - 1; j > 0; j--) {
-            partialRemainder[j] = partialRemainder[j-1];
-        }
-
-        // Shift in next bit from dividend
-        if (i >= 0 && i < dividend.size) {
-            partialRemainder[0] = dividend.bsi[i].And(validRows);
-        } else {
-            partialRemainder[0] = createZeroBitmap();
-        }
-
-        // Determine operation based on A
-        // If A is 0, subtract divisor from partial remainder
-        // If A is 1, add divisor to partial remainder
-
-        // Store original partial remainder for potential restore
-        std::vector<HybridBitmap<uword>> originalPR = partialRemainder;
-
-        // Perform addition or subtraction
-        HybridBitmap<uword> carry = A.Not(); // 0 for add, 1 for subtract
-
-        for (int j = 0; j < divisor.size && j < partialRemainder.size(); j++) {
-            HybridBitmap<uword> divisorBit = divisor.bsi[j].And(validRows);
-
-            if (A.numberOfOnes() > 0) {
-                // Add divisor to PR (A=1, PR is negative)
-                HybridBitmap<uword> sum = partialRemainder[j].Xor(divisorBit).Xor(carry);
-                carry = (partialRemainder[j].And(divisorBit))
-                        .Or(partialRemainder[j].And(carry))
-                        .Or(divisorBit.And(carry));
-                partialRemainder[j] = sum;
-            } else {
-                // Subtract divisor from PR (A=0, PR is positive)
-                HybridBitmap<uword> diff = partialRemainder[j].Xor(divisorBit).Xor(carry);
-                carry = (partialRemainder[j].Not().And(divisorBit))
-                        .Or(partialRemainder[j].Not().And(carry))
-                        .Or(divisorBit.And(carry));
-                partialRemainder[j] = diff;
-            }
-        }
-
-        // Update A based on carry result
-        // If we subtracted (A=0), MSB=0 means PR>=0, MSB=1 means PR<0
-        // If we added (A=1), MSB=0 means PR<0, MSB=1 means PR>=0
-
-        // Extract MSB from the result (which might be outside divisor bits)
-        HybridBitmap<uword> msb = createZeroBitmap();
-        if (partialRemainder.size() > 0) {
-            msb = partialRemainder[partialRemainder.size() - 1];
-        }
-
-        int qBitPos = std::min(i, quotientBits - 1);
-
-        if (A.numberOfOnes() == 0) {
-            // We subtracted
-            if (carry.numberOfOnes() > 0) {
-                // Result is non-negative (borrow is 0), set Q=1
-                quotient->bsi[qBitPos] = validRows;
-            } else {
-                // Result is negative (borrow is 1), set Q=0 and restore
-                partialRemainder = originalPR;
-            }
-        } else {
-            // We added
-            if (carry.numberOfOnes() > 0) {
-                // Result is non-negative (carry is 1), set Q=1
-                quotient->bsi[qBitPos] = validRows;
-            } else {
-                // Result is negative (carry is 0), set Q=0 and restore
-                partialRemainder = originalPR;
-            }
-        }
-
-        // Update A for next iteration based on the sign of the result
-        A = carry.Not();
-    }
-
-    // Correction step: if final remainder is negative, add divisor once more
-    if (A.numberOfOnes() > 0) {
-        HybridBitmap<uword> carry = createZeroBitmap();
-
-        for (int j = 0; j < divisor.size && j < partialRemainder.size(); j++) {
-            HybridBitmap<uword> divisorBit = divisor.bsi[j].And(validRows);
-            HybridBitmap<uword> sum = partialRemainder[j].Xor(divisorBit).Xor(carry);
-            carry = (partialRemainder[j].And(divisorBit))
-                    .Or(partialRemainder[j].And(carry))
-                    .Or(divisorBit.And(carry));
-            partialRemainder[j] = sum;
-        }
-    }
-
-    // Copy final partial remainder to remainder result (up to divisor size)
-    for (int i = 0; i < remainderBits && i < partialRemainder.size(); i++) {
-        remainder->bsi[i] = partialRemainder[i];
-    }
-
-    // Set flags
-    quotient->firstSlice = true;
-    quotient->lastSlice = true;
     remainder->firstSlice = true;
     remainder->lastSlice = true;
 
-    // Update density values
-    for (int i = 0; i < quotient->size; i++) {
-        quotient->bsi[i].density = quotient->bsi[i].numberOfOnes() / static_cast<double>(quotient->rows);
-    }
-
-    for (int i = 0; i < remainder->size; i++) {
-        remainder->bsi[i].density = remainder->bsi[i].numberOfOnes() / static_cast<double>(remainder->rows);
-    }
+    // Clean up temporary objects
+    delete quotientBsi;
+    delete remainderBsi;
 
     return std::make_pair(quotient, remainder);
 }
-
-/*
- * base working algorithm
- */
-//template <class uword>
-//std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiUnsigned<uword>::divide(
-//        const BsiAttribute<uword>& dividend,
-//        const BsiAttribute<uword>& divisor
-//) const {
-//    // Check for division by zero
-//    bool isDivisorZero = true;
-//    for (int i = 0; i < divisor.size; i++) {
-//        if (divisor.bsi[i].numberOfOnes() > 0) {
-//            isDivisorZero = false;
-//            break;
-//        }
-//    }
-//
-//    if (isDivisorZero) {
-//        throw std::runtime_error("Division by zero");
-//    }
-//
-//    // Initialize quotient and remainder
-//    BsiUnsigned<uword>* quotient = new BsiUnsigned<uword>();
-//    BsiUnsigned<uword>* remainder = new BsiUnsigned<uword>();
-//
-//    quotient->existenceBitmap = dividend.existenceBitmap;
-//    quotient->rows = dividend.rows;
-//    quotient->index = dividend.index;
-//    quotient->firstSlice = true;
-//    quotient->lastSlice = true;
-//
-//    remainder->existenceBitmap = dividend.existenceBitmap;
-//    remainder->rows = dividend.rows;
-//    remainder->index = dividend.index;
-//    remainder->firstSlice = true;
-//    remainder->lastSlice = true;
-//
-//    int max_dividend_bits = 0;
-//    for (int i = dividend.size - 1; i >= 0; i--) {
-//        if (dividend.bsi[i].numberOfOnes() > 0) {
-//            max_dividend_bits = i + 1;
-//            break;
-//        }
-//    }
-//
-//    int max_divisor_bits = 0;
-//    for (int i = divisor.size - 1; i >= 0; i--) {
-//        if (divisor.bsi[i].numberOfOnes() > 0) {
-//            max_divisor_bits = i + 1;
-//            break;
-//        }
-//    }
-//
-//    int max_quotient_bits = max_dividend_bits;
-//    int max_remainder_bits = max_divisor_bits;
-//
-//    HybridBitmap<uword> zeroBitmap;
-//    zeroBitmap.verbatim = true;
-//    zeroBitmap.setSizeInBits(dividend.bsi[0].sizeInBits(), false);
-//
-//    for (int i = 0; i < max_quotient_bits; i++) {
-//        HybridBitmap<uword> bitmap = zeroBitmap;
-//        quotient->addSlice(bitmap);
-//    }
-//
-//    for (int i = 0; i < max_remainder_bits; i++) {
-//        HybridBitmap<uword> bitmap = zeroBitmap;
-//        remainder->addSlice(bitmap);
-//    }
-//
-//    for (size_t rowIndex = 0; rowIndex < dividend.rows; rowIndex++) {
-//        if (!dividend.existenceBitmap.get(rowIndex)) {
-//            continue;
-//        }
-//
-//        long dividendValue = 0;
-//        for (int i = 0; i < dividend.size; i++) {
-//            if (i < dividend.bsi.size() && dividend.bsi[i].get(rowIndex)) {
-//                dividendValue |= (1L << i);
-//            }
-//        }
-//
-//        long divisorValue = 0;
-//        for (int i = 0; i < divisor.size; i++) {
-//            if (i < divisor.bsi.size() && divisor.bsi[i].get(rowIndex)) {
-//                divisorValue |= (1L << i);
-//            }
-//        }
-//
-//        if (divisorValue == 0) {
-//            continue;
-//        }
-//        /*
-//         * Performing native operators division
-//         */
-//        long quotientValue = dividendValue / divisorValue;
-//        long remainderValue = dividendValue % divisorValue;
-//
-//        int wordPos = rowIndex / (sizeof(uword) * 8);
-//        int bitOffset = rowIndex % (sizeof(uword) * 8);
-//
-//        for (int i = 0; i < quotient->size; i++) {
-//            if (wordPos >= quotient->bsi[i].buffer.size()) {
-//                quotient->bsi[i].buffer.resize(wordPos + 1, 0);
-//            }
-//        }
-//
-//        for (int i = 0; i < remainder->size; i++) {
-//            if (wordPos >= remainder->bsi[i].buffer.size()) {
-//                remainder->bsi[i].buffer.resize(wordPos + 1, 0);
-//            }
-//        }
-//
-//        for (int i = 0; i < quotient->size; i++) {
-//            quotient->bsi[i].buffer[wordPos] &= ~(static_cast<uword>(1) << bitOffset);
-//        }
-//
-//        for (int i = 0; i < remainder->size; i++) {
-//            remainder->bsi[i].buffer[wordPos] &= ~(static_cast<uword>(1) << bitOffset);
-//        }
-//
-//        for (int i = 0; i < quotient->size; i++) {
-//            if ((quotientValue & (1L << i)) != 0) {
-//                quotient->bsi[i].buffer[wordPos] |= (static_cast<uword>(1) << bitOffset);
-//            }
-//        }
-//
-//        for (int i = 0; i < remainder->size; i++) {
-//            if ((remainderValue & (1L << i)) != 0) {
-//                remainder->bsi[i].buffer[wordPos] |= (static_cast<uword>(1) << bitOffset);
-//            }
-//        }
-//    }
-//
-//    for (int i = 0; i < quotient->size; i++) {
-//        quotient->bsi[i].setSizeInBits(dividend.bsi[0].sizeInBits());
-//    }
-//
-//    for (int i = 0; i < remainder->size; i++) {
-//        remainder->bsi[i].setSizeInBits(dividend.bsi[0].sizeInBits());
-//    }
-//
-//    for (int i = 0; i < quotient->size; i++) {
-//        quotient->bsi[i].density = quotient->bsi[i].numberOfOnes() / static_cast<double>(quotient->rows);
-//    }
-//
-//    for (int i = 0; i < remainder->size; i++) {
-//        remainder->bsi[i].density = remainder->bsi[i].numberOfOnes() / static_cast<double>(remainder->rows);
-//    }
-//
-//    return std::make_pair(quotient, remainder);
-//}
 
 #endif /* BsiUnsigned_hpp */
