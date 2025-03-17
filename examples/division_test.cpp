@@ -21,7 +21,7 @@ int main() {
 
     int dividend_range = 50;
     int divisor_range = 50;
-    int vectorLength = 1000000;
+    int vectorLength = 5;
 
     std::vector<long> dividends;
     std::vector<long> divisors;

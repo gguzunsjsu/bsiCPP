@@ -12,7 +12,8 @@ add_executable(example example.cpp
         example_add.cpp
         example_multiply.cpp
         division_test.cpp
-        testing_skeletonCode/binaryLongDivision.cpp)
+        testing_skeletonCode/binaryLongDivision.cpp
+        divison_test_new.cpp)
 
 target_link_libraries(example PUBLIC bsi)
 target_link_libraries(tests PUBLIC bsi)
