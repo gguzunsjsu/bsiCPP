@@ -64,7 +64,7 @@ int main(){
 //        vector<int> line((istream_iterator<int>(buffer)),
 //                         istream_iterator<int>());
 //        for(auto it = line.begin(); it != line.end(); it++){
-//            array1.push_back(*it);
+//            array1.push_back(*it);multiplyBSImultiplyBSI
 //        }
 //    }
 //

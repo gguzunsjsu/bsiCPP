@@ -2345,7 +2345,7 @@ void BsiUnsigned<uword>:: multiply_array(uword a[],int size_a, uword b[], int si
         C = ans[k]&a[0];
         FS = S & b[it];
         ans[k] = (~b[it] & ans[k]) | (b[it] & FS); // shifting Operation
-        
+
         for(int i=1; i<size_a; i++){
             int t = i+k;
             if(t < ansSize){
@@ -2376,7 +2376,7 @@ void BsiUnsigned<uword>:: multiply_array(uword a[],int size_a, uword b[], int si
     for(int t=ansSize; t<size_ans; t++){
         ans[t] = 0;
     }
-};
+}
 
 
 template <class uword=uint64_t>

@@ -57,7 +57,7 @@ int main() {
 
         std::cout << "Performing BSI multiplication..." << std::endl;
         auto t1 = std::chrono::high_resolution_clock::now();
-        BsiAttribute<uint64_t>* resultBsi = bsi1->multiplication_Horizontal(bsi2);
+        BsiAttribute<uint64_t>* resultBsi = bsi1->multiplyWithBsiHorizontal(bsi2);
         auto t2 = std::chrono::high_resolution_clock::now();
 
         if (!resultBsi) {
