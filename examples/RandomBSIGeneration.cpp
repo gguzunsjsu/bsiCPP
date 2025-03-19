@@ -22,24 +22,27 @@ int main() {
     std::vector<long> array1;
     array1.reserve(vectorLength);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
-    for (auto i = 0; i < vectorLength; i++) {
-        array1.push_back(std::rand() % range);
-    }
-
-    long arraySum = 0;
-    for (auto i = 0; i < vectorLength; i++) {
-        arraySum += array1[i];
-    }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto array_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-
-    std::cout << "Traditional array:" << std::endl;
-    std::cout << "Array Sum: \t" << arraySum << std::endl;
-    std::cout << "Duration: \t" << array_duration << " microseconds" << std::endl;
+//    auto t1 = std::chrono::high_resolution_clock::now();
+//    for (auto i = 0; i < vectorLength; i++) {
+//        array1.push_back(std::rand() % range);
+//    }
+//
+//    long arraySum = 0;
+//    for (auto i = 0; i < vectorLength; i++) {
+//        arraySum += array1[i];
+//    }
+//    auto t2 = std::chrono::high_resolution_clock::now();
+//    auto array_duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+//
+//    std::cout << "Traditional array:" << std::endl;
+//    std::cout << "Array Sum: \t" << arraySum << std::endl;
+//    std::cout << "Duration: \t" << array_duration << " microseconds" << std::endl;
 
     BsiUnsigned<uint64_t> ubsi;
     auto t3 = std::chrono::high_resolution_clock::now();
+    for (auto i = 0; i < vectorLength; i++) {
+        array1.push_back(std::rand() % range);
+    }
     BsiAttribute<uint64_t>* bsi1 = ubsi.buildBsiAttributeFromVector(array1, 0.2);
     bsi1->setFirstSliceFlag(true);
     bsi1->setLastSliceFlag(true);
@@ -61,7 +64,7 @@ int main() {
     auto t6 = std::chrono::high_resolution_clock::now();
     auto bsi2_duration = std::chrono::duration_cast<std::chrono::microseconds>(t6 - t5).count();
 
-    std::cout << "\nDirect BSI creation (probabilistic):" << std::endl;
+    std::cout << "\nDirect BSI creation:" << std::endl;
     std::cout << "BSI Sum: \t" << bsi2_sum << std::endl;
     std::cout << "Duration: \t" << bsi2_duration << " microseconds" << std::endl;
 
@@ -71,12 +74,12 @@ int main() {
     std::cout << "Expected average value: " << expectedAvg << std::endl;
     std::cout << "Expected total sum: " << expectedSum << std::endl;
 
-    double errorArray = std::abs(arraySum - expectedSum) / expectedSum * 100;
+//    double errorArray = std::abs(arraySum - expectedSum) / expectedSum * 100;
     double errorBSI1 = std::abs(bsi1_sum - expectedSum) / expectedSum * 100;
     double errorBSI2 = std::abs(bsi2_sum - expectedSum) / expectedSum * 100;
 
     std::cout << "\nRelative errors:" << std::endl;
-    std::cout << "Array: \t\t" << errorArray << "%" << std::endl;
+//    std::cout << "Array: \t\t" << errorArray << "%" << std::endl;
     std::cout << "Traditional BSI: " << errorBSI1 << "%" << std::endl;
     std::cout << "Direct BSI: \t" << errorBSI2 << "%" << std::endl;
 
