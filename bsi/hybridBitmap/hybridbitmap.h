@@ -357,7 +357,9 @@ public:
     void shiftRow(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap);
     void shiftRowWithCarry(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap, HybridBitmap &carry);
 
-
+    HybridBitmap<uword> shift(int k) const;
+    HybridBitmap<uword> leftShift(int k) const;
+    HybridBitmap<uword> rightShift(int k) const;
 
 
     void AndInPlace(const HybridBitmap &a );
@@ -3095,6 +3097,84 @@ void HybridBitmap<uword>::selectMultiplication(const HybridBitmap &res,const Hyb
     //container.actualsizeinwords = this.actualsizeinwords;
     container.sizeinbits = sizeinbits;
 
+}
+
+/*
+ * Shift the bits in the buffer without changing the size
+ */
+template <class uword>
+HybridBitmap<uword> HybridBitmap<uword>::shift(int k) {
+    if (k == 0) {
+        return new HybridBitmap(this);
+    }
+    if (k < 0) {
+        return this->leftShift(-k);
+    } else {
+        return this->rightShift(k);
+    }
+}
+
+/*
+ * Shift the bits left so that the element at i is now at i-k
+ */
+template <class uword>
+HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) {
+    HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
+    if (verbatim) {
+        for (int i=0; i<bufferSize()-k; i++) {
+            res.buffer[i] = buffer[i+k];
+            res.density += buffer[i+k];
+        }
+        res.density /= bufferSize();
+    } else {
+        HybridBitmapRawIterator<uword> it = raw_iterator();
+        // trim first k bits
+        while (it.hasNext() && k > 0) {
+            BufferedRunningLengthWord<uword> rlw = it.next();
+            // iterate through running length
+            if (k < rlw.getRunningLength()) {
+                // copy rest of bits from run length of rlw
+                res.fastaddStreamOfEmptyWords(rlw.getRunningBit(),rlw.getRunningLength()-k);
+            }
+            k -= min(k,rlw.getRunningLength());
+
+            // iterate through literal words
+            int i = 0;
+            while (i < rlw.getNumberOfLiteralWords() && k > 0) {
+                if (k < sizeof(uword)) {
+                    // copy rest of the ith literal word
+                    uword word = rlw.getLiteralWordAt(i);
+                    uword mask = 1 << (sizeof(uword)-k+1) - 1;
+                    res.addWord(word & mask);
+                }
+                k -= min(k,sizeof(uword));
+                i ++;
+            }
+
+            // copy literal words from rlw
+            while (i < rlw.getNumberOfLiteralWords()) {
+                res.addWord(rlw.getLiteralWordAt(i));
+            }
+        }
+        // copy remaining bits
+        while (it.hasNext()) {
+            BufferedRunningLengthWord<uword> rlw = it.next();
+            res.fastaddStreamOfEmptyWords(rlw.getRunningBit(),rlw.getRunningLength());
+            for (int i=0; i < rlw.getNumberOfLiteralWords(); i++) {
+                res.addWord(rlw.getLiteralWordAt(i));
+            }
+        }
+    }
+}
+
+/*
+ * Shift the bits right so that the element at i is now at i+k
+ */
+template <class uword>
+HybridBitmap<uword> HybridBitmap<uword>::rightShift(int k) {
+    HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
+    // TODO
+    return res;
 }
 
 template <class uword>

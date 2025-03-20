@@ -1221,10 +1221,18 @@ BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword> &o
 }
 
 /*
- * Delete first n values and add n 0's, keeping rows constant
- * Shift existbitmap and sign
- * If not compressed, add 0 bits at the end of each slice and remove bits from the beginning
- * If compressed, addword, then recompress everything
+ * Shift position of values in bsi while keeping rows the same
  */
+template <class uword>
+BsiAttribute<uword>* BsiAttribute<uword>::shift(int k) {
+    BsiSigned<uword>* res = new BsiSigned<uword>(size);
+    res->existenceBitmap = existenceBitmap.shift(k);
+    res->sign = sign.shift(k);
+    for (int i=0; i<size; i++) {
+        res->addSlice(getSlice(i).shift(k));
+    }
+    return res;
+}
+
 
 #endif /* BsiAttribute_hpp */
