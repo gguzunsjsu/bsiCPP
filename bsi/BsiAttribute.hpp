@@ -140,6 +140,7 @@ public:
     HybridBitmap<uword> And(const HybridBitmap<uword> &a, const HybridBitmap<uword> &b, const HybridBitmap<uword> &c)const;
 
     BsiAttribute<uword>* maskAssign(BsiAttribute<uword>* other,const HybridBitmap<uword> &mask);
+    BsiAttribute<uword>* shift(int k) const;
 
     BsiAttribute* signMagnToTwos(int bits);
     BsiAttribute* TwosToSignMagnitue();    
@@ -1207,15 +1208,22 @@ BsiAttribute<uword>* BsiAttribute<uword>::maskAssign(BsiAttribute<uword>* other,
     return this+other;
 }
 
+template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::operator+(const BsiAttribute<uword> &other) {
     return this->SUM(other);
 }
+
+template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::operator*(const BsiAttribute<uword> &other) {
     return this->multiplyWithBsiHorizontal(other);
 }
+
+template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::operator*(const int &other) {
     return this->multiplyByConstant(other);
 }
+
+template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword> &other) {
     return this->divide(other)->first; // TODO: return only quotient for now
 }
@@ -1224,7 +1232,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword> &o
  * Shift position of values in bsi while keeping rows the same
  */
 template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::shift(int k) {
+BsiAttribute<uword>* BsiAttribute<uword>::shift(int k) const {
     BsiSigned<uword>* res = new BsiSigned<uword>(size);
     res->existenceBitmap = existenceBitmap.shift(k);
     res->sign = sign.shift(k);

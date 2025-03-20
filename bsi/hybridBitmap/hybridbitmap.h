@@ -3103,7 +3103,7 @@ void HybridBitmap<uword>::selectMultiplication(const HybridBitmap &res,const Hyb
  * Shift the bits in the buffer without changing the size
  */
 template <class uword>
-HybridBitmap<uword> HybridBitmap<uword>::shift(int k) {
+HybridBitmap<uword> HybridBitmap<uword>::shift(int k) const {
     if (k == 0) {
         return new HybridBitmap(this);
     }
@@ -3118,7 +3118,7 @@ HybridBitmap<uword> HybridBitmap<uword>::shift(int k) {
  * Shift the bits left so that the element at i is now at i-k
  */
 template <class uword>
-HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) {
+HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
     HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
     if (verbatim) {
         for (int i=0; i<bufferSize()-k; i++) {
@@ -3136,7 +3136,7 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) {
                 // copy rest of bits from run length of rlw
                 res.fastaddStreamOfEmptyWords(rlw.getRunningBit(),rlw.getRunningLength()-k);
             }
-            k -= min(k,rlw.getRunningLength());
+            k -= std::min(k,(int)rlw.getRunningLength());
 
             // iterate through literal words
             int i = 0;
@@ -3144,10 +3144,10 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) {
                 if (k < sizeof(uword)) {
                     // copy rest of the ith literal word
                     uword word = rlw.getLiteralWordAt(i);
-                    uword mask = 1 << (sizeof(uword)-k+1) - 1;
+                    uword mask = (1 << (sizeof(uword)-k+1)) - 1;
                     res.addWord(word & mask);
                 }
-                k -= min(k,sizeof(uword));
+                k -= std::min(k,(int)sizeof(uword));
                 i ++;
             }
 
@@ -3171,7 +3171,7 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) {
  * Shift the bits right so that the element at i is now at i+k
  */
 template <class uword>
-HybridBitmap<uword> HybridBitmap<uword>::rightShift(int k) {
+HybridBitmap<uword> HybridBitmap<uword>::rightShift(int k) const {
     HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
     // TODO
     return res;

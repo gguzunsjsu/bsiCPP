@@ -16,6 +16,7 @@ void testInverse();
 void testCompareTo();
 void testMultByConstant();
 void testMultSum();
+void testShift();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -25,12 +26,26 @@ void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, v
 int main() {
     //testMultByConstant();
     //testInverse();
-    testMultSum();
+//    testMultSum();
+    testShift();
     return 0;
+}
+
+void testShift() {
+    BsiSigned<uint64_t> bsi;
+    std::vector<long> vec = {1,2,-3,4};
+    BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,0.5);
+    BsiAttribute<uint64_t>* shifted = orig->shift(-1);
+    std::vector<int> expected = {2,-3,4,0};
+    for (int i=0;i<vec.size(); i++) {
+        if (shifted->getValue(i) != expected[i]) {
+            cout << shifted->getValue(i) << " is not the same as " << expected[i] << "\n";
+        }
+    }
 }
 void testMultSum() {
     BsiSigned<uint64_t> bsi;
-    ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/testcase.txt");
+    ifstream file("./testcase.txt");
     vector<BsiAttribute<uint64_t>*> H_bsi;
     for (int i=0; i<9; i++) {
         string line;
@@ -247,7 +262,7 @@ void testCompareTo() {
     BsiSigned<uint64_t> build;
     int n = 5;
     string line;
-    ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/testcase.txt");
+    ifstream file("./testcase.txt");
     int j = 0;
     while (j < 80000) {
         vector<long> v1;
