@@ -16,7 +16,7 @@
 
 int main(){
     std::vector<long> array1;
-    int range = 100;
+    int range = pow(2, 16);
     int vectorLength = 10000000;
 
     for(auto i=0; i<vectorLength; i++){
@@ -43,10 +43,37 @@ int main(){
     std::cout << "Array Sum is: \t" << arraySum << std::endl;
     std::cout << "Array sum duration: \t" << array_duration << std::endl;
 
+    size_t element_size = sizeof(array1[0]);
+    size_t data_size = array1.size() * element_size;
+    size_t capacity_size = array1.capacity() * element_size;
+
+    std::cout << "Element size: " << element_size << " bytes (" << element_size * 8 << " bits)" << std::endl;
+    std::cout << "Data memory: " << data_size / (1024.0 * 1024.0) << " MB" << std::endl;
+    std::cout << "Allocated memory: " << capacity_size / (1024.0 * 1024.0) << " MB" << std::endl;
+
+    size_t max_value = 0;
+    for (const auto& val : array1) {
+        max_value = std::max(max_value, static_cast<size_t>(val));
+    }
+
+    int bits_needed = 0;
+    size_t temp = max_value;
+    while (temp > 0) {
+        bits_needed++;
+        temp >>= 1;
+    }
+
+    std::cout << "Maximum value in vector: " << max_value << std::endl;
+    std::cout << "Minimum bits needed: " << bits_needed << std::endl;
+    std::cout << "Actual bits used per element: " << sizeof(array1[0]) * 8 << std::endl;
+    std::cout << "Potential memory waste: " << 
+        (sizeof(array1[0]) * 8 - bits_needed) * array1.size() / 8 / (1024.0 * 1024.0) << " MB" << std::endl;
+
     BsiUnsigned<uint64_t> ubsi;
     BsiAttribute<uint64_t>* bsi;
 
-    bsi = ubsi.buildBsiAttributeFromVector(array1, 0.2);
+    std::vector<long> array1_long(array1.begin(), array1.end());
+    bsi = ubsi.buildBsiAttributeFromVector(array1_long, 0.2);
     bsi->setFirstSliceFlag(true);
     bsi->setLastSliceFlag(true);
     bsi->setPartitionID(0);
