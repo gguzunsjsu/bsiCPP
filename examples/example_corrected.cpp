@@ -42,8 +42,8 @@ int main(){
     vector<double> v2;
     vector<double> vres;
     string line_str;
-    int range1 = 50;
-    int range2 = 50;
+    int range1 = 100;
+    int range2 = 100;
     int vectorLen = 10000000;
 
     int arr1[5] = {84, 624, 9, 330, 240};
@@ -89,6 +89,9 @@ int main(){
     bsi_2->setLastSliceFlag(true);
     // bsi_result = ubsi.buildBsiAttributeFromArray(result, result.size(), 0.2);
     std::chrono::high_resolution_clock::time_point t11 = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Memory used to store bsi attribute: \t" << bsi_1->getSizeInMemory()/(pow(2, 20)) << std::endl;
+
 
     auto durationBuilding = std::chrono::duration_cast<std::chrono::microseconds>( t11 - t10 ).count();
     cout <<"Duration to build two bsi arrays: \t\t"<< durationBuilding<<endl;

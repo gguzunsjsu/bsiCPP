@@ -13,7 +13,7 @@ int main() {
     std::vector<long> vector1;
     std::vector<long> vector2;
 
-    int range = 50;
+    int range = 100;
 
     for(size_t i = 0; i < vectorLength; i++) {
         vector1.push_back(std::rand() % range);
@@ -47,6 +47,11 @@ int main() {
 
         BsiAttribute<uint64_t>* bsi1 = ubsi.buildBsiAttributeFromVector(vector1, compressionThreshold);
         BsiAttribute<uint64_t>* bsi2 = ubsi.buildBsiAttributeFromVector(vector2, compressionThreshold);
+
+        std::cout << "Memory used to store bsi1 attribute: \t" << bsi1->getSizeInMemory()/(pow(2, 20)) << std::endl;
+        std::cout << "Memory used to store bsi2 attribute: \t" << bsi2->getSizeInMemory()/(pow(2, 20)) << std::endl;
+
+
 
         if (!bsi1 || !bsi2) {
             std::cerr << "Failed to create BSI structures" << std::endl;

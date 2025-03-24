@@ -16,7 +16,7 @@
 
 int main(){
     std::vector<long> array1;
-    int range = 50;
+    int range = 100;
     int vectorLength = 10000000;
 
     for(auto i=0; i<vectorLength; i++){
@@ -26,9 +26,9 @@ int main(){
     /*
      * Printing array
      */
-    for(auto i=0; i<vectorLength; i++){
-        std::cout << array1[i] << std::endl;
-    }
+//   for(auto i=0; i<vectorLength; i++){
+//        std::cout << array1[i] << std::endl;
+//    }
 
     long arraySum = 0;
 
@@ -50,6 +50,9 @@ int main(){
     bsi->setFirstSliceFlag(true);
     bsi->setLastSliceFlag(true);
     bsi->setPartitionID(0);
+
+    std::cout << "Memory used to store bsi attribute: \t" << bsi->getSizeInMemory()/(pow(2, 20)) << std::endl;
+//    std::cout << "Bits used by bsi: \t" << bsi->getBitsUsedBSI(pow(2, bsi->getNumberOfSlices())) << std::endl;
 
     auto t3 = std::chrono::high_resolution_clock::now();
     long bsi_sum = bsi->sumOfBsi();
