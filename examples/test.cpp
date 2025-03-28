@@ -31,17 +31,47 @@ int main() {
     return 0;
 }
 
-void testShift() {
+void testUncompressedShift() {
     BsiSigned<uint64_t> bsi;
     std::vector<long> vec = {1,2,-3,4};
     BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,0.5);
-    BsiAttribute<uint64_t>* shifted = orig->shift(-1);
-    std::vector<int> expected = {2,-3,4,0};
+
+    BsiAttribute<uint64_t>* left_shifted = orig->shift(-1);
+    std::vector<int> expected_left = {2,-3,4,0};
     for (int i=0;i<vec.size(); i++) {
-        if (shifted->getValue(i) != expected[i]) {
-            cout << shifted->getValue(i) << " is not the same as " << expected[i] << "\n";
+        if (left_shifted->getValue(i) != expected_left[i]) {
+            cout << "Difference at index " << i << ": " << left_shifted->getValue(i) << " is not the same as " << expected_left[i] << "\n";
         }
     }
+
+    BsiAttribute<uint64_t>* right_shifted = orig->shift(1);
+    std::vector<int> expected_right = {0,1,2,-3};
+    for (int i=0;i<vec.size(); i++) {
+        if (right_shifted->getValue(i) != expected_right[i]) {
+            cout << "Difference at index " << i << ": " << right_shifted->getValue(i) << " is not the same as " << expected_right[i] << "\n";
+        }
+    }
+}
+void testCompressedShift() {
+    BsiSigned<uint64_t> bsi;
+    std::vector<long> vec = {1,0,0,0};
+    BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,0.5);
+
+    BsiAttribute<uint64_t>* left_shifted = orig->shift(-1);
+    std::vector<int> expected_left = {0,0,0,0};
+    for (int i=0;i<vec.size(); i++) {
+        if (left_shifted->getValue(i) != expected_left[i]) {
+            cout << "Difference at index " << i << ": " << left_shifted->getValue(i) << " is not the same as " << expected_left[i] << "\n";
+        }
+    }
+
+//    BsiAttribute<uint64_t>* right_shifted = orig->shift(1);
+//    std::vector<int> expected_right = {0,1,2,-3};
+//    for (int i=0;i<vec.size(); i++) {
+//        if (right_shifted->getValue(i) != expected_right[i]) {
+//            cout << "Difference at index " << i << ": " << right_shifted->getValue(i) << " is not the same as " << expected_right[i] << "\n";
+//        }
+//    }
 }
 void testMultSum() {
     BsiSigned<uint64_t> bsi;

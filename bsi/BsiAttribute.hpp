@@ -1237,8 +1237,16 @@ BsiAttribute<uword>* BsiAttribute<uword>::shift(int k) const {
     res->existenceBitmap = existenceBitmap.shift(k);
     res->sign = sign.shift(k);
     for (int i=0; i<size; i++) {
-        res->addSlice(getSlice(i).shift(k));
+        HybridBitmap<uword> cur = getSlice(i);
+        cur = cur.shift(k);
+        res->addSlice(cur);
     }
+    res->rows = rows;
+    res->firstSlice = firstSlice;
+    res->lastSlice = lastSlice;
+    res->twosComplement = twosComplement;
+    res->decimals = decimals;
+    res->offset = offset;
     return res;
 }
 

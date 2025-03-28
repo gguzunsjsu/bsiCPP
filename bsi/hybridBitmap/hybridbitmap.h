@@ -3105,7 +3105,7 @@ void HybridBitmap<uword>::selectMultiplication(const HybridBitmap &res,const Hyb
 template <class uword>
 HybridBitmap<uword> HybridBitmap<uword>::shift(int k) const {
     if (k == 0) {
-        return new HybridBitmap(this);
+        return new HybridBitmap(verbatim,bufferSize());
     }
     if (k < 0) {
         return this->leftShift(-k);
@@ -3121,11 +3121,21 @@ template <class uword>
 HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
     HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
     if (verbatim) {
-        for (int i=0; i<bufferSize()-k; i++) {
-            res.buffer[i] = buffer[i+k];
-            res.density += buffer[i+k];
+        int i = 0;
+        while ((int)((i+1)*sizeof(uword)) < k) {
+            i ++;
         }
-        res.density /= bufferSize();
+        int j = 0;
+        if ((int)((i+1)*sizeof(uword)) == k) {
+            i ++;
+        } else {
+            res.buffer[0] = buffer[i]>>(k-i*sizeof(uword));
+            j = 1;
+        }
+
+        for (; j<bufferSize()-i; j++) {
+            res.buffer[j] = buffer[i+j];
+        }
     } else {
         HybridBitmapRawIterator<uword> it = raw_iterator();
         // trim first k bits
@@ -3165,6 +3175,10 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
             }
         }
     }
+    // TODO: make calculation
+    res.density = density;
+    res.sizeinbits = sizeinbits;
+    return res;
 }
 
 /*
