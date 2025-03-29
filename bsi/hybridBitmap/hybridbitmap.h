@@ -357,9 +357,9 @@ public:
     void shiftRow(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap);
     void shiftRowWithCarry(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap, HybridBitmap &carry);
 
-    HybridBitmap<uword> shift(int k) const;
+    HybridBitmap<uword> shift(int k, int activeBits) const;
     HybridBitmap<uword> leftShift(int k) const;
-    HybridBitmap<uword> rightShift(int k) const;
+    HybridBitmap<uword> rightShift(int k, int activeBits) const;
 
 
     void AndInPlace(const HybridBitmap &a );
@@ -3103,14 +3103,14 @@ void HybridBitmap<uword>::selectMultiplication(const HybridBitmap &res,const Hyb
  * Shift the bits in the buffer without changing the size
  */
 template <class uword>
-HybridBitmap<uword> HybridBitmap<uword>::shift(int k) const {
+HybridBitmap<uword> HybridBitmap<uword>::shift(int k, int activeBits) const {
     if (k == 0) {
         return new HybridBitmap(verbatim,bufferSize());
     }
     if (k < 0) {
         return this->leftShift(-k);
     } else {
-        return this->rightShift(k);
+        return this->rightShift(k, activeBits);
     }
 }
 
@@ -3185,9 +3185,32 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
  * Shift the bits right so that the element at i is now at i+k
  */
 template <class uword>
-HybridBitmap<uword> HybridBitmap<uword>::rightShift(int k) const {
+HybridBitmap<uword> HybridBitmap<uword>::rightShift(int k, int activeBits) const {
     HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
-    // TODO
+    if (verbatim) {
+        int i = 0;
+        while ((int)((i+1)*sizeof(uword)) < k) {
+            i ++;
+        }
+        int j = bufferSize()-1;
+        if ((int)((i+1)*sizeof(uword)) == k) {
+            i ++;
+        } else {
+            // get rid of left k-i*sizeof(uword) most significant bits
+            int mask = (1 << (activeBits-i*sizeof(uword) - (k-i*sizeof(uword)))) - 1;
+            res.buffer[j] = (buffer[i]&mask) << (k-i*sizeof(uword));
+            j --;
+        }
+
+        for (; j>=i; j--) {
+            res.buffer[j] = buffer[j-i];
+        }
+    } else {
+        // TODO
+    }
+    // TODO: make calculation
+    res.density = density;
+    res.sizeinbits = sizeinbits;
     return res;
 }
 

@@ -1234,11 +1234,11 @@ BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword> &o
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::shift(int k) const {
     BsiSigned<uword>* res = new BsiSigned<uword>(size);
-    res->existenceBitmap = existenceBitmap.shift(k);
-    res->sign = sign.shift(k);
+    res->existenceBitmap = existenceBitmap.shift(k,rows);
+    res->sign = sign.shift(k,rows);
     for (int i=0; i<size; i++) {
         HybridBitmap<uword> cur = getSlice(i);
-        cur = cur.shift(k);
+        cur = cur.shift(k,rows);
         res->addSlice(cur);
     }
     res->rows = rows;
