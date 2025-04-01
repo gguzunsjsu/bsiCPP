@@ -25,7 +25,7 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testUncompressedShift();
+    testCompressedShift();
     return 0;
 }
 
@@ -54,12 +54,12 @@ void testUncompressedShift() {
 }
 void testCompressedShift() {
     BsiSigned<uint64_t> bsi;
-    std::vector<long> vec = {9,0,0,9};
-    BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,0.5);
+    std::vector<long> vec = {8,1,2,8};
+    BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,1.1);
 
     cout << "Left compressed\n";
     BsiAttribute<uint64_t>* left_shifted = orig->shift(-1);
-    std::vector<int> expected_left = {0,0,9,0};
+    std::vector<int> expected_left = {1,2,8,0};
     for (int i=0;i<vec.size(); i++) {
         if (left_shifted->getValue(i) != expected_left[i]) {
             cout << "Difference at index " << i << ": " << left_shifted->getValue(i) << " is not the same as " << expected_left[i] << "\n";

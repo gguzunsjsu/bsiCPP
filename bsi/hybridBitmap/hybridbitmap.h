@@ -358,7 +358,7 @@ public:
     void shiftRowWithCarry(const HybridBitmap &this_bitmap, HybridBitmap &other_bitmap, HybridBitmap &carry);
 
     HybridBitmap<uword> shift(int k, int activeBits) const;
-    HybridBitmap<uword> leftShift(int k) const;
+    HybridBitmap<uword> leftShift(int k, int activeBits) const;
     HybridBitmap<uword> rightShift(int k, int activeBits) const;
 
 
@@ -3108,7 +3108,7 @@ HybridBitmap<uword> HybridBitmap<uword>::shift(int k, int activeBits) const {
         return new HybridBitmap(verbatim,bufferSize());
     }
     if (k < 0) {
-        return this->leftShift(-k);
+        return this->leftShift(-k, activeBits);
     } else {
         return this->rightShift(k, activeBits);
     }
@@ -3118,9 +3118,10 @@ HybridBitmap<uword> HybridBitmap<uword>::shift(int k, int activeBits) const {
  * Shift the bits left so that the element at i is now at i-k
  */
 template <class uword>
-HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
+HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k, int activeBits) const {
     HybridBitmap<uword> res = new HybridBitmap(verbatim,bufferSize());
     if (verbatim) {
+        // ignore first k bits
         int i = 0;
         while ((int)((i+1)*sizeof(uword)) < k) {
             i ++;
@@ -3129,10 +3130,11 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
         if ((int)((i+1)*sizeof(uword)) == k) {
             i ++;
         } else {
+            // copy rest of word if a part of the first k bits is a part of this word
             res.buffer[0] = buffer[i]>>(k-i*sizeof(uword));
             j = 1;
         }
-
+        // copy remaining bits
         for (; j<bufferSize()-i; j++) {
             res.buffer[j] = buffer[i+j];
         }
@@ -3154,8 +3156,8 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
                 if (k < sizeof(uword)) {
                     // copy rest of the ith literal word
                     uword word = rlw.getLiteralWordAt(i);
-                    uword mask = (1 << (sizeof(uword)-k+1)) - 1;
-                    res.addWord(word & mask);
+                    uword mask = (1 << activeBits) - 1 - ((1 << (k-i*sizeof(uword))) - 1);
+                    res.addWord((word & mask) >> (k-i*sizeof(uword)));
                 }
                 k -= std::min(k,(int)sizeof(uword));
                 i ++;
@@ -3178,6 +3180,8 @@ HybridBitmap<uword> HybridBitmap<uword>::leftShift(int k) const {
     // TODO: make calculation
     res.density = density;
     res.sizeinbits = sizeinbits;
+    res.verbatim = verbatim;
+    res.lastRLW = lastRLW;
     return res;
 }
 
