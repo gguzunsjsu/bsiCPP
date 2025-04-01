@@ -3210,11 +3210,41 @@ HybridBitmap<uword> HybridBitmap<uword>::rightShift(int k, int activeBits) const
             res.buffer[j] = buffer[j-i];
         }
     } else {
-        // TODO
+        HybridBitmapRawIterator<uword> it = raw_iterator();
+        // copy bits until k are left
+        int bitsToCopy = activeBits - k;
+        while (it.hasNext() && bitsToCopy > 0) {
+            BufferedRunningLengthWord<uword> rlw = it.next();
+            // iterate through running length
+            if (bitsToCopy < rlw.getRunningLength()) {
+                // copy rest of bits from run length of rlw
+                res.fastaddStreamOfEmptyWords(rlw.getRunningBit(),rlw.getRunningLength() - bitsToCopy);
+                // add k bits of 0 to the end
+                res.fastaddStreamOfEmptyWords(0,k);
+            }
+            bitsToCopy -= std::min(bitsToCopy,(int)rlw.getRunningLength());
+
+            // iterate through literal words
+            int i = 0;
+            while (i < rlw.getNumberOfLiteralWords() && bitsToCopy > 0) {
+                if (bitsToCopy < sizeof(uword)) {
+                    // copy ith literal word without last k bits
+                    uword word = rlw.getLiteralWordAt(i);
+                    uword mask = (1 << (activeBits-i*sizeof(uword) - (k-i*sizeof(uword)))) - 1;
+                    res.addWord((word & mask) << (k-i*sizeof(uword)));
+                } else {
+                    res.addWord(rlw.getLiteralWordAt(i));
+                }
+                bitsToCopy -= std::min(bitsToCopy,(int)sizeof(uword));
+                i ++;
+            }
+        }
     }
     // TODO: make calculation
     res.density = density;
     res.sizeinbits = sizeinbits;
+    res.verbatim = verbatim;
+    res.lastRLW = lastRLW;
     return res;
 }
 

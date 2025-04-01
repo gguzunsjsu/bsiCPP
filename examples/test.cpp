@@ -26,17 +26,18 @@ void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
     testCompressedShift();
+    testUncompressedShift();
     return 0;
 }
 
 void testUncompressedShift() {
     BsiSigned<uint64_t> bsi;
-    std::vector<long> vec = {1,2,-3,4};
+    std::vector<long> vec = {10,20,-30,40};
     BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,0.5);
 
     cout << "Left uncompressed\n";
     BsiAttribute<uint64_t>* left_shifted = orig->shift(-1);
-    std::vector<int> expected_left = {2,-3,4,0};
+    std::vector<int> expected_left = {20,-30,40,0};
     for (int i=0;i<vec.size(); i++) {
         if (left_shifted->getValue(i) != expected_left[i]) {
             cout << "Difference at index " << i << ": " << left_shifted->getValue(i) << " is not the same as " << expected_left[i] << "\n";
@@ -45,7 +46,7 @@ void testUncompressedShift() {
 
     cout << "Right uncompressed\n";
     BsiAttribute<uint64_t>* right_shifted = orig->shift(1);
-    std::vector<int> expected_right = {0,1,2,-3};
+    std::vector<int> expected_right = {0,10,20,-30};
     for (int i=0;i<vec.size(); i++) {
         if (right_shifted->getValue(i) != expected_right[i]) {
             cout << "Difference at index " << i << ": " << right_shifted->getValue(i) << " is not the same as " << expected_right[i] << "\n";
@@ -54,26 +55,26 @@ void testUncompressedShift() {
 }
 void testCompressedShift() {
     BsiSigned<uint64_t> bsi;
-    std::vector<long> vec = {8,1,2,8};
+    std::vector<long> vec = {80,10,-20,-80};
     BsiAttribute<uint64_t>* orig = bsi.buildBsiAttributeFromVectorSigned(vec,1.1);
 
     cout << "Left compressed\n";
     BsiAttribute<uint64_t>* left_shifted = orig->shift(-1);
-    std::vector<int> expected_left = {1,2,8,0};
+    std::vector<int> expected_left = {10,-20,-80,0};
     for (int i=0;i<vec.size(); i++) {
         if (left_shifted->getValue(i) != expected_left[i]) {
             cout << "Difference at index " << i << ": " << left_shifted->getValue(i) << " is not the same as " << expected_left[i] << "\n";
         }
     }
 
-//    cout << "Right compressed\n";
-//    BsiAttribute<uint64_t>* right_shifted = orig->shift(1);
-//    std::vector<int> expected_right = {0,1,2,-3};
-//    for (int i=0;i<vec.size(); i++) {
-//        if (right_shifted->getValue(i) != expected_right[i]) {
-//            cout << "Difference at index " << i << ": " << right_shifted->getValue(i) << " is not the same as " << expected_right[i] << "\n";
-//        }
-//    }
+    cout << "Right compressed\n";
+    BsiAttribute<uint64_t>* right_shifted = orig->shift(1);
+    std::vector<int> expected_right = {0,80,10,-20};
+    for (int i=0;i<vec.size(); i++) {
+        if (right_shifted->getValue(i) != expected_right[i]) {
+            cout << "Difference at index " << i << ": " << right_shifted->getValue(i) << " is not the same as " << expected_right[i] << "\n";
+        }
+    }
 }
 void testMultSum() {
     BsiSigned<uint64_t> bsi;
