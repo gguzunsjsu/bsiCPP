@@ -188,10 +188,10 @@ public:
     * ------------------------Declarations for overloaded operators ------------------------------
     */
 
-    BsiAttribute<uword>* operator+(const BsiAttribute<uword> &other);
-    BsiAttribute<uword>* operator*(const BsiAttribute<uword> &other);
-    BsiAttribute<uword>* operator*(const int &other);
-    BsiAttribute<uword>* operator/(const BsiAttribute<uword> &other);
+    BsiAttribute<uword>* operator+(BsiAttribute<uword>* other);
+    BsiAttribute<uword>* operator*(const BsiAttribute<uword>* other);
+    BsiAttribute<uword>* operator*(int other)const;
+//    BsiAttribute<uword>* operator/(const BsiAttribute<uword>* other);
 
     /*
     * ------------------------Declarations for private helper methods------------------------------
@@ -1209,24 +1209,24 @@ BsiAttribute<uword>* BsiAttribute<uword>::maskAssign(BsiAttribute<uword>* other,
 }
 
 template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::operator+(const BsiAttribute<uword> &other) {
+BsiAttribute<uword>* BsiAttribute<uword>::operator+(BsiAttribute<uword>* other) {
     return this->SUM(other);
 }
 
 template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::operator*(const BsiAttribute<uword> &other) {
+BsiAttribute<uword>* BsiAttribute<uword>::operator*(const BsiAttribute<uword>* other) {
     return this->multiplyWithBsiHorizontal(other);
 }
 
 template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::operator*(const int &other) {
+BsiAttribute<uword>* BsiAttribute<uword>::operator*(int other) const {
     return this->multiplyByConstant(other);
 }
 
-template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword> &other) {
-    return this->divide(other)->first; // TODO: return only quotient for now
-}
+//template <class uword>
+//BsiAttribute<uword>* BsiAttribute<uword>::operator/(const BsiAttribute<uword>* other) {
+//    return this->divide(other)->first; // TODO: return only quotient for now
+//}
 
 /*
  * Shift position of values in bsi while keeping rows the same

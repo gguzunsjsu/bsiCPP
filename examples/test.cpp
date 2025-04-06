@@ -18,6 +18,7 @@ void testMultByConstant();
 void testMultSum();
 void testUncompressedShift();
 void testCompressedShift();
+void testBuiltinOperators();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -25,9 +26,40 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testCompressedShift();
-    testUncompressedShift();
+    testBuiltinOperators();
     return 0;
+}
+
+void testBuiltinOperators() {
+    BsiSigned<uint64_t> bsi;
+    std::vector<long> vec1 = {10,20,-30,4};
+    std::vector<long> vec2 = {5,-3,2,12};
+    BsiAttribute<uint64_t>* a = bsi.buildBsiAttributeFromVectorSigned(vec1,0.5);
+    BsiAttribute<uint64_t>* b = bsi.buildBsiAttributeFromVectorSigned(vec2,0.5);
+
+    BsiAttribute<uint64_t>* sum = (*a)+b;
+    std::vector<long> vec_sum = {15,17,-28,16};
+    for (int i=0; i<vec_sum.size(); i++) {
+        if (sum->getValue(i) != vec_sum[i]) {
+            cout << "Difference at index " << i << ": " << sum->getValue(i) << " is not the same as " << vec_sum[i] << "\n";
+        }
+    }
+
+    BsiAttribute<uint64_t>* mult = (*a)*b;
+    std::vector<long> vec_mult = {50,-60,-60,48};
+    for (int i=0; i<vec_mult.size(); i++) {
+        if (mult->getValue(i) != vec_mult[i]) {
+            cout << "Difference at index " << i << ": " << mult->getValue(i) << " is not the same as " << vec_mult[i] << "\n";
+        }
+    }
+
+    BsiAttribute<uint64_t>* mult_const = (*a)*3;
+    std::vector<long> vec_mult_const = {30,60,-90,12};
+    for (int i=0; i<vec_mult_const.size(); i++) {
+        if (mult_const->getValue(i) != vec_mult_const[i]) {
+            cout << "Difference at index " << i << ": " << mult_const->getValue(i) << " is not the same as " << vec_mult_const[i] << "\n";
+        }
+    }
 }
 
 void testUncompressedShift() {

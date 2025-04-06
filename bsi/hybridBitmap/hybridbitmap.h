@@ -4618,7 +4618,7 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
 
     if (verbatim) { // this is verbatim
         container.buffer.reserve(bufferSize());
-        size_t pos=0;
+//        size_t pos=0;
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
         size_t lastrlwa = 0;
         //a.rlw = new RunningLengthWord(a.buffer, 0);
@@ -4627,18 +4627,21 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
             runLength=static_cast<int>(rlwa.getRunningLength());
             if (rlwa.getRunningBit()) { // fill of ones
                 for (j = 0; j < runLength; j++) {
-                    container.buffer[pos++] = (~(buffer[i]));
+//                    container.buffer[pos++] = (~(buffer[i]));
+                    container.buffer.push_back(~(buffer[i]));
                     i++;
                 }
             } else {
                 for (j = 0; j < runLength; j++) {
-                    container.buffer[pos++] = ((buffer[i]));
+//                    container.buffer[pos++] = ((buffer[i]));
+                    container.buffer.push_back(~(buffer[i]));
                     i++;
                 }
             }
 
             for( j=0; j<rlwa.getNumberOfLiteralWords(); j++){
-                container.buffer[pos++] = (buffer[i]^(a.buffer[lastrlwa+j+1]));
+//                container.buffer[pos++] = (buffer[i]^(a.buffer[lastrlwa+j+1]));
+                container.buffer.push_back(buffer[i]^(a.buffer[lastrlwa+j+1]));
                 i++;
             }
 
