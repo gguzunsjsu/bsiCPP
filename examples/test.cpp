@@ -19,6 +19,7 @@ void testMultSum();
 void testUncompressedShift();
 void testCompressedShift();
 void testBuiltinOperators();
+void testRelu();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -26,8 +27,23 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testBuiltinOperators();
+    testRelu();
     return 0;
+}
+
+void testRelu() {
+    BsiSigned<uint64_t> bsi;
+    std::vector<long> vec1 = {10,20,-30,4};
+    std::vector<long> vec2 = {5,-3,2,12};
+    BsiAttribute<uint64_t>* a = bsi.buildBsiAttributeFromVectorSigned(vec1,0.5);
+    BsiAttribute<uint64_t>* b = bsi.buildBsiAttributeFromVectorSigned(vec2,0.5);
+    HybridBitmap<uint64_t> res = a->reLU(b);
+    std::vector<int> sol = {1,1,0,0};
+    for (int i=0; i<vec1.size(); i++) {
+        if (res.get(i) != sol[i]) {
+            cout << "Difference at index " << i << ": " << res.get(i) << " is not the same as " << sol[i] << "\n";
+        }
+    }
 }
 
 void testBuiltinOperators() {

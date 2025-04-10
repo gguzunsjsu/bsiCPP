@@ -43,7 +43,10 @@ public:
     long sumOfBsi()const override;
     bool append(long value) override;
     int compareTo(BsiAttribute<uword> *a, int index) override;
-    
+    HybridBitmap<uword> reLU(long threshold) override;
+    HybridBitmap<uword> lessThan(long threshold);
+    HybridBitmap<uword> greaterThan(long threshold);
+    HybridBitmap<uword> reLU(const BsiAttribute<uword> *a)const;
     /*
      Declaring Other Functions
      */
@@ -2812,5 +2815,94 @@ BsiAttribute<uword>* BsiSigned<uword>::sum_Horizontal(const BsiAttribute<uword> 
             return this->sum_Horizontal_Hybrid(a);
         }
     }
+}
+/*
+ * positions bitmap of values with value greater than the threshold
+ */
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::reLU(long threshold) {
+    HybridBitmap<uword> B_f;
+    if (threshold < 0) {
+        B_f = this->lessThan(threshold).Or(this->existenceBitmap.andNot(this->sign));
+    } else {
+        B_f = this->greaterThan(threshold);
+    }
+    return B_f;
+}
+
+/*
+ * positions bitmap of positive numbers with value greater than the threshold (positive number)
+ */
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::greaterThan(long threshold) {
+    HybridBitmap<uword> B_f = this->existenceBitmap.andNot(this->sign);
+    HybridBitmap<uword> B_gt;
+    HybridBitmap<uword> B_lt;
+    HybridBitmap<uword> B_eq;
+    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
+
+    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
+        return B_gt;
+    }
+
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--){
+        if (threshold & (1<<i)){ //the ith bit is set in threshold
+            //B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
+            B_eq = B_eq.And(this->bsi[i]);
+        } else{ //The ith bit is not set in threshold
+            B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
+            B_eq = B_eq.andNot(this->bsi[i]);
+        }
+    }
+    B_gt = B_gt.Or(B_eq);
+    B_f = B_f.And(B_gt);
+    return B_f;
+}
+
+/*
+ * positions bitmap of negative numbers with value less than the threshold (positive number)
+ */
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
+    HybridBitmap<uword> B_f = this->existenceBitmap.And(this->sign);
+    HybridBitmap<uword> B_gt;
+    HybridBitmap<uword> B_lt;
+    HybridBitmap<uword> B_eq;
+    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
+
+    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
+        return B_gt;
+    }
+
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--){
+        if (threshold & (1<<i)){ //the ith bit is set in threshold
+            B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
+            B_eq = B_eq.And(this->bsi[i]);
+        } else{ //The ith bit is not set in threshold
+            //B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
+            B_eq = B_eq.andNot(this->bsi[i]);
+        }
+    }
+    B_lt = B_lt.Or(B_eq);
+    B_f = B_f.And(B_lt);
+    return B_f;
+}
+
+/*
+ * returns positions of this bsi where the value is greater than the other bsi
+ * may or may not include positions where this bsi is equal
+ */
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::reLU(const BsiAttribute<uword>* a) const {
+    HybridBitmap<uword> res = this->existenceBitmap;
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--) {
+        res = res.And(a->bsi[i].Not().Or(this->bsi[i]));
+    }
+    HybridBitmap<uword> both_neg = this->sign.And(a->sign);
+    HybridBitmap<uword> this_neg = this->sign.andNot(a->sign);
+    HybridBitmap<uword> a_neg = a->sign.andNot(this->sign);
+    return res.Xor(both_neg).andNot(this_neg).Or(a_neg);
 }
 #endif /* BsiSigned_hpp */

@@ -46,7 +46,8 @@ public:
     long long int dot_withoutCompression(BsiAttribute<uword>* unbsi) const override;
     bool append(long value) override;
     int compareTo(BsiAttribute<uword> *a, int index) override;
-    
+    HybridBitmap<uword> reLU(long threshold)override;
+    HybridBitmap<uword> reLU(const BsiAttribute<uword>* a) const;
     /*
      * multiplication is only compatible with Verbatim Bitmap
      */
@@ -2664,6 +2665,49 @@ int BsiUnsigned<uword>::compareTo(BsiAttribute<uword> *a, int index) {
         }
     }
     return 0;
+}
+
+/*
+ * positions bitmap of values with value greater than the threshold
+ */
+template <class uword>
+HybridBitmap<uword> BsiUnsigned<uword>::reLU(long threshold) {
+    HybridBitmap<uword> B_f = this->existenceBitmap;
+    HybridBitmap<uword> B_gt;
+    HybridBitmap<uword> B_lt;
+    HybridBitmap<uword> B_eq;
+    B_gt.setSizeInBits(this->bsi[0].sizeInBits(), false);
+    B_eq.setSizeInBits(this->bsi[0].sizeInBits(), true); B_eq.density=1;
+
+    if (threshold > ((1 << this->getNumberOfSlices()) - 1)) {
+        return B_gt;
+    }
+
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--){
+        if (threshold & (1<<i)){ //the ith bit is set in threshold
+            //B_lt = B_lt.Or(B_eq.andNot(this->bsi[i]));
+            B_eq = B_eq.And(this->bsi[i]);
+        } else{ //The ith bit is not set in threshold
+            B_gt = B_gt.Or(B_eq.And(this->bsi[i]));
+            B_eq = B_eq.andNot(this->bsi[i]);
+        }
+    }
+    B_gt = B_gt.Or(B_eq);
+    B_f = B_f.And(B_gt);
+    return B_f;
+}
+
+/*
+ * returns positions of this bsi where the value is greater than the other bsi
+ * may or may not include positions where this bsi is equal
+ */
+template <class uword>
+HybridBitmap<uword> BsiUnsigned<uword>::reLU(const BsiAttribute<uword>* a) const {
+    HybridBitmap<uword> res = this->existenceBitmap;
+    for (int i=this->getNumberOfSlices()-1; i>=0; i--) {
+        res = res.And(a->bsi[i].Not().Or(this->bsi[i]));
+    }
+    return res;
 }
 
 #endif /* BsiUnsigned_hpp */

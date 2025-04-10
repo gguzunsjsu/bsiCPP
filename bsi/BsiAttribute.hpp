@@ -94,6 +94,9 @@ public:
     virtual BsiUnsigned<uword>* absScale(double range)=0;
     virtual int compareTo(BsiAttribute<uword> *a, int index)=0;
 
+    virtual HybridBitmap<uword> reLU(long threshold)=0;
+    virtual HybridBitmap<uword> reLU(const BsiAttribute<uword> *a)const=0;
+
     virtual long getValue(int pos)const=0;
 
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
