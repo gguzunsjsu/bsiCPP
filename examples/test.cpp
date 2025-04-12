@@ -33,12 +33,14 @@ int main() {
 
 void testRelu() {
     BsiSigned<uint64_t> bsi;
-    std::vector<long> vec1 = {10,20,-30,4};
-    std::vector<long> vec2 = {5,-3,2,12};
+    std::vector<long> vec = {0,1};
+    BsiAttribute<uint64_t>* bsi_test = bsi.buildBsiAttributeFromVectorSigned(vec,0.5);
+    std::vector<long> vec1 = {10,20,-30,4,3, -3,-102,30000};
+    std::vector<long> vec2 = {5,-3,  2,12,20,-23, 9, 103000};
     BsiAttribute<uint64_t>* a = bsi.buildBsiAttributeFromVectorSigned(vec1,0.5);
     BsiAttribute<uint64_t>* b = bsi.buildBsiAttributeFromVectorSigned(vec2,0.5);
     HybridBitmap<uint64_t> res = a->reLU(b);
-    std::vector<int> sol = {1,1,0,0};
+    std::vector<int> sol = {1,1,0,0,0,1,0,0};
     for (int i=0; i<vec1.size(); i++) {
         if (res.get(i) != sol[i]) {
             cout << "Difference at index " << i << ": " << res.get(i) << " is not the same as " << sol[i] << "\n";

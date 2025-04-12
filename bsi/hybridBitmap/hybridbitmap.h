@@ -162,14 +162,9 @@ public:
 //        if(buffer.size() == 0){
 //            return false;
 //        }
-        /*
-         * Can this if condition be optimized by using a single return statement. cpu branch mispredictions --> can be avoided?
-         */
         if(verbatim){
             uword word = buffer[wordpos];
-            if(((word>>(pos%wordinbits))&1)!=0)
-                return true;
-            else return false;
+            return ((word>>(pos%wordinbits))&1)!=0;
         }
         HybridBitmapRawIterator<uword> j = raw_iterator();
         while (j.hasNext()) {

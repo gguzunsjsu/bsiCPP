@@ -2892,17 +2892,37 @@ HybridBitmap<uword> BsiSigned<uword>::lessThan(long threshold) {
 
 /*
  * returns positions of this bsi where the value is greater than the other bsi
- * may or may not include positions where this bsi is equal
  */
 template <class uword>
 HybridBitmap<uword> BsiSigned<uword>::reLU(const BsiAttribute<uword>* a) const {
-    HybridBitmap<uword> res = this->existenceBitmap;
-    for (int i=this->getNumberOfSlices()-1; i>=0; i--) {
-        res = res.And(a->bsi[i].Not().Or(this->bsi[i]));
+    // initially, no positions are confirmed to be less or greater
+    HybridBitmap<uword> zeroBitmap;
+    zeroBitmap.addStreamOfEmptyWords(false,this->existenceBitmap.bufferSize());
+    HybridBitmap<uword> less = zeroBitmap;
+    HybridBitmap<uword> greater = zeroBitmap;
+
+    int i = std::max(this->getNumberOfSlices(),a->getNumberOfSlices())-1;
+    // do comparisons with an empty slice if either BsiAttribute has more slices
+    for (; i>=std::min(this->getNumberOfSlices(),a->getNumberOfSlices()); i--) {
+        if (i >= this->getNumberOfSlices()) {
+            // a position is less if the bit is set in a->bsi but not in this->bsi
+            // if any positions are confirmed to be greater, they cannot be less
+            less = less.Or(a->bsi[i]);
+        } else {
+            greater = greater.Or(this->bsi[i]);
+        }
     }
+
+    // do comparisons for the rest of the slices
+    for (; i>=0; i--) {
+        less = less.Or(a->bsi[i].andNot(this->bsi[i]).andNot(greater));
+        greater = greater.Or(this->bsi[i].andNot(a->bsi[i]).andNot(less));
+    }
+
+    // flip bits accordingly for signed comparisons
     HybridBitmap<uword> both_neg = this->sign.And(a->sign);
     HybridBitmap<uword> this_neg = this->sign.andNot(a->sign);
     HybridBitmap<uword> a_neg = a->sign.andNot(this->sign);
-    return res.Xor(both_neg).andNot(this_neg).Or(a_neg);
+    return greater.Xor(both_neg).andNot(this_neg).Or(a_neg).And(this->existenceBitmap);
 }
 #endif /* BsiSigned_hpp */
