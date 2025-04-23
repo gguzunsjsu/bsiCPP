@@ -27,6 +27,7 @@ double parse_skew(const std::string &fn) {
     std::string tok = fn.substr(p, q - p);
     if      (tok == "05")  return 0.5;
     else if (tok == "15")  return 1.5;
+    else if (tok == "25")  return 2.5;
     else                   return std::stod(tok);
 }
 
@@ -37,7 +38,9 @@ int main(){
             "rows10k_skew05_card16.txt",
             "rows10k_skew1_card16.txt",
             "rows10k_skew15_card16.txt",
-            "rows10k_skew2_card16.txt"
+            "rows10k_skew2_card16.txt",
+            "rows10k_skew25_card16.txt",
+            "rows10k_skew3_card16.txt"
     };
 
     const int RUNS = 5;
@@ -103,8 +106,8 @@ int main(){
             bsiB->setFirstSliceFlag(true);
             bsiB->setLastSliceFlag(true);
 
-//            cout << "Number of slices in bsiA: \t" << bsiA->getNumberOfSlices() << endl;
-//            cout << "Number of slices in bsiB: \t" << bsiB->getNumberOfSlices() << endl;
+            cout << "Number of slices in bsiA: \t" << bsiA->getNumberOfSlices() << endl;
+            cout << "Number of slices in bsiB: \t" << bsiB->getNumberOfSlices() << endl;
             // time for BSI dot
             auto t2 = Clock::now();
             long bsi_dot = bsiA->dot(bsiB);

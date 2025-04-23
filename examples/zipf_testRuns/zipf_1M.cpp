@@ -27,6 +27,7 @@ double parse_skew(const std::string &fn) {
     std::string tok = fn.substr(p, q - p);
     if      (tok == "05")  return 0.5;
     else if (tok == "15")  return 1.5;
+    else if (tok == "25")  return 2.5;
     else                   return std::stod(tok);
 }
 
@@ -37,7 +38,9 @@ int main(){
             "rows1M_skew05_card16.txt",
             "rows1M_skew1_card16.txt",
             "rows1M_skew15_card16.txt",
-            "rows1M_skew2_card16.txt"
+            "rows1M_skew2_card16.txt",
+            "rows1M_skew25_card16.txt",
+            "rows1M_skew3_card16.txt"
     };
 
     const int RUNS = 5;

@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the results
-df = pd.read_csv("results_1M.csv")
+df = pd.read_csv("results.csv")
 
 # Prepare plot data
 skews = df["skew"].tolist()

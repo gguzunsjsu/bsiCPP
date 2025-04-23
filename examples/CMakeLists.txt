@@ -17,7 +17,9 @@ add_executable(example example.cpp
         RandomBSIGeneration.cpp
         zipf_testRuns/zipf_10k.cpp
         zipf_testRuns/zipf_1M.cpp
-        zipf_testRuns/zipf_100_to_1M/zipf_100_1M.cpp)
+        zipf_testRuns/zipf_100_to_10M_skew1/zipf_100_10M_skew1.cpp
+        zipf_testRuns/zipf_p25_p3_data_generation/zipf_25_3_data_generation.py
+        zipf_testRuns/zipf_100_to_10M_skew3/zipf_100_10M_skew3.cpp)
 
 target_link_libraries(example PUBLIC bsi)
 target_link_libraries(tests PUBLIC bsi)
