@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-df = pd.read_csv("results_100_1M.csv")
+df = pd.read_csv("results_100_1M_with_size.csv")
 sizes = [100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000]
 plt.figure(figsize=(8, 6))
 
