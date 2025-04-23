@@ -14,7 +14,10 @@ add_executable(example example.cpp
         division_test.cpp
         testing_skeletonCode/binaryLongDivision.cpp
         divison_test_new.cpp
-        RandomBSIGeneration.cpp)
+        RandomBSIGeneration.cpp
+        zipf_testRuns/zipf_10k.cpp
+        zipf_testRuns/zipf_1M.cpp
+        zipf_testRuns/zipf_100_to_1M/zipf_100_1M.cpp)
 
 target_link_libraries(example PUBLIC bsi)
 target_link_libraries(tests PUBLIC bsi)
