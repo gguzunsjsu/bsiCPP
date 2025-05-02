@@ -23,9 +23,11 @@ public:
     /*
      Declaring Override Functions
      */
-    
+
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMin(int k) override;
+    HybridBitmap<uword> topKMaxAbs(int k,HybridBitmap<uword> E);
+    HybridBitmap<uword> topKMinAbs(int k,HybridBitmap<uword> E);
     BsiAttribute<uword>* SUM(BsiAttribute<uword>* a) override;
     BsiAttribute<uword>* SUM(long a)const override;
     BsiAttribute<uword>* convertToTwos(int bits) override;
@@ -176,29 +178,128 @@ BsiSigned<uword>::BsiSigned(int maxSize, long numOfRows, long partitionID, Hybri
 
 
 /**
+ * returns positions bitmap of top k max numbers with cases for twos complement and sign magnitude
+ */
+
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
+    HybridBitmap<uword> res = this->existenceBitmap;
+    if (this->twosComplement) {
+        res = topKMaxAbs(k,res.andNot(this->bsi[this->size-1]));
+        if (res.numberOfOnes() < k) {
+            res = res.Or(topKMaxAbs(k,this->existenceBitmap.And(this->bsi[this->size-1])));
+        }
+        return res;
+    } else {
+        res = topKMaxAbs(k,res.andNot(this->sign));
+        if (res.numberOfOnes() < k) {
+            res = res.Or(topKMinAbs(k,this->existenceBitmap.And(this->sign)));
+        }
+        return res;
+    }
+};
+
+/**
+ * returns positions bitmap of top k min numbers with cases for twos complement and sign magnitude
+ */
+
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
+    HybridBitmap<uword> res = this->existenceBitmap;
+    if (this->twosComplement) {
+        res = topKMinAbs(k,res.And(this->bsi[this->size-1]));
+        if (res.numberOfOnes() < k) {
+            res = res.Or(topKMinAbs(k,this->existenceBitmap.andNot(this->bsi[this->size-1])));
+        }
+        return res;
+    } else {
+        res = topKMaxAbs(k,res.And(this->sign));
+        if (res.numberOfOnes() < k) {
+            res = res.Or(topKMinAbs(k,this->existenceBitmap.andNot(this->sign)));
+        }
+        return res;
+    }
+};
+
+/**
  * Computes the top-K tuples in a bsi-attribute.
  * @param k - the number in top-k
  * @return a bitArray containing the top-k tuples
  *
- * TokMAx is Compatible with bsi's SignMagnitude Form not Two'sComplement form
+ * Returns the positions of the largest k values in magnitude, ignoring sign
  */
 template <class uword>
-HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
-    
+HybridBitmap<uword> BsiSigned<uword>::topKMaxAbs(int k, HybridBitmap<uword> E){
     HybridBitmap<uword> topK, SE, X;
-    HybridBitmap<uword> G;
-    G.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
-    HybridBitmap<uword> E = this->existenceBitmap.andNot(this->sign); //considers only positive values
+    topK.addStreamOfEmptyWords(false, this->existenceBitmap.sizeInBits()/64);
+    //HybridBitmap<uword> E = this->existenceBitmap; //considers only positive values
+
     int n = 0;
-    for (int i = this->size - 1; i >= 0; i--) {
+    int bounds = this->size - 1;
+    if (this->twosComplement) {bounds --;}
+    for (int i = bounds; i >= 0; i--) {
+
+        auto t1 = std::chrono::high_resolution_clock::now();
         SE = E.And(this->bsi[i]);
-        X = SE.Or(G);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        //X = topK.Or(SE);
+        // bypass checks for projected density of answer
+        topK.OrWithoutDecompress(SE, X);
+        auto t3 = std::chrono::high_resolution_clock::now();
+
         n = X.numberOfOnes();
+        auto t4 = std::chrono::high_resolution_clock::now();
         if (n > k) {
             E = SE;
         }
         if (n < k) {
-            G = X;
+            topK = X;
+            E = E.andNot(this->bsi[i]);
+        }
+        auto t5 = std::chrono::high_resolution_clock::now();
+        auto AND = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+        auto OR = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2);
+        auto NOO = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3);
+        auto ANDN = std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4);
+        if (n == k) {
+            E = SE;
+            break;
+        }
+    }
+    topK = topK.Or(E);
+    /*n = topK.numberOfOnes();
+
+    if(n<k){
+        topK = topK.Or(topKMaxNeg(k-n));
+    }*/
+    return topK;
+};
+
+/*
+ * Returns the positions of the smallest k values in magnitude, ignoring sign
+ */
+
+template <class uword>
+HybridBitmap<uword> BsiSigned<uword>::topKMinAbs(int k,HybridBitmap<uword> E){
+    HybridBitmap<uword> topK, SE, X;
+    topK.setSizeInBits(this->bsi[0].sizeInBits(),false);
+    //HybridBitmap<uword> E = this->existenceBitmap;//.And(this->sign); //considers only negative values
+    int n = 0;
+    int bounds = this->size - 1;
+    if (this->twosComplement) {bounds --;}
+    for (int i = bounds; i >= 0; i--) {
+        SE = E.And(this->bsi[i]);
+
+        //X = topK.Or(SE);
+        topK.OrWithoutDecompress(SE, X);
+
+        n = X.numberOfOnes();
+
+        if (n > k) {
+            E = SE;
+        }
+        if (n < k) {
+            topK = X;
             E = E.andNot(this->bsi[i]);
         }
         if (n == k) {
@@ -206,25 +307,15 @@ HybridBitmap<uword> BsiSigned<uword>::topKMax(int k){
             break;
         }
     }
+    topK = topK.Or(E);
+    /*n = topK.numberOfOnes();
     if(n<k){
-        //todo add negative numbers here (topKMin abs)
-    }
-    n = G.numberOfOnes();
-    topK = G.Or(E);
+        //topK = topK.Or(this->signMagnitudeToTwos(this->bits+1)->topKMax(k-n));
+
+        topK = topK.Or(topKMinPos(k-n));
+
+    }*/
     return topK;
-};
-
-/*
- * topKMin used for find k min values from bsi and return postions bitmap. NOT IMPLEMENTED YET
- */
-
-template <class uword>
-HybridBitmap<uword> BsiSigned<uword>::topKMin(int k){
-
-    
-    HybridBitmap<uword> h;
-    std::cout<<k<<std::endl;
-    return h;
 };
 
 /*

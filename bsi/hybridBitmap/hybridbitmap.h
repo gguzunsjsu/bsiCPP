@@ -132,7 +132,7 @@ public:
          */
 //        double aaa = n;
 //        double a1 = aaa/ans.sizeinbits;
-        ans.setDensity(static_cast<double>(n)/ans.sizeinbits()); //to ensure floating point division
+        ans.setDensity(static_cast<double>(n)/ans.sizeinbits); //to ensure floating point division
         return ans;
     }
 
@@ -316,6 +316,7 @@ public:
     void Xor(const HybridBitmap &a, HybridBitmap &container) const;
     void XorInPlace(const HybridBitmap &a);
     void Or(const HybridBitmap &a, HybridBitmap &container) const;
+    void OrWithoutDecompress(const HybridBitmap &a, HybridBitmap &container) const;
     void Not(const HybridBitmap &container) const;
     void xorNot(const HybridBitmap &a, HybridBitmap &container) const;
     void orAndNotV(const HybridBitmap &a, const HybridBitmap &b, HybridBitmap &container) const;
@@ -3698,6 +3699,40 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
         }else{
             container.buffer.reserve(bufferSize() + a.bufferSize());
             logicalor(a, container);}
+    }
+    //        container.age = Math.max(this.age, a.age)+1;
+    //        if(container.age>20){
+    //            container.density=container.cardinality();
+    //        container.age=0;
+    //        }
+
+}
+
+/*
+ * Doesn't direct Or to decompress result if both hybridbitmaps are compressed
+ * */
+template <class uword>
+void HybridBitmap<uword>::OrWithoutDecompress(const HybridBitmap &a, HybridBitmap &container) const {
+    //double expDens = (this.setbits+a.setbits)/(double)(this.sizeinbits)-(this.setbits/(double)this.sizeinbits*a.setbits/(double)a.sizeinbits);
+    container.density= (density+a.density)-(density*a.density);
+    //    container.sizeinbits=this.sizeinbits;
+    if (verbatim && a.verbatim) {
+        if(container.density>(1-orThreshold)){
+            //if(Math.max(this.density, a.density)>){
+            orVerbatimCompress(a,container);
+        }else
+            orVerbatim(a, container);
+    }
+
+    else if(verbatim || a.verbatim){
+        if(container.density>(1-orThreshold)){
+            orHybridCompress(a,container);
+        }else{
+            orHybrid(a, container);
+        }
+    }else{
+        container.buffer.reserve(bufferSize() + a.bufferSize());
+        logicalor(a, container);
     }
     //        container.age = Math.max(this.age, a.age)+1;
     //        if(container.age>20){

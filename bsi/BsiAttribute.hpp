@@ -1207,8 +1207,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildCompressedBsiFromVector(std::vect
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::maskAssign(BsiAttribute<uword>* other,const HybridBitmap<uword> &mask) {
     this->applyExistenceBitmap(mask);
-    other->applyExistenceBitmap(mask->Not());
-    return this+other;
+    other->applyExistenceBitmap(mask.Not());
+    return *this+other;
 }
 
 template <class uword>
