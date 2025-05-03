@@ -280,7 +280,7 @@ bool BsiAttribute<uword>::isSigned()const{
 
 template <class uword>
 void BsiAttribute<uword>::addSlice( const HybridBitmap<uword> &slice){
-    bsi.push_back(slice);
+    bsi[size] = slice; // add capacity check - 0028?
     size++;
 };
 

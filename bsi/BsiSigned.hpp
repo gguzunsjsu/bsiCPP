@@ -1882,7 +1882,7 @@ template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::multiplication(BsiAttribute<uword> *a)const{
     
     BsiAttribute<uword>* res = multiplyWithBsiHorizontal(a);
-    int size = res->bsi.size();
+    int size = size;
     for(int i=0; i< size; i++){
         res->bsi[i].density = res->bsi[i].numberOfOnes()/(double)res->getNumberOfRows();
     }
