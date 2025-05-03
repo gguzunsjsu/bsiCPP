@@ -298,7 +298,7 @@ void BsiAttribute<uword>::setNumberOfSlices(int s){
  */
 template <class uword>
 int BsiAttribute<uword>::getNumberOfSlices()const{
-    return bsi.size();
+    return size;
 }
 
 /**

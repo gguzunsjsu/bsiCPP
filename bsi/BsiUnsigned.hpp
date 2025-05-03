@@ -706,7 +706,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUMunsigned(BsiAttribute<uword>* a)cons
         
         for(i=1; i<minSP; i++){
             //res.bsi[i] = this.bsi[i].xor(a.bsi[i].xor(C));
-            res->bsi[size] = this->XOR(this->bsi[thisIndex], a->bsi[aIndex], C); // check for capacity - 0028?
+            res->bsi[res->size] = this->XOR(this->bsi[thisIndex], a->bsi[aIndex], C); // check for capacity - 0028?
             //res.bsi[i] = this.bsi[i].xor(this.bsi[i], a.bsi[i], C);
             C= this->maj(this->bsi[thisIndex], a->bsi[aIndex], C);
             res->size++;
@@ -731,7 +731,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUMunsigned(BsiAttribute<uword>* a)cons
         }
         //if(!(this.lastSlice && a.lastSlice) && (C.cardinality()>0)){
         if(C.numberOfOnes()>0){
-            res->bsi[size] = C; // check for capacity - 0028?
+            res->bsi[res->size] = C; // check for capacity - 0028?
             res->size++;
         }
         return res;
