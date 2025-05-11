@@ -17,8 +17,17 @@ long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<u
     #ifdef USE_CUDA
     try {
         // Get slices from both BSIs
-        const auto& bsi1_slices = bsi1->getSlice();
-        const auto& bsi2_slices = bsi2->getSlice();
+        std::vector<HybridBitmap<uword>> bsi1_slices;
+        std::vector<HybridBitmap<uword>> bsi2_slices;
+        
+        // Collect all slices from both BSIs
+        for (int i = 0; i < bsi1->getNumberOfSlices(); i++) {
+            bsi1_slices.push_back(bsi1->getSlice(i));
+        }
+        
+        for (int i = 0; i < bsi2->getNumberOfSlices(); i++) {
+            bsi2_slices.push_back(bsi2->getSlice(i));
+        }
         
         // Call the CUDA implementation
         return bsi_dot_product_cuda<uword>(bsi1_slices, bsi2_slices);
@@ -26,11 +35,13 @@ long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<u
         std::cerr << "CUDA dot product failed: " << e.what() << std::endl;
         std::cerr << "Falling back to CPU implementation." << std::endl;
         // Fall back to CPU implementation
-        return bsi1->dot(bsi2);
+        // Need to cast away const since the dot method expects a non-const pointer
+        return bsi1->dot(const_cast<BsiAttribute<uword>*>(bsi2));
     }
     #else
     // Just use regular CPU implementation if CUDA is not enabled
-    return bsi1->dot(bsi2);
+    // Need to cast away const since the dot method expects a non-const pointer
+    return bsi1->dot(const_cast<BsiAttribute<uword>*>(bsi2));
     #endif
 }
 
