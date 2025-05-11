@@ -4,8 +4,10 @@
 #include <random>
 #include <iomanip>
 
-#include "../bsi/BsiUnsigned.hpp"
+// Include in the correct order
 #include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiSigned.hpp"
+#include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/hybridBitmap/bsi_dot_cuda.h"
 
 int main(int argc, char* argv[]) {

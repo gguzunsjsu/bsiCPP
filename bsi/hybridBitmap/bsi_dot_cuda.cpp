@@ -4,6 +4,7 @@
 #include "../BsiUnsigned.hpp"
 #include <iostream>
 
+// Implementation of cuda_dot_available() - declared in bsi_dot_cuda.h
 bool cuda_dot_available() {
     #ifdef USE_CUDA
     return is_cuda_available();

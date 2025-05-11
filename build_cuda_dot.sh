@@ -19,6 +19,10 @@ if [ ! -d "$CUDA_PATH" ]; then
     exit 1
 fi
 
+# Add CUDA to PATH
+export PATH="$CUDA_PATH/bin:$PATH"
+export LD_LIBRARY_PATH="$CUDA_PATH/lib64:$LD_LIBRARY_PATH"
+
 echo "Using CUDA installation at: $CUDA_PATH"
 
 # Create build directory
@@ -27,20 +31,20 @@ cd build
 
 # Compile CUDA kernels
 echo "Compiling CUDA kernels..."
-nvcc -c bsi/hybridBitmap/bsi_dot_cuda.cu -o bsi_dot_cuda.o
+nvcc -c ../bsi/hybridBitmap/bsi_dot_cuda.cu -o bsi_dot_cuda.o
 
 # Compile C++ wrappers
 echo "Compiling C++ wrappers..."
-g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" bsi/hybridBitmap/bsi_dot_cuda_wrapper.cpp -o bsi_dot_cuda_wrapper.o
-g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" bsi/hybridBitmap/bsi_dot_cuda.cpp -o bsi_dot_cuda.o
+g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" ../bsi/hybridBitmap/bsi_dot_cuda_wrapper.cpp -o bsi_dot_cuda_wrapper.o
+g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" ../bsi/hybridBitmap/bsi_dot_cuda.cpp -o bsi_dot_cuda.o
 
 # Compile benchmark
 echo "Compiling benchmark..."
-g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" examples/bsi_dot_benchmark.cpp -o bsi_dot_benchmark.o
+g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" ../examples/bsi_dot_benchmark.cpp -o bsi_dot_benchmark.o
 
 # Link everything
 echo "Linking..."
-g++ bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o bsi_dot_cuda.o -L"$CUDA_PATH/lib64" -lcudart -o bsi_dot_benchmark
+g++ bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o bsi_dot_cuda.o -L"$CUDA_PATH/lib64" -lcudart -o bsi_dot_benchmark -I.. -L../bsi
 
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
