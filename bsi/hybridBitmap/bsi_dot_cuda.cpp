@@ -17,8 +17,8 @@ long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<u
     #ifdef USE_CUDA
     try {
         // Get slices from both BSIs
-        const auto& bsi1_slices = bsi1->getBsiSlices();
-        const auto& bsi2_slices = bsi2->getBsiSlices();
+        const auto& bsi1_slices = bsi1->getSlice();
+        const auto& bsi2_slices = bsi2->getSlice();
         
         // Call the CUDA implementation
         return bsi_dot_product_cuda<uword>(bsi1_slices, bsi2_slices);
