@@ -27,16 +27,16 @@ cd build
 
 # Compile CUDA kernels
 echo "Compiling CUDA kernels..."
-nvcc -c ../bsi/hybridBitmap/bsi_dot_cuda.cu -o bsi_dot_cuda.o
+nvcc -c bsi/hybridBitmap/bsi_dot_cuda.cu -o bsi_dot_cuda.o
 
 # Compile C++ wrappers
 echo "Compiling C++ wrappers..."
-g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" ../bsi/hybridBitmap/bsi_dot_cuda_wrapper.cpp -o bsi_dot_cuda_wrapper.o
-g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" ../bsi/hybridBitmap/bsi_dot_cuda.cpp -o bsi_dot_cuda.o
+g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" bsi/hybridBitmap/bsi_dot_cuda_wrapper.cpp -o bsi_dot_cuda_wrapper.o
+g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" bsi/hybridBitmap/bsi_dot_cuda.cpp -o bsi_dot_cuda.o
 
 # Compile benchmark
 echo "Compiling benchmark..."
-g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" ../examples/bsi_dot_benchmark.cpp -o bsi_dot_benchmark.o
+g++ -c -DUSE_CUDA -I"$CUDA_PATH/include" examples/bsi_dot_benchmark.cpp -o bsi_dot_benchmark.o
 
 # Link everything
 echo "Linking..."
