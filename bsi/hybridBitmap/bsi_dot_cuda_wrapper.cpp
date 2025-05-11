@@ -94,18 +94,28 @@ long long int bsi_dot_product_cuda(
             CHECK_CUDA_ERROR(cudaMalloc(&d_block_results, numBlocks * sizeof(unsigned long long)));
             CHECK_CUDA_ERROR(cudaMalloc(&d_final_result, sizeof(unsigned long long)));
             
-            // Launch kernel to count bits
-            bsi_slice_and_popcount_kernel<<<numBlocks, blockSize, blockSize * sizeof(unsigned long long)>>>(
-                d_slice1, d_slice2, word_count, d_block_results);
+            // Launch kernel to count bits using cudaLaunchKernel instead of <<< >>> syntax
+            void* args[] = { &d_slice1, &d_slice2, &word_count, &d_block_results };
+            dim3 grid(numBlocks, 1, 1);
+            dim3 block(blockSize, 1, 1);
+            size_t sharedMem = blockSize * sizeof(unsigned long long);
+            
+            CHECK_CUDA_ERROR(cudaLaunchKernel((void*)bsi_slice_and_popcount_kernel, 
+                                            grid, block, args, sharedMem, nullptr));
             
             // Check for errors
             CHECK_CUDA_ERROR(cudaGetLastError());
             
             // Reduce results if we have multiple blocks
             if (numBlocks > 1) {
-                bsi_reduce_results_kernel<<<1, 256, 256 * sizeof(unsigned long long)>>>(
-                    d_block_results, numBlocks, d_final_result);
-                    
+                void* reduce_args[] = { &d_block_results, &numBlocks, &d_final_result };
+                dim3 reduce_grid(1, 1, 1);
+                dim3 reduce_block(256, 1, 1);
+                size_t reduce_sharedMem = 256 * sizeof(unsigned long long);
+                
+                CHECK_CUDA_ERROR(cudaLaunchKernel((void*)bsi_reduce_results_kernel,
+                                                reduce_grid, reduce_block, reduce_args, reduce_sharedMem, nullptr));
+                
                 CHECK_CUDA_ERROR(cudaGetLastError());
             }
             

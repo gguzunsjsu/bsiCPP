@@ -6,10 +6,6 @@
 // Forward declaration of HybridBitmap
 template <class uword> class HybridBitmap;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Performs dot product of two BSI bitmap slices on the GPU.
  * This function accelerates the BSI dot product operation by processing
@@ -23,6 +19,10 @@ template <class uword>
 long long int bsi_dot_product_cuda(
     const std::vector<HybridBitmap<uword>>& bsi1_slices, 
     const std::vector<HybridBitmap<uword>>& bsi2_slices);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Helper function to check if CUDA is available and working
