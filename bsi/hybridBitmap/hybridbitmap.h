@@ -3513,18 +3513,27 @@ bool HybridBitmap<uword>::compareBitmap(const HybridBitmap &a) const {
     return true;
 }
 
+#ifdef USE_CUDA
+#include "hybridbitmap_cuda_wrapper.h"
+#endif
+
 template <class uword>
 void HybridBitmap<uword>::andVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const{
-
     container.buffer.reserve(bufferSize());
     container.density=density*a.density;
-    //container.verbatim = false;
+#ifdef USE_CUDA
+    // Only supports uint32_t for CUDA path for now
+    if constexpr (std::is_same<uword, uint32_t>::value) {
+        and_verbatim_cuda(this->buffer, a.buffer, container.buffer);
+        return;
+    }
+#endif
+    // Fallback to CPU
     for (int i = 0; i < buffer.size(); i++) {
         container.addWord(buffer[i] & a.buffer[i]);
     }
-
-
 }
+
 
 template <class uword>
 void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) const {
