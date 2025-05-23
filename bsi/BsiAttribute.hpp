@@ -127,6 +127,7 @@ public:
     BsiAttribute* buildBsiAttributeFromArray(std::vector<uword> &array, int attRows, double compressThreshold);
     BsiAttribute* buildBsiAttributeFromArray(uword array[], long max, long min, long firstRowID, double compressThreshold);
     BsiAttribute<uword>* buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold)const;
+    BsiAttribute<uword>* buildBsiAttributeFromVectorSigned(const std::vector<double> &nums, double compressThreshold=0.5, int precision=5)const;
     BsiAttribute<uword>* buildBsiAttributeFromVector_without_compression(std::vector<long> nums) const;
     BsiAttribute<uword>* buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold)const;
     //BsiAttribute<uword>* buildBsiAttributeFromPyList(py::list nums, double compressThreshold)const;
@@ -608,6 +609,14 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     return res;
 };
 
+template <class uword>
+BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(const std::vector<double> &nums, double compressThreshold, int precision) const{
+    std::vector<long> quantized_nums(nums.size());
+    BsiAttribute<uword>* res = buildBsiAttributeFromVectorSigned(quantized_nums,compressThreshold);
+    res->decimals = precision;
+    return res;
+}
+
 /*
 Build bsi attribute without compression
 */
@@ -827,9 +836,9 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     res->existenceBitmap.density=1;
     res->lastSlice=true;
     res->firstSlice=true;
-    //res->twosComplement = false;
+    res->twosComplement = false;
     res->rows = numberOfElements;
-    //res->is_signed = true;
+    res->is_signed = true;
     return res;
 };
 

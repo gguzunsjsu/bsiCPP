@@ -451,7 +451,8 @@ BsiAttribute<uword>* BsiSigned<uword>::convertToTwos(int bits){
  */
 template <class uword>
 long BsiSigned<uword>::getValue(int i) const{
-    if(this->twosComplement){ // not implemented for compressed
+    if(this->twosComplement){
+        if (this->size == 0) return 0;
         bool sign = this->bsi[this->size-1].get(i);
         long sum=0;
         HybridBitmap<uword> B_i;
