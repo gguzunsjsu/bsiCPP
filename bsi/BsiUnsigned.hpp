@@ -438,22 +438,22 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             allOnes.setSizeInBits(this->bsi[0].sizeInBits(),true);
             allOnes.density=1;
             if ((a&1)==0){
-                res->bsi.push_back(this->bsi[0]);
+                res->bsi[size] = this->bsi[0];
                 C = zeroBitmap;
             }
             else{
-                res->bsi.push_back(this->bsi[0].logicalnot());
+                res->bsi[size] = this->bsi[0].logicalnot();
                 C=this->bsi[0];
             }
             res->size++;
             int i;
             for(i=1;i<minSP;i++){
                 if((a&(1<<i))!=0){
-                    res->bsi.push_back(C.xorNot(this->bsi[i]));
+                    res->bsi[size] = (C.xorNot(this->bsi[i]));
                     //res.bsi[i] = C.xor(this.bsi[i].NOT());
                     C=this->bsi[i].Or(C);
                 }else{
-                    res->bsi.push_back(this->bsi[i].Xor(C));
+                    res->bsi[size] = this->bsi[i].Xor(C);
                     C=this->bsi[i].And(C);
                 }
                 res->size++;
@@ -462,11 +462,11 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             if(this->size>minSP){
                 while(i<this->size){
                     if(cCard>0){
-                        res->bsi.push_back(this->bsi[i].Xor(C));
+                        res->bsi[size] = this->bsi[i].Xor(C);
                         C=this->bsi[i].And(C);
                         cCard=C.numberOfOnes();
                     }else{
-                        res->bsi.push_back(this->bsi[i]);
+                        res->bsi[size] = this->bsi[i];
                     }
                     res->size++;
                     i++;
@@ -475,16 +475,16 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
                 while (i<intSize){
                     if(cCard>0){
                         if((a&(1<<i))!=0){
-                            res->bsi.push_back(C.logicalnot());
+                            res->bsi[size] = C.logicalnot();
                         }else{
-                            res->bsi.push_back(C);
+                            res->bsi[size] = C;
                             C=zeroBitmap;
                             cCard=0;
                         }
                         
                     }else{
                         if((a&(1<<i))!=0){res->bsi[i]=allOnes;
-                        }else {res->bsi.push_back(zeroBitmap);}
+                        }else {res->bsi[size] = zeroBitmap;}
                         
                     }
                     res->size++;
@@ -492,7 +492,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
                 }
             }
             if(cCard>0){
-                res->bsi.push_back(C);
+                res->bsi[size] = C;
                 res->size++;
             }
             
