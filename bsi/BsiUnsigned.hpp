@@ -438,22 +438,22 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             allOnes.setSizeInBits(this->bsi[0].sizeInBits(),true);
             allOnes.density=1;
             if ((a&1)==0){
-                res->bsi[size] = this->bsi[0];
+                res->bsi[res->size] = this->bsi[0];
                 C = zeroBitmap;
             }
             else{
-                res->bsi[size] = this->bsi[0].logicalnot();
+                res->bsi[res->size] = this->bsi[0].logicalnot();
                 C=this->bsi[0];
             }
             res->size++;
             int i;
             for(i=1;i<minSP;i++){
                 if((a&(1<<i))!=0){
-                    res->bsi[size] = (C.xorNot(this->bsi[i]));
+                    res->bsi[res->size] = (C.xorNot(this->bsi[i]));
                     //res.bsi[i] = C.xor(this.bsi[i].NOT());
                     C=this->bsi[i].Or(C);
                 }else{
-                    res->bsi[size] = this->bsi[i].Xor(C);
+                    res->bsi[res->size] = this->bsi[i].Xor(C);
                     C=this->bsi[i].And(C);
                 }
                 res->size++;
@@ -462,11 +462,11 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
             if(this->size>minSP){
                 while(i<this->size){
                     if(cCard>0){
-                        res->bsi[size] = this->bsi[i].Xor(C);
+                        res->bsi[res->size] = this->bsi[i].Xor(C);
                         C=this->bsi[i].And(C);
                         cCard=C.numberOfOnes();
                     }else{
-                        res->bsi[size] = this->bsi[i];
+                        res->bsi[res->size] = this->bsi[i];
                     }
                     res->size++;
                     i++;
@@ -475,16 +475,16 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
                 while (i<intSize){
                     if(cCard>0){
                         if((a&(1<<i))!=0){
-                            res->bsi[size] = C.logicalnot();
+                            res->bsi[res->size] = C.logicalnot();
                         }else{
-                            res->bsi[size] = C;
+                            res->bsi[res->size] = C;
                             C=zeroBitmap;
                             cCard=0;
                         }
                         
                     }else{
                         if((a&(1<<i))!=0){res->bsi[i]=allOnes;
-                        }else {res->bsi[size] = zeroBitmap;}
+                        }else {res->bsi[res->size] = zeroBitmap;}
                         
                     }
                     res->size++;
@@ -492,7 +492,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
                 }
             }
             if(cCard>0){
-                res->bsi[size] = C;
+                res->bsi[res->size] = C;
                 res->size++;
             }
             
@@ -698,7 +698,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUMunsigned(BsiAttribute<uword>* a)cons
         return res;
     }else {
         
-        res->bsi[size] = this->bsi[thisIndex].Xor(a->bsi[aIndex]); // check for capacity - 0028?
+        res->bsi[res->size] = this->bsi[thisIndex].Xor(a->bsi[aIndex]); // check for capacity - 0028?
         HybridBitmap<uword> C = this->bsi[thisIndex].And(a->bsi[aIndex]);
         res->size++;
         thisIndex++;

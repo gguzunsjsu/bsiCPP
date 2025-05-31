@@ -72,7 +72,7 @@ int main() {
     std::cout << "resultBsi 1: " << resultBsi->getValue(1) << std::endl;
     std::cout << "resultBsi 2: " << resultBsi->getValue(2) << std::endl;
 
-    std::cout << "2: SUM - dividend + result" << std::endl;
+    std::cout << "2: SUM - two + result" << std::endl;
     resultBsi2 = two_bsi->SUM(resultBsi);
 
     std::cout << "resultBsi2 size: " << resultBsi2 << std::endl;
