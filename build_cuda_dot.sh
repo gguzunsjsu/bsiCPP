@@ -19,7 +19,14 @@ find_cuda() {
 }
 
 # Find CUDA path
-CUDA_PATH=$(find_cuda)
+# Use environment-provided CUDA path if available
+if [ -n "$CUDA_HOME" ] && [ -d "$CUDA_HOME" ]; then
+    CUDA_PATH="$CUDA_HOME"
+elif [ -n "$CUDA_ROOT" ] && [ -d "$CUDA_ROOT" ]; then
+    CUDA_PATH="$CUDA_ROOT"
+else
+    CUDA_PATH=$(find_cuda)
+fi
 
 # Check if CUDA path was found
 if [ -z "$CUDA_PATH" ]; then
