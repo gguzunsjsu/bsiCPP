@@ -51,8 +51,8 @@ CUDA_DEFINES=""
 
 # Set up compilation flags based on CUDA availability
 if [ "$HAS_CUDA" -eq 1 ]; then
-    CUDA_INCLUDE="-I\"$CUDA_PATH/include\""
-    CUDA_LIBS="-L\"$CUDA_PATH/lib64\" -lcudart"
+    CUDA_INCLUDE="-I$CUDA_PATH/include"
+    CUDA_LIBS="-L$CUDA_PATH/lib64 -lcudart"
     CUDA_DEFINES="-DUSE_CUDA"
     
     # Compile CUDA kernels
