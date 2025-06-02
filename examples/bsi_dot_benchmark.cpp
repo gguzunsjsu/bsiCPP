@@ -4,9 +4,8 @@
 #include <random>
 #include <iomanip>
 
-// Include in the correct order
+// Only include what we need
 #include "../bsi/BsiAttribute.hpp"
-#include "../bsi/BsiSigned.hpp"
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/hybridBitmap/bsi_dot_cuda.h"
 
