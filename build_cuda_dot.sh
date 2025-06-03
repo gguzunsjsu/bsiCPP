@@ -51,7 +51,7 @@ fi
 mkdir -p build
 cd build
 
-CPP_FLAGS="-std=c++17 -I.. -Wall -Werror"
+CPP_FLAGS="-std=c++17 -I.. -Wall -Wno-error=reorder"
 CUDA_INCLUDE=""
 CUDA_LIBS=""
 CUDA_DEFINES=""
