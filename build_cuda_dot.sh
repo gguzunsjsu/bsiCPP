@@ -86,6 +86,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Compile BSI source files that have non-header implementations (currently mostly empty but future-proof)
+# These compile quickly and avoid undefined reference errors if functions move into .cpp files.
+
+echo "Compiling BsiSigned / BsiUnsigned (if any)..."
+g++ $CPP_FLAGS -c ../bsi/BsiSigned.cpp -o BsiSigned.o
+if [ $? -ne 0 ]; then
+    echo "Error compiling BsiSigned.cpp"; exit 1; fi
+
+g++ $CPP_FLAGS -c ../bsi/BsiUnsigned.cpp -o BsiUnsigned.o
+if [ $? -ne 0 ]; then
+    echo "Error compiling BsiUnsigned.cpp"; exit 1; fi
+
 # Compile benchmark
 echo "Compiling benchmark..."
 g++ $CPP_FLAGS $CUDA_INCLUDE $CUDA_DEFINES -c ../examples/bsi_dot_benchmark.cpp -o bsi_dot_benchmark.o
@@ -97,9 +109,9 @@ fi
 # Link everything
 echo "Linking..."
 if [ "$HAS_CUDA" -eq 1 ]; then
-    g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o bsi_dot_cuda_kernel.o $CUDA_LIBS -o bsi_dot_benchmark
+    g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o bsi_dot_cuda_kernel.o BsiSigned.o BsiUnsigned.o $CUDA_LIBS -o bsi_dot_benchmark
 else
-    g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o -o bsi_dot_benchmark
+    g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o BsiSigned.o BsiUnsigned.o -o bsi_dot_benchmark
 fi
 
 # Check if compilation was successful
