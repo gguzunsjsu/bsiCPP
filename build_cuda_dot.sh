@@ -51,7 +51,7 @@ fi
 mkdir -p build
 cd build
 
-CPP_FLAGS="-std=c++17 -I.. -Wall"
+CPP_FLAGS="-std=c++17 -I.. -Wall -Werror"
 CUDA_INCLUDE=""
 CUDA_LIBS=""
 CUDA_DEFINES=""

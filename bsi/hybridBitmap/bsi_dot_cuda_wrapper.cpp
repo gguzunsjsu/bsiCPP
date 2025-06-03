@@ -3,6 +3,8 @@
 #include <cuda_runtime.h>
 #include <iostream>
 #include <stdexcept>
+#include <type_traits> // Added for std::is_same
+#include <algorithm>    // Added for std::min
 
 // Forward declarations of CUDA kernel functions
 extern "C" void bsi_slice_and_popcount_kernel(

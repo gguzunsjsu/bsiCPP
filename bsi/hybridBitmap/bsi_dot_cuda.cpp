@@ -3,6 +3,7 @@
 #include "../BsiAttribute.hpp"
 #include "../BsiUnsigned.hpp"
 #include <iostream>
+#include <vector>
 
 // Implementation of cuda_dot_available() - declared in bsi_dot_cuda.h
 bool cuda_dot_available() {
