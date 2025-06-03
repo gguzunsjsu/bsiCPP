@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
         
         // Verify results
         if (bsi_cpu_dot == bsi_gpu_dot) {
-            std::cout << "\n✓ CPU and GPU results match!" << std::endl;
+            std::cout << "\n CPU and GPU results match!" << std::endl;
         } else {
-            std::cout << "\n✗ CPU and GPU results don't match!" << std::endl;
+            std::cout << "\n CPU and GPU results don't match!" << std::endl;
             std::cout << "Difference: " << (bsi_cpu_dot - bsi_gpu_dot) << std::endl;
         }
     }

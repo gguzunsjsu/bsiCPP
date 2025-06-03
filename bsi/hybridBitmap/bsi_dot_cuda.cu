@@ -2,10 +2,7 @@
 #include <device_launch_parameters.h>
 #include <stdint.h>
 
-/**
- * CUDA kernel for performing AND operation between two bitmap slices and counting set bits
- * Each thread processes one or more words from the bitmap slices
- */
+
 extern "C" __global__ void bsi_slice_and_popcount_kernel(
     const uint64_t* slice1,
     const uint64_t* slice2,
@@ -21,7 +18,7 @@ extern "C" __global__ void bsi_slice_and_popcount_kernel(
     // Each thread processes one or more words
     while (idx < word_count) {
         uint64_t word = slice1[idx] & slice2[idx];
-        count += __popcll(word); // Count bits set in the word using CUDA intrinsic
+        count += __popcll(word); 
         idx += blockDim.x * gridDim.x;
     }
     
@@ -43,9 +40,7 @@ extern "C" __global__ void bsi_slice_and_popcount_kernel(
     }
 }
 
-/**
- * CUDA kernel to perform final reduction of partial results
- */
+
 extern "C" __global__ void bsi_reduce_results_kernel(
     unsigned long long* partial_results,
     int count,

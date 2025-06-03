@@ -1,9 +1,5 @@
-#!/bin/bash
-# Compilation script for BSI dot product CUDA acceleration
-
-# Function to find CUDA installation
 find_cuda() {
-    # Try common locations
+    
     for path in \
         "/opt/ohpc/pub/apps/nvidia/nvhpc/24.11/Linux_x86_64/24.11/cuda/12.6/targets/x86_64-linux" \
         "/usr/local/cuda" \

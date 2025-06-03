@@ -3,8 +3,8 @@
 #include <cuda_runtime.h>
 #include <iostream>
 #include <stdexcept>
-#include <type_traits> // Added for std::is_same
-#include <algorithm>    // Added for std::min
+#include <type_traits> 
+#include <algorithm>   
 
 // Forward declarations of CUDA kernel functions
 extern "C" void bsi_slice_and_popcount_kernel(
@@ -51,7 +51,6 @@ long long int bsi_dot_product_cuda(
     const std::vector<HybridBitmap<uword>>& bsi1_slices, 
     const std::vector<HybridBitmap<uword>>& bsi2_slices)
 {
-    // Currently only supports uint64_t
     if constexpr (!std::is_same<uword, uint64_t>::value) {
         throw std::runtime_error("CUDA BSI dot product currently only supports uint64_t");
     }
