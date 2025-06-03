@@ -59,8 +59,25 @@ CUDA_DEFINES=""
 # Set up compilation flags based on CUDA availability
 if [ "$HAS_CUDA" -eq 1 ]; then
     CUDA_INCLUDE="-I$CUDA_PATH/include"
-    CUDA_LIBS="-L$CUDA_PATH/lib64 -lcudart"
-    CUDA_DEFINES="-DUSE_CUDA"
+
+    # Try to locate libcudart in common subdirectories
+    CUDA_LIB_PATH=""
+    for libdir in "$CUDA_PATH/lib64" "$CUDA_PATH/lib" "$CUDA_PATH/targets/x86_64-linux/lib" "$CUDA_PATH/targets/x86_64-linux/lib64" "$CUDA_PATH/targets/x86_64-linux/lib/stubs"; do
+        if [ -e "$libdir/libcudart.so" ] || [ -e "$libdir/libcudart_static.a" ]; then
+            CUDA_LIB_PATH="$libdir"
+            break
+        fi
+    done
+
+    if [ -z "$CUDA_LIB_PATH" ]; then
+        echo "Error: Could not locate libcudart.so in $CUDA_PATH. Falling back to CPU-only build."
+        HAS_CUDA=0
+        CUDA_DEFINES=""
+    else
+        CUDA_LIBS="-L$CUDA_LIB_PATH -lcudart"
+        # Ensure runtime loader can find the library when running executable
+        export LD_LIBRARY_PATH="$CUDA_LIB_PATH:$LD_LIBRARY_PATH"
+    fi
     
     # Compile CUDA kernels
     echo "Compiling CUDA kernels..."
