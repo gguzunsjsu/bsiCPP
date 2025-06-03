@@ -75,6 +75,8 @@ if [ "$HAS_CUDA" -eq 1 ]; then
         CUDA_DEFINES=""
     else
         CUDA_LIBS="-L$CUDA_LIB_PATH -lcudart"
+        # Define USE_CUDA for compilation since CUDA is available
+        CUDA_DEFINES="-DUSE_CUDA"
         # Ensure runtime loader can find the library when running executable
         export LD_LIBRARY_PATH="$CUDA_LIB_PATH:$LD_LIBRARY_PATH"
     fi
