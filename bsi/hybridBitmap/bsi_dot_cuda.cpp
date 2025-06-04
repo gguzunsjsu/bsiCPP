@@ -127,6 +127,7 @@ int cuda_get_cores_per_sm() {
         case 86: coresPerSM = 128; break;
         case 80: coresPerSM = 64;  break; 
         default: coresPerSM = 64;  break;
+    }
     return coresPerSM;
 #else
     return 0;
