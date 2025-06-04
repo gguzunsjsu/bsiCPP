@@ -111,6 +111,28 @@ int cuda_get_sm_count() {
 #endif
 }
 
+int cuda_get_cores_per_sm() {
+#ifdef USE_CUDA
+    int dev_count = 0;
+    cudaError_t err_count = cudaGetDeviceCount(&dev_count);
+    if (err_count != cudaSuccess || dev_count == 0) return 0;
+
+    cudaDeviceProp prop;
+    cudaError_t err_prop = cudaGetDeviceProperties(&prop, 0); // Assuming device 0
+    if (err_prop != cudaSuccess) return 0;
+
+    int coresPerSM;
+    switch (prop.major * 10 + prop.minor) {
+        case 90: coresPerSM = 128; break; 
+        case 86: coresPerSM = 128; break;
+        case 80: coresPerSM = 64;  break; 
+        default: coresPerSM = 64;  break;
+    return coresPerSM;
+#else
+    return 0;
+#endif
+}
+
 // Explicit template instantiations
 template long long int bsi_dot_cuda<uint64_t>(
     const BsiAttribute<uint64_t>* bsi1, 

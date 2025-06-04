@@ -101,8 +101,16 @@ int main(int argc, char* argv[]) {
         if (total_sms > 0) { 
             std::cout << "Launched blocks for kernel: " << launched_blocks << std::endl;
             std::cout << "Total SMs on device: " << total_sms << std::endl;
-            std::cout << "Estimated SMs utilized: " << std::min(launched_blocks, total_sms) 
+            int estimated_sms_utilized = std::min(launched_blocks, total_sms);
+            std::cout << "Estimated SMs utilized: " << estimated_sms_utilized 
                       << " (based on launched blocks vs available SMs)" << std::endl;
+            int cores_per_sm = cuda_get_cores_per_sm();
+            if (cores_per_sm > 0) {
+                std::cout << "Estimated CUDA Cores utilized: " << estimated_sms_utilized * cores_per_sm << std::endl;
+            }
+            // Assuming block size of 256 for the main kernel, as set in bsi_dot_cuda_wrapper.cpp
+            const int kernel_block_size = 256;
+            std::cout << "Estimated Threads launched: " << launched_blocks * kernel_block_size << std::endl;
         }
     }
     

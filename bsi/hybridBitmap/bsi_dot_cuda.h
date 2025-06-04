@@ -41,6 +41,11 @@ int cuda_get_last_kernel_num_blocks();
  */
 int cuda_get_sm_count();
 
+/**
+ * Return the number of CUDA cores per SM for the current device.
+ */
+int cuda_get_cores_per_sm();
+
 /** Print GPU device information (name, SMs, cores, etc.) only if CUDA is
  * available.  Safe to call multiple times; information is printed once.
  */
