@@ -88,10 +88,13 @@ int main(int argc, char* argv[]) {
     long long bsi_gpu_dot = 0;
     long long bsi_gpu_time = 0;
     if (cuda_available) {
+        cuda_print_device_info(); // Print GPU info before benchmark
+
         t1 = std::chrono::high_resolution_clock::now();
         bsi_gpu_dot = bsi_dot_cuda(bsi1, bsi2);
         t2 = std::chrono::high_resolution_clock::now();
         bsi_gpu_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
+        std::cout << "BSI GPU kernel-only time: " << cuda_last_kernel_time_ms() << " ms" << std::endl;
     }
     
     // Print results

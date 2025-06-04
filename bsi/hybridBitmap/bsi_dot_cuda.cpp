@@ -22,9 +22,9 @@ void cuda_print_device_info() {
     cudaGetDeviceProperties(&prop, 0);
     int coresPerSM;
     switch (prop.major * 10 + prop.minor) {
-        case 90: coresPerSM = 128; break; // Hopper (Ada/H100)
-        case 86: coresPerSM = 128; break; // Ampere
-        case 80: coresPerSM = 64;  break; // Ampere GA100
+        case 90: coresPerSM = 128; break; 
+        case 86: coresPerSM = 128; break; 
+        case 80: coresPerSM = 64;  break; 
         default: coresPerSM = 64;  break; }
     int totalCores = coresPerSM * prop.multiProcessorCount;
     std::cout << "CUDA Device: " << prop.name << " | SMs: " << prop.multiProcessorCount
