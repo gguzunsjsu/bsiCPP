@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
         std::cout << "CUDA is not available. Running CPU-only benchmark." << std::endl;
     }
     
-    std::cout << "\nGenerating random data..." << std::endl;
+    std::cout << "\n Generating random data..." << std::endl;
     
     // Generate random data
     std::vector<long> array1(vectorLen);

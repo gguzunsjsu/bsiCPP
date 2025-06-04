@@ -88,8 +88,10 @@ long long int bsi_dot_product_cuda(
 
             // Configure kernel
             int blockSize = 256;
+            // Launch enough blocks to cover the buffer; allow up to 65k which is gridDim.x limit on
+            // modern GPUs (compute capability ≥ 2.x). This effectively uses all available SMs.
             int numBlocks = (word_count + blockSize - 1) / blockSize;
-            numBlocks = std::min(numBlocks, 1024); // Cap at reasonable number
+            numBlocks = std::min(numBlocks, 65535);
             
             // Allocate memory for partial results
             CHECK_CUDA_ERROR(cudaMalloc(&d_block_results, numBlocks * sizeof(unsigned long long)));

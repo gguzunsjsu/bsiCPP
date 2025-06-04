@@ -22,3 +22,15 @@ long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<u
  * @return true if CUDA is available, false otherwise
  */
 bool cuda_dot_available();
+
+/**
+ * Return the duration (in milliseconds) of the last CUDA kernel(s) executed by
+ * bsi_dot_cuda. This excludes host-side memory copies – only time measured on
+ * device using CUDA events.
+ */
+float cuda_last_kernel_time_ms();
+
+/** Print GPU device information (name, SMs, cores, etc.) only if CUDA is
+ * available.  Safe to call multiple times; information is printed once.
+ */
+void cuda_print_device_info();
