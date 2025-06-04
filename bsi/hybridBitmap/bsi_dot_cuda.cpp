@@ -4,6 +4,9 @@
 #include "../BsiUnsigned.hpp"
 #include <iostream>
 #include <vector>
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+#endif
 
 // Keep last kernel elapsed milliseconds in a static var
 static float g_last_kernel_ms = 0.0f;
