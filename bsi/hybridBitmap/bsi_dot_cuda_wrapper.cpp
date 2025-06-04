@@ -4,7 +4,10 @@
 #include <iostream>
 #include <stdexcept>
 #include <type_traits> 
-#include <algorithm>   
+#include <algorithm>
+
+// Global variable defined in bsi_dot_cuda.cpp to store the number of blocks from the last kernel launch
+extern int g_last_kernel_num_blocks;   
 
 // Forward declarations of CUDA kernel functions
 extern "C" void bsi_slice_and_popcount_kernel(
@@ -92,6 +95,7 @@ long long int bsi_dot_product_cuda(
             // modern GPUs (compute capability ≥ 2.x). This effectively uses all available SMs.
             int numBlocks = (word_count + blockSize - 1) / blockSize;
             numBlocks = std::min(numBlocks, 65535);
+            g_last_kernel_num_blocks = numBlocks; // Store the number of blocks launched
             
             // Allocate memory for partial results
             CHECK_CUDA_ERROR(cudaMalloc(&d_block_results, numBlocks * sizeof(unsigned long long)));

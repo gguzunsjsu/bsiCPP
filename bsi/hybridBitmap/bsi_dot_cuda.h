@@ -30,6 +30,17 @@ bool cuda_dot_available();
  */
 float cuda_last_kernel_time_ms();
 
+/**
+ * Return the number of blocks launched by the last CUDA kernel(s) executed by
+ * bsi_dot_cuda.
+ */
+int cuda_get_last_kernel_num_blocks();
+
+/**
+ * Return the number of Streaming Multiprocessors (SMs) on the current CUDA device.
+ */
+int cuda_get_sm_count();
+
 /** Print GPU device information (name, SMs, cores, etc.) only if CUDA is
  * available.  Safe to call multiple times; information is printed once.
  */

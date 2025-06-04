@@ -95,6 +95,15 @@ int main(int argc, char* argv[]) {
         t2 = std::chrono::high_resolution_clock::now();
         bsi_gpu_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
         std::cout << "BSI GPU kernel-only time: " << cuda_last_kernel_time_ms() << " ms" << std::endl;
+
+        int launched_blocks = cuda_get_last_kernel_num_blocks();
+        int total_sms = cuda_get_sm_count();
+        if (total_sms > 0) { 
+            std::cout << "Launched blocks for kernel: " << launched_blocks << std::endl;
+            std::cout << "Total SMs on device: " << total_sms << std::endl;
+            std::cout << "Estimated SMs utilized: " << std::min(launched_blocks, total_sms) 
+                      << " (based on launched blocks vs available SMs)" << std::endl;
+        }
     }
     
     // Print results

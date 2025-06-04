@@ -10,6 +10,8 @@
 
 // Keep last kernel elapsed milliseconds in a static var
 static float g_last_kernel_ms = 0.0f;
+// Keep last kernel launched blocks in a global (extern in header)
+int g_last_kernel_num_blocks = 0;
 
 float cuda_last_kernel_time_ms() { return g_last_kernel_ms; }
 
@@ -82,6 +84,30 @@ long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<u
     // Just use regular CPU implementation if CUDA is not enabled
     // Need to cast away const since the dot method expects a non-const pointer
     return bsi1->dot(const_cast<BsiAttribute<uword>*>(bsi2));
+#endif
+}
+
+int cuda_get_last_kernel_num_blocks() {
+    return g_last_kernel_num_blocks;
+}
+
+int cuda_get_sm_count() {
+#ifdef USE_CUDA
+    int device_count = 0;
+    cudaError_t err_count = cudaGetDeviceCount(&device_count);
+    if (err_count != cudaSuccess || device_count == 0) {
+        // std::cerr << "Error getting CUDA device count or no devices found." << std::endl;
+        return 0;
+    }
+    cudaDeviceProp prop;
+    cudaError_t err_prop = cudaGetDeviceProperties(&prop, 0); // Assuming device 0
+    if (err_prop != cudaSuccess) {
+        // std::cerr << "Error getting CUDA device properties." << std::endl;
+        return 0;
+    }
+    return prop.multiProcessorCount;
+#else
+    return 0;
 #endif
 }
 
