@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     long long vector_gpu_time = 0;            // microseconds (kernel-only)
     if (cuda_available) {
         cuda_print_device_info();
-        cout << "\n Cuda available for vector dot product\n";
+        std::cout << "\n Cuda available for vector dot product" << std::endl;
         // Kernel-only timing returned via global helper
         vector_dot_gpu = vector_dot_cuda(array1, array2);
         vector_gpu_time = static_cast<long long>(cuda_last_kernel_time_ms() * 1000.0); // µs
