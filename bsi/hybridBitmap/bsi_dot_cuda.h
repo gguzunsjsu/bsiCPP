@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 // Forward declarations
 template <class uword> class BsiAttribute;
@@ -16,6 +17,15 @@ template <class uword> class BsiUnsigned;
  */
 template <class uword>
 long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<uword>* bsi2);
+
+/**
+ * CUDA-accelerated dot product for vectors
+ * 
+ * @param vec1 First vector
+ * @param vec2 Second vector
+ * @return The dot product result
+ */
+long long int vector_dot_cuda(const std::vector<long>& vec1, const std::vector<long>& vec2);
 
 /**
  * Check if CUDA acceleration is available

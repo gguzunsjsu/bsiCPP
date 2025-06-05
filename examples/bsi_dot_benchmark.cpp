@@ -70,13 +70,28 @@ int main(int argc, char* argv[]) {
     
     // Compute dot product using vectors (baseline)
     std::cout << "\nRunning dot product benchmarks..." << std::endl;
-    t1 = std::chrono::high_resolution_clock::now();
     long long vector_dot = 0;
-    for (int i = 0; i < vectorLen; i++) {
-        vector_dot += array1[i] * array2[i];
+    long long vector_time = 0;
+    if (cuda_available) {
+        cuda_print_device_info();
+        t1 = std::chrono::high_resolution_clock::now();
+        vector_dot = vector_dot_cuda(array1, array2);
+        t2 = std::chrono::high_resolution_clock::now();
+        vector_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
+        std::cout << "Vector GPU kernel-only time: " << cuda_last_kernel_time_ms() << " ms" << std::endl;
+        int launched_blocks_v = cuda_get_last_kernel_num_blocks();
+        int total_sms_v = cuda_get_sm_count();
+        const int kernel_block_size_v = 256;
+        std::cout << "Vector GPU launched blocks: " << launched_blocks_v << std::endl;
+        std::cout << "Vector GPU threads launched: " << launched_blocks_v * kernel_block_size_v << std::endl;
+    } else {
+        t1 = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < vectorLen; i++) {
+            vector_dot += array1[i] * array2[i];
+        }
+        t2 = std::chrono::high_resolution_clock::now();
+        vector_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
     }
-    t2 = std::chrono::high_resolution_clock::now();
-    auto vector_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
     
     // Compute dot product using BSI CPU
     t1 = std::chrono::high_resolution_clock::now();
