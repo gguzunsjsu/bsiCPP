@@ -176,19 +176,33 @@ long long int vector_dot_cuda(const std::vector<long>& vec1, const std::vector<l
     cudaEvent_t startEvt, stopEvt; cudaEventCreate(&startEvt); cudaEventCreate(&stopEvt);
     cudaEventRecord(startEvt);
 
+    // --------------------------------------------
+    // 1. Dot-product kernel (produces one partial per block)
+    // --------------------------------------------
     void* args[] = { &d_vec1, &d_vec2, &n, &d_partial };
     size_t sharedMem = blockSize * sizeof(long long);
     CHECK_CUDA_ERROR(cudaLaunchKernel((void*)vector_dot_kernel, grid, block, args, sharedMem, nullptr));
     CHECK_CUDA_ERROR(cudaGetLastError());
 
-    // reduction kernel if needed
-    if (numBlocks > 1) {
-        int reduceBlocks = 1;
-        void* redArgs[] = { &d_partial, &numBlocks };
-        CHECK_CUDA_ERROR(cudaLaunchKernel((void*)reduce_long_kernel, dim3(reduceBlocks), dim3(256), redArgs, 256 * sizeof(long long), nullptr));
+    g_last_kernel_num_blocks = numBlocks; // store blocks of the *main* kernel
+
+    // --------------------------------------------
+    // 2. Hierarchical reduction of d_partial until a single value remains
+    // --------------------------------------------
+    int partialCount = numBlocks;
+    while (partialCount > 1) {
+        int threads = (partialCount >= 256) ? 256 : partialCount;
+        int blocks = (partialCount + threads - 1) / threads;
+        void* redArgs[] = { &d_partial, &partialCount };
+        CHECK_CUDA_ERROR(cudaLaunchKernel((void*)reduce_long_kernel,
+                                          dim3(blocks), dim3(threads), redArgs,
+                                          threads * sizeof(long long), nullptr));
         CHECK_CUDA_ERROR(cudaGetLastError());
+        // Next iteration will operate on the first <blocks> elements
+        partialCount = blocks;
     }
 
+    // Record end event after final reduction kernel launches
     cudaEventRecord(stopEvt); cudaEventSynchronize(stopEvt);
     float ms = 0; cudaEventElapsedTime(&ms, startEvt, stopEvt);
     g_last_kernel_ms = ms; // reuse global timing var
@@ -200,7 +214,6 @@ long long int vector_dot_cuda(const std::vector<long>& vec1, const std::vector<l
     cudaFree(d_vec1); cudaFree(d_vec2); cudaFree(d_partial);
     cudaEventDestroy(startEvt); cudaEventDestroy(stopEvt);
 
-    g_last_kernel_num_blocks = numBlocks;
     return result;
 #else
     throw std::runtime_error("CUDA not available for vector dot product");
