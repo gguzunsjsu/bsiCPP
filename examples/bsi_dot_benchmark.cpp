@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Memory used per BSI attribute: " << bsi1->getSizeInMemory()/(1024*1024) << " MB" << std::endl;
 
     // Repeat each benchmark 1000 times and average
-    const int runs = 1000;
+    const int runs = 1;
     std::vector<long long> vecCpuTimes(runs), vecGpuTimes(runs), bsiCpuTimes(runs), bsiGpuTimes(runs);
     long long vecCpuDot=0, vecGpuDot=0, bsiCpuDotVal=0, bsiGpuDotVal=0;
 
