@@ -4,6 +4,7 @@
 #include <random>
 #include <iomanip>
 #include <numeric>
+#include <cuda_runtime.h>
 
 // Only include what we need
 #include "../bsi/BsiAttribute.hpp"
@@ -68,6 +69,13 @@ int main(int argc, char* argv[]) {
     auto build_time = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
     std::cout << "BSI build time: " << build_time << " ms" << std::endl;
     std::cout << "Memory used per BSI attribute: " << bsi1->getSizeInMemory()/(1024*1024) << " MB" << std::endl;
+
+    if (cuda_available) {
+        // Warm up GPU: create context & compile kernels (exclude one-time overhead)
+        cudaFree(0);
+        vector_dot_cuda(array1, array2);
+        bsi_dot_cuda(bsi1, bsi2);
+    }
 
     // Repeat each benchmark 1000 times and average
     const int runs = 1;
