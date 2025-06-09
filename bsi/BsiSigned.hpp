@@ -114,14 +114,14 @@ BsiSigned<uword>::~BsiSigned(){
 template <class uword>
 BsiSigned<uword>::BsiSigned() {
     this->size = 0;
-    this->bsi.reserve(BsiAttribute<uword>::bits);
+    this->bsi.resize(BsiAttribute<uword>::bits);
     this->is_signed =true;
 }
 
 template <class uword>
 BsiSigned<uword>::BsiSigned(int maxSize) {
     this->size = 0;
-    this->bsi.reserve(maxSize);
+    this->bsi.resize(maxSize);
     this->is_signed =true;
 }
 

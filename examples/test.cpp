@@ -20,6 +20,7 @@ void testUncompressedShift();
 void testCompressedShift();
 void testBuiltinOperators();
 void testRelu();
+void testSumConstant();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -27,8 +28,23 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testRelu();
+    testSumConstant();
     return 0;
+}
+
+void testSumConstant() {
+    vector<long> v = {6,4,3};
+    long c = 0;
+    BsiSigned<uint64_t> bsi;
+    BsiAttribute<uint64_t> *test = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    BsiAttribute<uint64_t> *sol = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    test = test->SUM(c);
+    for (int i=0; i<v.size(); i++) {
+        if (test->getValue(i) != sol->getValue(i)) {
+            cout << "Got " << test->getValue(i) << " but expected " << sol->getValue(i);
+            break;
+        }
+    }
 }
 
 void testRelu() {

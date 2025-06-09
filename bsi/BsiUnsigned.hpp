@@ -108,13 +108,13 @@ BsiUnsigned<uword>::~BsiUnsigned(){
 template <class uword>
 BsiUnsigned<uword>::BsiUnsigned() {
     this->size = 0;
-    this->bsi.reserve(32);
+    this->bsi.resize(32);
 }
 
 template <class uword>
 BsiUnsigned<uword>::BsiUnsigned(int maxSize) {
     this->size = 0;
-    this->bsi.reserve(maxSize);
+    this->bsi.resize(maxSize);
 }
 /**
  *
@@ -124,7 +124,7 @@ BsiUnsigned<uword>::BsiUnsigned(int maxSize) {
 template <class uword>
 BsiUnsigned<uword>::BsiUnsigned(int maxSize, int numOfRows) {
     this->size = 0;
-    this->bsi.reserve(maxSize);
+    this->bsi.resize(maxSize);
     this->existenceBitmap.setSizeInBits(numOfRows);
     //        if(existenceBitmap.sizeInBits()%64>0)
     //            existenceBitmap.setSizeInBits(existenceBitmap.sizeInBits()+64-existenceBitmap.sizeInBits()%64, false);
@@ -141,7 +141,7 @@ BsiUnsigned<uword>::BsiUnsigned(int maxSize, int numOfRows) {
 template <class uword>
 BsiUnsigned<uword>::BsiUnsigned(int maxSize, int numOfRows, long partitionID) {
     this->size = 0;
-    this->bsi.reserve(maxSize);
+    this->bsi.resize(maxSize);
     this->existenceBitmap.setSizeInBits(numOfRows);
     //        if(existenceBitmap.sizeInBits()%64>0)
     //            existenceBitmap.setSizeInBits(existenceBitmap.sizeInBits()+64-existenceBitmap.sizeInBits()%64, false);
@@ -162,7 +162,7 @@ BsiUnsigned<uword>::BsiUnsigned(int maxSize, int numOfRows, long partitionID) {
 template <class uword>
 BsiUnsigned<uword>::BsiUnsigned(int maxSize, long numOfRows, long partitionID, HybridBitmap<uword> ex) {
     this->size = 0;
-    this->bsi.reserve(maxSize);
+    this->bsi.resize(maxSize);
     this->existenceBitmap = ex;
     this->index=partitionID;
     
