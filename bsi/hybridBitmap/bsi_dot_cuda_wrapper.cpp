@@ -83,7 +83,7 @@ long long int bsi_dot_product_cuda(
     }
 
     // Configure kernel launch (256-thread blocks, up to 65k blocks)
-    const int blockSize = 140;
+    const int blockSize = 256;
     // cudaDeviceProp prop;
     // cudaGetDeviceProperties(&prop, 0);
     // const int blockSize = prop.maxThreadsPerBlock;
