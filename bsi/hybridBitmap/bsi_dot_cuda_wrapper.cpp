@@ -82,10 +82,10 @@ long long int bsi_dot_product_cuda(
     }
 
     // Configure kernel launch (256-thread blocks, up to 65k blocks)
-    const int blockSize = 256;
-    // cudaDeviceProp prop;
-    // cudaGetDeviceProperties(&prop, 0);
-    // const int blockSize = prop.maxThreadsPerBlock;
+    // const int blockSize = 256;
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
+    const int blockSize = prop.maxThreadsPerBlock;
     int numBlocks = static_cast<int>((word_count + blockSize - 1) / blockSize);
     numBlocks = std::min(numBlocks, 65535);
     g_last_kernel_num_blocks = numBlocks;
