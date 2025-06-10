@@ -127,6 +127,7 @@ public:
     BsiAttribute* buildBsiAttributeFromArray(std::vector<uword> &array, int attRows, double compressThreshold);
     BsiAttribute* buildBsiAttributeFromArray(uword array[], long max, long min, long firstRowID, double compressThreshold);
     BsiAttribute<uword>* buildBsiAttributeFromVector(std::vector<long> nums, double compressThreshold)const;
+    BsiAttribute<uword>* createRandomBsi(int vectorLength, int range, double compressThreshold) const;
     BsiAttribute<uword>* buildBsiAttributeFromVectorSigned(const std::vector<double> &nums, double compressThreshold=0.5, int precision=5)const;
     BsiAttribute<uword>* buildBsiAttributeFromVector_without_compression(std::vector<long> nums) const;
     BsiAttribute<uword>* buildBsiAttributeFromVectorSigned(std::vector<long> nums, double compressThreshold)const;
@@ -608,6 +609,91 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
     res->is_signed = true;
     return res;
 };
+
+template <class uword>
+BsiAttribute<uword>* BsiAttribute<uword>::createRandomBsi(int vectorLength, int range, double compressThreshold) const {
+    // Calculate slices needed
+    int slices = 0;
+    uword maxValue = range - 1;
+    while (maxValue > 0) {
+        slices++;
+        maxValue >>= 1;
+    }
+
+    // Calculate word counts and prepare result structure first
+    int wordsPerSlice = (vectorLength + bits - 1) / bits;
+
+    // BSI first to minimize allocations
+    BsiUnsigned<uword>* result = new BsiUnsigned<uword>(slices);
+    result->setFirstSliceFlag(true);
+    result->setLastSliceFlag(true);
+    result->setPartitionID(0);
+    result->twosComplement = false;
+    result->rows = vectorLength;
+
+    // existence bitmap
+    HybridBitmap<uword> existBitmap;
+    existBitmap.setSizeInBits(vectorLength, true);
+    existBitmap.density = 1.0;
+    result->setExistenceBitmap(existBitmap);
+
+    std::vector<HybridBitmap<uword>> sliceBitmaps(slices);
+    std::vector<int> bitCounts(slices, 0);
+
+    for (int s = 0; s < slices; s++) {
+        sliceBitmaps[s].verbatim = true;
+        sliceBitmaps[s].buffer.resize(wordsPerSlice, 0);
+    }
+
+    //larger chunks for better cache utilization
+    const int CHUNK_SIZE = 4096;  // Process 4K elements at a time for cache efficiency
+
+    for (int chunk = 0; chunk < vectorLength; chunk += CHUNK_SIZE) {
+        int chunkEnd = std::min(chunk + CHUNK_SIZE, vectorLength);
+
+        for (int i = chunk; i < chunkEnd; i++) {
+            uword randomValue = std::rand() % range;
+            int wordIdx = i / bits;
+            int bitPos = i % bits;
+
+            //Set bits directly in pre-allocated buffers
+            for (int s = 0; s < slices; s++) {
+                if (randomValue & (static_cast<uword>(1) << s)) {
+                    sliceBitmaps[s].buffer[wordIdx] |= (static_cast<uword>(1) << bitPos);
+                    bitCounts[s]++;
+                }
+            }
+        }
+    }
+
+    for (int s = 0; s < slices; s++) {
+        double density = static_cast<double>(bitCounts[s]) / vectorLength;
+        sliceBitmaps[s].density = density;
+        sliceBitmaps[s].setSizeInBits(vectorLength);
+
+        double compressRatio = 1 - pow((1 - density), (2 * bits)) - pow(density, (2 * bits));
+
+        if (compressRatio < compressThreshold && compressRatio != 0) {
+            HybridBitmap<uword> compressedBitmap;
+            for (int w = 0; w < wordsPerSlice; w++) {
+                compressedBitmap.addWord(sliceBitmaps[s].buffer[w]);
+            }
+            compressedBitmap.setSizeInBits(vectorLength);
+            compressedBitmap.density = density;
+            result->addSlice(compressedBitmap);
+        } else {
+            result->addSlice(sliceBitmaps[s]);
+        }
+    }
+    result->existenceBitmap.setSizeInBits(vectorLength,true);
+    result->existenceBitmap.density=1;
+    result->lastSlice=true;
+    result->firstSlice=true;
+    result->twosComplement = false;
+    result->rows = vectorLength;
+    result->is_signed = false;
+    return result;
+}
 
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(const std::vector<double> &nums, double compressThreshold, int precision) const{
