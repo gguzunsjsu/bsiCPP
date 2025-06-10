@@ -67,6 +67,7 @@ long long int bsi_dot_product_cuda(
 
     // Ensure all slices have the same buffer size and capture it
     size_t word_count = bsi1_slices[0].bufferSize();
+    std::cout << "Word count:" << word_count << std::endl;
     for (const auto &s : bsi1_slices) {
         if (s.bufferSize() != word_count) {
             throw std::runtime_error("All slices in first BSI must have the same buffer size");
@@ -82,10 +83,10 @@ long long int bsi_dot_product_cuda(
     }
 
     // Configure kernel launch (256-thread blocks, up to 65k blocks)
-    // const int blockSize = 256;
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0);
-    const int blockSize = prop.maxThreadsPerBlock;
+    const int blockSize = 256;
+    // cudaDeviceProp prop;
+    // cudaGetDeviceProperties(&prop, 0);
+    // const int blockSize = prop.maxThreadsPerBlock;
     int numBlocks = static_cast<int>((word_count + blockSize - 1) / blockSize);
     numBlocks = std::min(numBlocks, 65535);
     g_last_kernel_num_blocks = numBlocks;
