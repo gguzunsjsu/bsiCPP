@@ -37,9 +37,13 @@ int main(int argc, char* argv[]) {
     // Generate random data
     std::vector<long> array1(vectorLen);
     std::vector<long> array2(vectorLen);
-    
-    std::random_device rd;
-    std::mt19937 gen(rd());
+
+    // Seed RNG for reproducibility (default or from argv[3])
+    unsigned int seed = 12345;
+    if (argc > 3) seed = static_cast<unsigned int>(std::stoul(argv[3]));
+    std::mt19937 gen(seed);
+    std::cout << "Using random seed: " << seed << std::endl;
+
     std::uniform_int_distribution<> dist(0, range-1);
     
     for (int i = 0; i < vectorLen; i++) {
