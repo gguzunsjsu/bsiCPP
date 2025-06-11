@@ -60,8 +60,8 @@ int main(){
     BsiVector<uint64_t>* bsi_1;
     BsiVector<uint64_t>* bsi_2;
 
-    bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0.2);
-    // bsi_1 = ubsi.buildBsiAttributeFromVector_without_compression(array1);
+    bsi_1 = ubsi.buildBsiVectorFromVector(array1, 0.2);
+    // bsi_1 = ubsi.buildBsiVectorFromVector_without_compression(array1);
     bsi_1->setFirstSliceFlag(true);
     bsi_1->setLastSliceFlag(true);
     bsi_1->setPartitionID(0);
@@ -75,8 +75,8 @@ int main(){
 
     }
 
-    bsi_2 = ubsi.buildBsiAttributeFromVector(array2, 0.2);
-    // bsi_2 = ubsi.buildBsiAttributeFromVector_without_compression(array2);
+    bsi_2 = ubsi.buildBsiVectorFromVector(array2, 0.2);
+    // bsi_2 = ubsi.buildBsiVectorFromVector_without_compression(array2);
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);
     bsi_2->setPartitionID(0);

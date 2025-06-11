@@ -129,7 +129,8 @@ public:
         long total = 0;
         for (int i = 0; i < 5; i++) {
             auto start = chrono::high_resolution_clock::now();
-            this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVectorSigned(this->array, this->compressionThreshold);
+            this->bsi_attribute = this->signed_bsi.buildBsiVectorFromVectorSigned(this->array,
+                                                                                  this->compressionThreshold);
             auto stop = chrono::high_resolution_clock::now();
             auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
             total = total + duration.count();
@@ -137,8 +138,8 @@ public:
         double average = total / 5;
         /*
         * auto start = chrono::high_resolution_clock::now();
-//        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
-        this->bsi_attribute = this->signed_bsi.buildBsiAttributeFromVectorSigned(this->array, this->compressionThreshold);
+//        this->bsi_attribute = this->signed_bsi.buildBsiVectorFromVector(this->array, this->compressionThreshold);
+        this->bsi_attribute = this->signed_bsi.buildBsiVectorFromVectorSigned(this->array, this->compressionThreshold);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         */
@@ -165,7 +166,7 @@ public:
     void sumOfTwoBSIVectors()
     {
         // For simple testing, lets test the addition of the BSI Attribute with each other
-        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiVectorFromVector(this->array, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -195,7 +196,7 @@ public:
     }
     void vectorMultiplicationOfBSI()
     {
-        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiVectorFromVector(this->array, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -235,7 +236,7 @@ public:
                 array1.push_back(std::rand() % this->range);
             }
         }
-        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiVectorFromVector(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -301,8 +302,8 @@ public:
         }
         cout << "\nDONE!\n";
         // Build the BSI attribute for this
-//        BsiVector<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
-        BsiVector<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVectorSigned(array1, this->compressionThreshold);
+//        BsiVector<uint64_t>* bsi2 = this->signed_bsi.buildBsiVectorFromVector(array1, this->compressionThreshold);
+        BsiVector<uint64_t>* bsi2 = this->signed_bsi.buildBsiVectorFromVectorSigned(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -380,7 +381,7 @@ public:
             array1.push_back(number % this->range);
         }
         // Build the BSI attribute for this
-        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiVectorFromVector(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);

@@ -17,7 +17,7 @@ bool validateBuild(vector<long> array, double compressThreshold) {
 	//Build the BSI representation of the array
 	BsiVector<uint64_t>* bsi_1;
 	BsiUnsigned<uint64_t> ubsi;
-	bsi_1 = ubsi.buildBsiAttributeFromVector(array, compressThreshold);
+	bsi_1 = ubsi.buildBsiVectorFromVector(array, compressThreshold);
 	//Check if the BSI is stored properly
 	//Retrieve the bsi representation at each index and compare with the input array elements
 	bool result = true;

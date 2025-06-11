@@ -27,7 +27,7 @@ int main() {
 
     int one_range = 5000;
     int two_range = 5000;
-    int vectorLength = 100;
+    int vectorLength = 1000000;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -82,7 +82,7 @@ int main() {
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
 
-    BsiVector<uint64_t>* x_bsi = ubsi.buildBsiAttributeFromVector(array_x, 0.2);
+    BsiVector<uint64_t>* x_bsi = ubsi.buildBsiVectorFromVector(array_x, 0.2);
     x_bsi->setFirstSliceFlag(true);
     x_bsi->setLastSliceFlag(true);
     x_bsi->setPartitionID(0);
@@ -116,12 +116,12 @@ int main() {
 //    BsiSigned<uint64_t> ubsi;
     BsiUnsigned<uint64_t> ubsi;
 
-    BsiVector<uint64_t>* one_bsi = ubsi.buildBsiAttributeFromVector(one, 0.2);
+    BsiVector<uint64_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
     one_bsi->setFirstSliceFlag(true);
     one_bsi->setLastSliceFlag(true);
     one_bsi->setPartitionID(0);
 
-    BsiVector<uint64_t>* two_bsi = ubsi.buildBsiAttributeFromVector(two, 0.2);
+    BsiVector<uint64_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
     two_bsi->setFirstSliceFlag(true);
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);

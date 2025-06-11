@@ -89,15 +89,15 @@ int main(){
 
     std::chrono::high_resolution_clock::time_point t10 = std::chrono::high_resolution_clock::now();
 
-    bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0.2);
+    bsi_1 = ubsi.buildBsiVectorFromVector(array1, 0.2);
     bsi_1->setPartitionID(0);
     bsi_1->setFirstSliceFlag(true);
     bsi_1->setLastSliceFlag(true);
-    bsi_2 = ubsi.buildBsiAttributeFromVector(array2, 0.2);
+    bsi_2 = ubsi.buildBsiVectorFromVector(array2, 0.2);
     bsi_2->setPartitionID(0);
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);
-    // bsi_result = ubsi.buildBsiAttributeFromArray(result, result.numSlices(), 0.2);
+    // bsi_result = ubsi.buildBsiVectorFromArray(result, result.numSlices(), 0.2);
     std::chrono::high_resolution_clock::time_point t11 = std::chrono::high_resolution_clock::now();
 
     auto durationBuilding = std::chrono::duration_cast<std::chrono::microseconds>( t11 - t10 ).count();
@@ -215,7 +215,7 @@ int main(){
 //    vector<BsiVector<uint64_t>*> bsiData;
 //
 //
-////    bsi.push_back(ubsi.buildBsiAttributeFromArray(row, row.numSlices(), 0.2));
+////    bsi.push_back(ubsi.buildBsiVectorFromArray(row, row.numSlices(), 0.2));
 //
 //    string temp;
 //
@@ -259,7 +259,7 @@ int main(){
 //            }
 //        }
 //        //cout<<" buffer numSlices: "<<buffer.numSlices()<<endl;
-//        bsiData.push_back(ubsi.buildBsiAttributeFromArray(buffer, buffer.numSlices(), 0.2));
+//        bsiData.push_back(ubsi.buildBsiVectorFromArray(buffer, buffer.numSlices(), 0.2));
 //    }
 //    for(int i=0; i< myvector1.numSlices(); i++){
 //        cout<<myvector1[i]<<" ";
@@ -284,9 +284,9 @@ int main(){
 //    int vectorSize = myvector.numSlices();
 //    int vectorSize1 = myvector1.numSlices();
 //    int vectorSize2 = myvector2.numSlices();
-//    bsi_1 = bsi.buildBsiAttributeFromArray(myvector, vectorSize, 0.2);
-//    bsi_2 = bsi.buildBsiAttributeFromArray(myvector1, vectorSize1, 0.2);
-//    bsi_4 = bsi.buildBsiAttributeFromArray(myvector2, vectorSize2, 0.2);
+//    bsi_1 = bsi.buildBsiVectorFromArray(myvector, vectorSize, 0.2);
+//    bsi_2 = bsi.buildBsiVectorFromArray(myvector1, vectorSize1, 0.2);
+//    bsi_4 = bsi.buildBsiVectorFromArray(myvector2, vectorSize2, 0.2);
 //    int rows = bsi_1->getNumberOfSlices();
 //
 //

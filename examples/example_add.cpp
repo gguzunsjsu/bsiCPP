@@ -44,8 +44,8 @@ int main(){
     BsiVector<uint64_t>* bsi2;
 
 
-    bsi = ubsi.buildBsiAttributeFromVector(array1, 0.5);
-    bsi2 = ubsi.buildBsiAttributeFromVector(array2, 0.5);
+    bsi = ubsi.buildBsiVectorFromVector(array1, 0.5);
+    bsi2 = ubsi.buildBsiVectorFromVector(array2, 0.5);
 
     bsi->setFirstSliceFlag(true);
     bsi->setLastSliceFlag(true);

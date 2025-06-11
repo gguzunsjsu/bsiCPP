@@ -41,7 +41,7 @@ void testMultSum() {
         while (ss >> num) {
             H.push_back(num);
         }
-        H_bsi.push_back(bsi.buildBsiAttributeFromVectorSigned(H,0.5));
+        H_bsi.push_back(bsi.buildBsiVectorFromVectorSigned(H, 0.5));
     }
     string line;
     getline(file,line);
@@ -51,7 +51,7 @@ void testMultSum() {
     while (ss >> num) {
         i.push_back(num);
     }
-    BsiAttribute<uint64_t>* i_bsi = bsi.buildBsiAttributeFromVectorSigned(i,0.5);
+    BsiAttribute<uint64_t>* i_bsi = bsi.buildBsiVectorFromVectorSigned(i, 0.5);
     getline(file,line);
     stringstream ss2(line);
     vector<long> j;
@@ -59,7 +59,7 @@ void testMultSum() {
         j.push_back(num);
     }
     int PRECISION = 1;
-    BsiAttribute<uint64_t>* j_bsi = bsi.buildBsiAttributeFromVectorSigned(j,0.5);
+    BsiAttribute<uint64_t>* j_bsi = bsi.buildBsiVectorFromVectorSigned(j, 0.5);
 
     /*BsiVector<uint64_t>* u_bsi = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[2]));
     BsiVector<uint64_t>* v_bsi = H_bsi[3]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[4]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[5]));
@@ -89,11 +89,11 @@ void testMultByConstant() {
     vector<long> v = {6,4,3};
     int c = 100000000;
     BsiSigned<uint64_t> bsi;
-    BsiAttribute<uint64_t> *test = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    BsiAttribute<uint64_t> *test = bsi.buildBsiVectorFromVectorSigned(v, 0.5);
     for (int i=0; i<v.numSlices(); i++) {
         v[i] *= c;
     }
-    BsiAttribute<uint64_t> *sol = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    BsiAttribute<uint64_t> *sol = bsi.buildBsiVectorFromVectorSigned(v, 0.5);
     test = test->multiplyByConstant(c);
     for (int i=0; i<v.numSlices(); i++) {
         cout << test->getValue(i) << " ";
@@ -112,8 +112,8 @@ void testInverse() {
     vector<BsiAttribute<uint64_t>*> mat;
     vector<long> r1 = {4,3};
     vector<long> r2 = {3,2};
-    mat.push_back(bsi.buildBsiAttributeFromVectorSigned(r1, 0.5));
-    mat.push_back(bsi.buildBsiAttributeFromVectorSigned(r2, 0.5));
+    mat.push_back(bsi.buildBsiVectorFromVectorSigned(r1, 0.5));
+    mat.push_back(bsi.buildBsiVectorFromVectorSigned(r2, 0.5));
     vector<BsiAttribute<uint64_t>*> res = inv(mat);
 }
 
@@ -276,8 +276,8 @@ void testCompareTo() {
         //if (j < 17) {j++;continue;}
         for (int i = 0; i < n; i++) {
             //cout << v1[i] << " " << v2[i] << "\n";
-            BsiAttribute<uint64_t> *bsi1 = build.buildBsiAttributeFromVectorSigned(v1, 0.5);
-            BsiAttribute<uint64_t> *bsi2 = build.buildBsiAttributeFromVectorSigned(v2, 0.5);
+            BsiAttribute<uint64_t> *bsi1 = build.buildBsiVectorFromVectorSigned(v1, 0.5);
+            BsiAttribute<uint64_t> *bsi2 = build.buildBsiVectorFromVectorSigned(v2, 0.5);
             int res = bsi1->compareTo(bsi2,i);
             if (v1[i] < v2[i]) {
                 if (res != -1) {
