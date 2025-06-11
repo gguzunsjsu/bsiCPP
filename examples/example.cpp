@@ -1,10 +1,19 @@
+//
+// Created by panchalpc on 4/26/25.
+//
 
+// Test code for muliplication and SUM with bsi vector to array changes.
+
+#include <iostream>
+#include <cstdint>
+#include <bitset>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <chrono>
 #include <random>
+#include <vector>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
@@ -12,110 +21,219 @@
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
-/*
-* Testing header files
-*/
+int main() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
-#include "testBSIAttributeBuilding.h"
+    int one_range = 5000;
+    int two_range = 5000;
+    int vectorLength = 100000000;
 
-int main(){
-    
-    char choice;
-    do {
-        vector<long> array1;
-        vector<long> array2;
-        int range1 = 10000;
-        int range2 = 10000;
-        int vectorLen = 1000;
+//    std::vector<long> one = {2,6,9, 10, 50};
+//    std::vector<long> two = {2,6,9, 10, 50};
+//
+//    std::vector<long> one = {38, 5, 12, 50, 18, 7, 3, 32, 42, 43, 15, 35, 39, 20, 39, 34, 46, 8, 13, 23};
+//    std::vector<long> two = {31, 12, 23, 48, 25, 16, 38, 6, 28, 9, 8, 46, 4, 6, 31, 8, 43, 11, 25, 16};
+
+//    std::vector<long> one = {40, 30, 12, 8, 14, 0, 37, 33, 37, 5, 29, 49, 26, 32, 50, 27, 8, 13, 9, 19, 7,
+//                             47, 26, 34, 25, 14, 6, 11, 14, 16, 38, 42, 45, 16, 14, 3, 7, 45, 29, 45};
+//    std::vector<long> two = {39, 25, 47, 12, 5, 10, 30, 5, 1, 26, 9, 9, 2, 47, 29, 48, 28, 29, 13, 27,
+//                             30, 1, 43, 17, 46, 7, 45, 1, 27, 41, 1, 31, 43, 12, 35, 17, 26, 29, 47, 42};
 
 
-        int numberOfElementsInTheArray;
-        cout << "Enter the number of elements in the array: ";
-        cin >> numberOfElementsInTheArray;
-        /*
-        * int value;
-        cout << "Enter the value to be put into the array: ";
-        cin >> value;
-        */
-        
-        for (int i = 0; i < numberOfElementsInTheArray; i++) {
-            
-            array1.push_back(i);           
-            array2.push_back(1);
-        }
+//    std::vector<long> one = {3845, 8983, 2462, 5143, 4161, 1682, 858, 6666, 1618, 8762, 4727, 4496, 7324, 5405, 8503, 4113, 6344, 4765,
+//                             9532, 6318, 5836, 1355, 7574, 5366, 923, 8105, 4128, 5522, 8079, 5614, 9500, 1124, 9662, 8096, 4215, 5805, 8636, 3055, 4342, 3306};
+//    std::vector<long> two = {9173, 6213, 7136, 3150, 7709, 3049, 2233, 2729, 4630, 5721, 6472, 7239, 8922, 3978, 8275, 5955, 1584, 6472, 6248, 894, 2728,
+//                             2645, 7825, 4747, 7680, 3204, 1729, 2069, 4722, 7085, 7129, 3161, 5333, 4241, 9510, 3614, 3695, 2781, 352, 3647};
+    std::vector<long> one;
+    std::vector<long> two;
+    for(int i = 0; i < vectorLength; i++) {
+        one.push_back(1 + (gen() % one_range));
+        two.push_back(1 + (gen() % two_range));
+    }
 
-        //Fill in random numbers in the array
-        /*
-        * for (int i = 0; i < vectorLen; i++) {
-            array1.push_back(std::rand() % range1);
-            array2.push_back(std::rand() % range2);
-        }
-        */
 
-        cout << "The number of elements in array1: " << array1.size() << "\n";
-        //cout << "The number of elements in arraay2: " << array2.size() << "\n";
-        //Build BSIAttribute from the vector
-        BsiUnsigned<uint64_t> ubsi;
-        BsiAttribute<uint64_t>* bsi_1;
-        //BsiAttribute<uint64_t>* bsi_2;
-
-        bsi_1 = ubsi.buildBsiAttributeFromVector(array1,1);
-        bsi_1->setPartitionID(0);
-        bsi_1->setFirstSliceFlag(true);
-        bsi_1->setLastSliceFlag(true);
-        /*
-        * bsi_2 = ubsi.buildBsiAttributeFromVector(array2, 0);
-        bsi_2->setPartitionID(0);
-        bsi_2->setFirstSliceFlag(true);
-        bsi_2->setLastSliceFlag(true);
-        */
-        
-
-        //Print some attributes of the BSI thus built
-        cout << "NUmber of slices in the first BSI attribute: " << bsi_1->getNumberOfSlices() << "\n";
-        cout << "NUmber of rows in the first BSI attribute: " << bsi_1->getNumberOfSlices() << "\n";
-        //cout << "NUmber of slices in the second BSI attribute: " << bsi_2->getNumberOfSlices() << "\n";
-        //cout << "NUmber of rows in the second BSI attribute: " << bsi_2->getNumberOfSlices() << "\n";
-
-        //Checking sum of elements
-        long array1Sum = 0;
-        for (long element : array1) {
-            array1Sum += element;
-        }
-        cout << "Sum of elements in array1: " << array1Sum << "\n";
-        cout << "Sum of elements in the First BSI Attribute: " << bsi_1->sumOfBsi() << "\n";
-        cout << "Print the elements if the First BSI Attribute" << "\n";
-        for (int i = 0; i < array1.size(); i++) {
-            cout << "Element "<<i<<": "<<bsi_1->getValue(i) << "\n";
-        }
-        cout << "Do you want to check again? ";
-        cin >> choice;
-    } while (choice == 'y');
-    
-    
-
-    //Checking multiplication by a constant
     /*
-    int number = 2;
-    vector<long> doubleArray1;
-    for (long element : array1) {
-        doubleArray1.push_back(element * number);
-    }
-   
-    long doubleArraySum = 0;
-    for (long element : doubleArray1) {
-        //cout << element << ", ";
-        doubleArraySum += element;
-    }
-    cout << "The multiplied doubleArray sum: "<<doubleArraySum<<"\n";
-    BsiAttribute<uint64_t>* result = bsi_1->multiplyByConstant(number);
-    cout << "The multiplied BSI Attribute sum" << result->sumOfBsi()<<"\n";
+    std::vector<long> dividends;
+    std::vector<long> divisors;
+    std::vector<long> array_two;
+    std::vector<long> array_x;
+
+    dividends = {2,6,9};
+    divisors= {2,3,4};
+    array_two= {2,2,2};
+    array_x= {1,2,2};
+
+
+    BsiSigned<uint64_t> ubsi;
+
+    BsiAttribute<uint64_t>* dividend_bsi = ubsi.buildBsiAttributeFromVector(dividends, 0.2);
+    dividend_bsi->setFirstSliceFlag(true);
+    dividend_bsi->setLastSliceFlag(true);
+    dividend_bsi->setPartitionID(0);
+
+    BsiAttribute<uint64_t>* divisor_bsi = ubsi.buildBsiAttributeFromVector(divisors, 0.2);
+    divisor_bsi->setFirstSliceFlag(true);
+    divisor_bsi->setLastSliceFlag(true);
+    divisor_bsi->setPartitionID(0);
+
+    BsiAttribute<uint64_t>* two_bsi = ubsi.buildBsiAttributeFromVector(array_two, 0.2);
+    two_bsi->setFirstSliceFlag(true);
+    two_bsi->setLastSliceFlag(true);
+    two_bsi->setPartitionID(0);
+
+    BsiAttribute<uint64_t>* x_bsi = ubsi.buildBsiAttributeFromVector(array_x, 0.2);
+    x_bsi->setFirstSliceFlag(true);
+    x_bsi->setLastSliceFlag(true);
+    x_bsi->setPartitionID(0);
+
+
+    BsiAttribute<uint64_t>* resultBsi;
+    BsiAttribute<uint64_t>* resultBsi2;
+
+    auto t3 = std::chrono::high_resolution_clock::now();
+
+    // std::cout << "1: Multiplication - divisor*x_bsi" << std::endl;
+    // resultBsi = divisor_bsi->multiplication(x_bsi);
+    //
+    // std::cout << "resultBsi size: " << resultBsi << std::endl;
+    // std::cout << "resultBsi 0: " << resultBsi->getValue(0) << std::endl;
+    // std::cout << "resultBsi 1: " << resultBsi->getValue(1) << std::endl;
+    // std::cout << "resultBsi 2: " << resultBsi->getValue(2) << std::endl;
+
+    std::cout << "2: SUM - two + result" << std::endl;
+    resultBsi2 = two_bsi->SUM(x_bsi);
+
+    std::cout << "resultBsi2 size: " << resultBsi2 << std::endl;
+    std::cout << "resultBsi2 0: " << resultBsi2->getValue(0) << std::endl;
+    std::cout << "resultBsi2 1: " << resultBsi2->getValue(1) << std::endl;
+    std::cout << "resultBsi2 2: " << resultBsi2->getValue(2) << std::endl;
+
+    auto t4 = std::chrono::high_resolution_clock::now();
+
     */
-    
 
-    cout << "Thank you !";
+//    BsiSigned<uint64_t> ubsi;
+    BsiUnsigned<uint64_t> ubsi;
+
+    BsiAttribute<uint64_t>* one_bsi = ubsi.buildBsiAttributeFromVector(one, 0.2);
+    one_bsi->setFirstSliceFlag(true);
+    one_bsi->setLastSliceFlag(true);
+    one_bsi->setPartitionID(0);
+
+    BsiAttribute<uint64_t>* two_bsi = ubsi.buildBsiAttributeFromVector(two, 0.2);
+    two_bsi->setFirstSliceFlag(true);
+    two_bsi->setLastSliceFlag(true);
+    two_bsi->setPartitionID(0);
+
+    BsiAttribute<uint64_t>* resultBsi;
+    BsiAttribute<uint64_t>* resultBsi2;
+    BsiAttribute<uint64_t>* resultBsi3;
+    BsiAttribute<uint64_t>* resultBsi_4;
+    BsiAttribute<uint64_t>* resultBsi5;
+    std::cout << "Slices in bsi One: " <<one_bsi->size<< std::endl;
+    std::cout << "Slices in bsi Two: " <<two_bsi->size<< std::endl;
+
+    //multiplication:
+    std::cout << "1: Multiplication = one x two" << std::endl;
+
+    auto t3 = std::chrono::high_resolution_clock::now();
+    resultBsi = one_bsi->multiplication(two_bsi);
+    auto t4 = std::chrono::high_resolution_clock::now();
+
+    std::cout << "resultBsi size: " << resultBsi << std::endl;
+    std::cout << "resultBsi 0: " << resultBsi->getValue(0) << std::endl;
+    std::cout << "resultBsi 1: " << resultBsi->getValue(1) << std::endl;
+    std::cout << "resultBsi 2: " << resultBsi->getValue(2) << std::endl;
+    std::cout << "resultBsi 3: " << resultBsi->getValue(3) << std::endl;
+    std::cout << "resultBsi 4: " << resultBsi->getValue(4) << std::endl;
+
+    std::cout << "bsi multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count() << std::endl;
+
+    // SUM:
+    std::cout << "2: SUM = one + two" << std::endl;
+
+    auto t5 = std::chrono::high_resolution_clock::now();
+    resultBsi2 = one_bsi->SUM(two_bsi);
+    auto t6 = std::chrono::high_resolution_clock::now();
+
+    std::cout << "resultBsi2 size: " << resultBsi2 << std::endl;
+    std::cout << "resultBsi2 0: " << resultBsi2->getValue(0) << std::endl;
+    std::cout << "resultBsi2 1: " << resultBsi2->getValue(1) << std::endl;
+    std::cout << "resultBsi2 2: " << resultBsi2->getValue(2) << std::endl;
+    std::cout << "resultBsi2 3: " << resultBsi2->getValue(3) << std::endl;
+    std::cout << "resultBsi2 4: " << resultBsi2->getValue(4) << std::endl;
+
+    std::cout << "bsi SUM duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t6-t5).count() << std::endl;
 
 
+    //multiplyByConstant:
+    std::cout << "3: multiplyByConstant = one * const" << std::endl;
+
+    auto t7 = std::chrono::high_resolution_clock::now();
+    int constant = 9;
+
+    resultBsi3 = one_bsi->multiplyByConstantNew(constant);
+
+    std::cout << "resultBsi3 size: " << resultBsi3 << std::endl;
+    std::cout << "resultBsi3 0: " << resultBsi3->getValue(0) << std::endl;
+    std::cout << "resultBsi3 1: " << resultBsi3->getValue(1) << std::endl;
+    std::cout << "resultBsi3 2: " << resultBsi3->getValue(2) << std::endl;
+    std::cout << "resultBsi3 3: " << resultBsi3->getValue(3) << std::endl;
+    std::cout << "resultBsi3 4: " << resultBsi3->getValue(4) << std::endl;
+
+
+//    std::cout << "resultBsi3 size: " << one_bsi << std::endl;
+//    std::cout << "resultBsi3 0: " << one_bsi->getValue(0) << std::endl;
+//    std::cout << "resultBsi3 1: " << one_bsi->getValue(1) << std::endl;
+//    std::cout << "resultBsi3 2: " << one_bsi->getValue(2) << std::endl;
+//    std::cout << "resultBsi3 3: " << one_bsi->getValue(3) << std::endl;
+//    std::cout << "resultBsi3 4: " << one_bsi->getValue(4) << std::endl;
+
+    auto t8 = std::chrono::high_resolution_clock::now();
+    std::cout << "bsi multiplyByConstant duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t8-t7).count() << std::endl;
+
+
+
+    //multiplyBSI:
+    std::cout << "4: multiplyBSI = one * two" << std::endl;
+    auto t9 = std::chrono::high_resolution_clock::now();
+
+
+//    BsiAttribute<uint64_t>* resultBsi3 = one_bsi->multiplyByConstant(constant);
+    resultBsi_4 = one_bsi->multiplyBSI(two_bsi);
+
+    auto t10 = std::chrono::high_resolution_clock::now();
+
+    std::cout << "resultBsi_4 size: " << resultBsi_4 << std::endl;
+    std::cout << "resultBsi_4 0: " << resultBsi_4->getValue(0) << std::endl;
+    std::cout << "resultBsi_4 1: " << resultBsi_4->getValue(1) << std::endl;
+    std::cout << "resultBsi_4 2: " << resultBsi_4->getValue(2) << std::endl;
+    std::cout << "resultBsi_4 3: " << resultBsi_4->getValue(3) << std::endl;
+    std::cout << "resultBsi_4 4: " << resultBsi_4->getValue(4) << std::endl;
+
+    std::cout << "bsi multiplyBSI duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
+
+
+
+    //multiplyBSIWithPrecision:
+//    std::cout << "4: multiplyBSI = one * two" << std::endl;
+//    auto t11 = std::chrono::high_resolution_clock::now();
+
+
+//    BsiAttribute<uint64_t>* resultBsi3 = one_bsi->multiplyByConstant(constant);
+//    resultBsi5 = one_bsi->peasantMultiply(two_bsi);
+//
+//    auto t12 = std::chrono::high_resolution_clock::now();
+//
+//    std::cout << "resultBsi5 size: " << resultBsi5 << std::endl;
+//    std::cout << "resultBsi5 0: " << resultBsi5->getValue(0) << std::endl;
+//    std::cout << "resultBsi5 1: " << resultBsi5->getValue(1) << std::endl;
+//    std::cout << "resultBsi5 2: " << resultBsi5->getValue(2) << std::endl;
+//    std::cout << "resultBsi5 3: " << resultBsi5->getValue(3) << std::endl;
+//    std::cout << "resultBsi5 4: " << resultBsi5->getValue(4) << std::endl;
+//
+//    std::cout << "bsi multiplyBSI duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
 
     return 0;
 }

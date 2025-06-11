@@ -3547,7 +3547,7 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
         }
     }else{
         //if(container.density>orThreshold){
-        if(std::max(density, a.density)>orThreshold){
+        if(std::max(density, a.density)>orThreshold && std::max(density, a.density)<(1-orThreshold)){
             logicalorDecompress(a, container);
         }else{
             container.buffer.reserve(bufferSize() + a.bufferSize());
@@ -3588,7 +3588,7 @@ void HybridBitmap<uword>::Xor(const HybridBitmap &a, HybridBitmap &container) co
         xorHybrid(a, container);
     }else{
         //if(container.density>orThreshold){
-        if(std::max(density, a.density)>orThreshold){
+        if(std::max(density, a.density)>orThreshold && std::max(density, a.density)<(1-orThreshold)){
             logicalxorDecompress(a, container);
         }else{
             container.buffer.reserve(bufferSize() + a.bufferSize());

@@ -644,7 +644,8 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUMunsigned(BsiAttribute<uword>* a)cons
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
     BsiAttribute<uword>* res = new BsiUnsigned<uword>(std::max(this->size+this->offset, a->size+a->offset)+1);
     res->setPartitionID(a->getPartitionID());
-    res->existenceBitmap = this->existenceBitmap.logicalor(a->existenceBitmap);
+    res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
+    res->setNumberOfRows(this->getNumberOfRows());
     int i = 0, s = a->size, p = this->size;
     
     
@@ -2490,7 +2491,7 @@ template <class uword>
 long BsiUnsigned<uword>::sumOfBsi() const{
     long sum =0;
 //    int power = 1;
-    for (int i=0; i< this->bsi.size(); i++){
+    for (int i=0; i< this->getNumberOfSlices(); i++){
         sum += this->getSlice(i).numberOfOnes()<<(i);
     }
     return sum;

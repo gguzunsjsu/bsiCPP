@@ -288,7 +288,7 @@ void BsiAttribute<uword>::setNumberOfSlices(int s){
  */
 template <class uword>
 int BsiAttribute<uword>::getNumberOfSlices()const{
-    return bsi.size();
+    return size;
 }
 
 /**
@@ -540,7 +540,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
         }
         //bitmap.setSizeInBits(numberOfElements);
         bitmap.density=existBitDensity;
-        res->setExistenceBitmap(bitmap);
+        //res->setExistenceBitmap(bitmap);
     }else{
         HybridBitmap<uword> bitmap(true,existBits.size());
         for(int j=0; j<existBits.size(); j++){
@@ -548,7 +548,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
         }
         //bitmap.setSizeInBits(numberOfElements);
         bitmap.density=existBitDensity;
-        res->setExistenceBitmap(bitmap);
+        //res->setExistenceBitmap(bitmap);
     }
     
     //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
@@ -584,7 +584,10 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVector(std::vecto
             
         }
     }
-    res->existenceBitmap.setSizeInBits(numberOfElements,true);
+    //res->existenceBitmap.setSizeInBits(numberOfElements,true);
+    int wordmultiple = ceil(numberOfElements/float(64));
+    res->existenceBitmap.addStreamOfEmptyWords(true,wordmultiple);
+    res->existenceBitmap.setSizeInBits(numberOfElements);
     res->existenceBitmap.density=1;
     res->lastSlice=true;
     res->firstSlice=true;

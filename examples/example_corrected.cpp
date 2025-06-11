@@ -17,6 +17,14 @@
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
+int getRandomInt(int min, int max) {
+    std::random_device rd; // Obtain a random seed from the OS
+    std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> distrib(min, max); // Define the range
+
+    return distrib(gen); // Generate and return the random integer
+}
+
 
 int main(){
     BsiUnsigned<uint64_t> ubsi;
@@ -39,8 +47,8 @@ int main(){
     vector<double> v2;
     vector<double> vres;
     string line_str;
-    int range1 = 50;
-    int range2 = 50;
+    int range1 = 100;
+    int range2 = 100;
     int vectorLen = 100000;
     vector<long> array1(vectorLen);
     vector<long> array2(vectorLen);
@@ -51,14 +59,15 @@ int main(){
     int arr2[5] = {3, 6, 7, 9, 8};
     srand (time(NULL));
     for (int i=0; i<vectorLen; i++){
-        array1.push_back(std::rand()%range1);
-        array2.push_back(std::rand()%range2);
+        array1[i]=(std::rand()%range1);
+        array2[i]=(std::rand()%range2);
         v1.push_back((double(rand())/RAND_MAX));
         v2.push_back((double(rand())/RAND_MAX));
         //array1.push_back(arr1[i]);
         //array2.push_back(arr2[i]);
 
     }
+
 //
 //    while (getline(fin1, line_str)) {
 //        istringstream buffer(line_str);
@@ -118,6 +127,8 @@ int main(){
     ubsi_1.setPartitionID(bsi_2->getPartitionID());
     ubsi_1.setFirstSliceFlag(true);
     ubsi_1.setLastSliceFlag(true);
+
+    cout<<"First array position: "<<std::rand()%range2<<endl;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     long sum = 0;

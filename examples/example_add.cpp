@@ -16,11 +16,14 @@
 
 int main(){
     std::vector<long> array1;
+    std::vector<long> array2;
     int range = 50;
-    int vectorLength = 10000000;
+    int vectorLength = 40;
 
     for(auto i=0; i<vectorLength; i++){
         array1.push_back(std::rand()%range);
+        array2.push_back(std::rand()%range);
+
     }
 
     long arraySum = 0;
@@ -38,18 +41,22 @@ int main(){
 
     BsiUnsigned<uint64_t> ubsi;
     BsiAttribute<uint64_t>* bsi;
+    BsiAttribute<uint64_t>* bsi2;
 
-    bsi = ubsi.buildBsiAttributeFromVector(array1, 0.2);
+
+    bsi = ubsi.buildBsiAttributeFromVector(array1, 0.5);
+    bsi2 = ubsi.buildBsiAttributeFromVector(array2, 0.5);
+
     bsi->setFirstSliceFlag(true);
     bsi->setLastSliceFlag(true);
     bsi->setPartitionID(0);
 
     auto t3 = std::chrono::high_resolution_clock::now();
-    long bsi_sum = bsi->sumOfBsi();
+    bsi->SUM(bsi2);
     auto t4 = std::chrono::high_resolution_clock::now();
     auto bsi_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count();
 
-    std::cout << "Sum using bsi is: \t" << bsi_sum << std::endl;
+    //std::cout << "Sum using bsi is: \t" << bsi_sum << std::endl;
     std::cout << "bsi duration: \t" << bsi_duration << std::endl;
 
 
