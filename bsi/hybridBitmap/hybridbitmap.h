@@ -1081,6 +1081,8 @@ public:
      */
     size_t numberOfOnes() const;
 
+    size_t numberOfOnes_popcount() const;
+
     /**
      * Swap the content of this bitmap with another bitmap.
      * No copying is done. (Running time complexity is constant.)
@@ -1757,7 +1759,7 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
     size_t pointer(0);
     if(verbatim){
         for (int i = 0; i < bufferSize(); i++) {
-            tot += countOnes((uword)buffer[i]);
+            tot += std::__popcount((uword)buffer[i]);
         }
     }else{
         while (pointer < buffer.size()) {
@@ -1768,13 +1770,14 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
             }
             ++pointer;
             for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
-                tot += countOnes((uword)buffer[pointer]);
+                tot += std::__popcount((uword)buffer[pointer]);
                 ++pointer;
             }
         }
     }
     return tot;
 }
+
 
 template <class uword>
 std::vector<size_t> HybridBitmap<uword>::toArray() const {

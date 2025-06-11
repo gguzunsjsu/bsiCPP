@@ -2497,6 +2497,8 @@ long BsiUnsigned<uword>::sumOfBsi() const{
     return sum;
 }
 
+
+
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::peasantMultiply(BsiUnsigned &unbsi) const{
     BsiVector<uword>* res = nullptr;

@@ -257,5 +257,26 @@ int main() {
 
     std::cout << "bsi Multiply duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t12-t11).count() << std::endl;
 
+
+    // SumOfBSI:
+    std::cout << "Sum of BSI original" << std::endl;
+
+    auto t13 = std::chrono::high_resolution_clock::now();
+    long sumOfBsi= one_bsi->sumOfBsi();
+    auto t14 = std::chrono::high_resolution_clock::now();
+    std::cout << "sum of Bsi original: " << sumOfBsi << std::endl;
+    std::cout << "sum of Bsi original duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t14-t13).count() << std::endl;
+
+
+    // SumOfBSI updated:
+    std::cout << "Sum of BSI original" << std::endl;
+
+    auto t15 = std::chrono::high_resolution_clock::now();
+    sumOfBsi= one_bsi->sumOfBsi_pop();
+    auto t16 = std::chrono::high_resolution_clock::now();
+    std::cout << "sum of Bsi original: " << sumOfBsi << std::endl;
+    std::cout << "sum of Bsi original updated: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t16-t15).count() << std::endl;
+
+
     return 0;
 }
