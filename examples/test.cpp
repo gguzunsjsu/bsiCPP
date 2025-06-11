@@ -2,9 +2,9 @@
 #include <fstream>
 #include <chrono>
 
-#include "BsiUnsigned.hpp"
-#include "BsiSigned.hpp"
-#include "BsiAttribute.hpp"
+#include "../bsi/BsiUnsigned.hpp"
+#include "../bsi/BsiSigned.hpp"
+#include "../bsi/BsiVector.hpp"
 #include <sstream>
 
 //void MultiplyVectorByScalar(vector<long>& v, int k) {
@@ -17,11 +17,11 @@ void testCompareTo();
 void testMultByConstant();
 void testMultSum();
 
-vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
-void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
-void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
-void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
-void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
+vector<BsiVector<uint64_t>*> inv(vector<BsiVector<uint64_t>*> matrix);
+void sgesv(int n, int m, vector<BsiVector<uint64_t>*> a, vector<int> ipiv, vector<BsiVector<uint64_t>*> b);
+void sgetrf(int m, int n, vector<BsiVector<uint64_t>*> a, vector<int> ipiv);
+void sgetrf2(int m, int n, vector<BsiVector<uint64_t>*> a, vector<int> ipiv);
+void sgetrs(int n, int m, vector<BsiVector<uint64_t>*> a, vector<int> ipiv, vector<BsiVector<uint64_t>*> b);
 int main() {
     //testMultByConstant();
     //testInverse();
@@ -31,7 +31,7 @@ int main() {
 void testMultSum() {
     BsiSigned<uint64_t> bsi;
     ifstream file("/Users/zhang/CLionProjects/bsiCPP/examples/testcase.txt");
-    vector<BsiAttribute<uint64_t>*> H_bsi;
+    vector<BsiVector<uint64_t>*> H_bsi;
     for (int i=0; i<9; i++) {
         string line;
         getline(file,line);
@@ -51,7 +51,7 @@ void testMultSum() {
     while (ss >> num) {
         i.push_back(num);
     }
-    BsiAttribute<uint64_t>* i_bsi = bsi.buildBsiVectorFromVectorSigned(i, 0.5);
+    BsiVector<uint64_t>* i_bsi = bsi.buildBsiVectorFromVectorSigned(i, 0.5);
     getline(file,line);
     stringstream ss2(line);
     vector<long> j;
@@ -59,7 +59,7 @@ void testMultSum() {
         j.push_back(num);
     }
     int PRECISION = 1;
-    BsiAttribute<uint64_t>* j_bsi = bsi.buildBsiVectorFromVectorSigned(j, 0.5);
+    BsiVector<uint64_t>* j_bsi = bsi.buildBsiVectorFromVectorSigned(j, 0.5);
 
     /*BsiVector<uint64_t>* u_bsi = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[2]));
     BsiVector<uint64_t>* v_bsi = H_bsi[3]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[4]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[5]));
@@ -71,10 +71,10 @@ void testMultSum() {
         long w = H_bsi[6]->getValue(k) * j_bsi->getValue(k) + H_bsi[7]->getValue(k) * i_bsi->getValue(k) + H_bsi[8]->getValue(k);
         cout << "u: " << u_bsi->getValue(k) << " " << u << " v: " << v_bsi->getValue(k) << " " << v << " w: " << w_bsi->getValue(k) << " " << w << "\n";
     }*/
-    BsiAttribute<uint64_t>* u_bsi1 = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION);
-    BsiAttribute<uint64_t>* u_bsi2 = H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION);
-    BsiAttribute<uint64_t>* u_bsi3 = u_bsi1->SUM(u_bsi2);
-    BsiAttribute<uint64_t>* u_bsi4 = u_bsi3->SUM(H_bsi[2]);
+    BsiVector<uint64_t>* u_bsi1 = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION);
+    BsiVector<uint64_t>* u_bsi2 = H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION);
+    BsiVector<uint64_t>* u_bsi3 = u_bsi1->SUM(u_bsi2);
+    BsiVector<uint64_t>* u_bsi4 = u_bsi3->SUM(H_bsi[2]);
     u_bsi3->getValue(0);
     for (int k=0; k<u_bsi1->rows; k++) {
         long u1 = H_bsi[0]->getValue(k) * j_bsi->getValue(k);
@@ -89,13 +89,13 @@ void testMultByConstant() {
     vector<long> v = {6,4,3};
     int c = 100000000;
     BsiSigned<uint64_t> bsi;
-    BsiAttribute<uint64_t> *test = bsi.buildBsiVectorFromVectorSigned(v, 0.5);
-    for (int i=0; i<v.numSlices(); i++) {
+    BsiVector<uint64_t> *test = bsi.buildBsiVectorFromVectorSigned(v, 0.5);
+    for (int i=0; i<v.size(); i++) {
         v[i] *= c;
     }
-    BsiAttribute<uint64_t> *sol = bsi.buildBsiVectorFromVectorSigned(v, 0.5);
+    BsiVector<uint64_t> *sol = bsi.buildBsiVectorFromVectorSigned(v, 0.5);
     test = test->multiplyByConstant(c);
-    for (int i=0; i<v.numSlices(); i++) {
+    for (int i=0; i<v.size(); i++) {
         cout << test->getValue(i) << " ";
     }
     cout << "\n";
@@ -109,18 +109,18 @@ void testMultByConstant() {
 
 void testInverse() {
     BsiSigned<uint64_t> bsi;
-    vector<BsiAttribute<uint64_t>*> mat;
+    vector<BsiVector<uint64_t>*> mat;
     vector<long> r1 = {4,3};
     vector<long> r2 = {3,2};
     mat.push_back(bsi.buildBsiVectorFromVectorSigned(r1, 0.5));
     mat.push_back(bsi.buildBsiVectorFromVectorSigned(r2, 0.5));
-    vector<BsiAttribute<uint64_t>*> res = inv(mat);
+    vector<BsiVector<uint64_t>*> res = inv(mat);
 }
 
-vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
+vector<BsiVector<uint64_t>*> inv(vector<BsiVector<uint64_t>*> mat) {
     int precision = 10000;
-    int n = mat.numSlices();
-    vector<BsiAttribute<uint64_t>*> res; // initialize as identity matrix
+    int n = mat.size();
+    vector<BsiVector<uint64_t>*> res; // initialize as identity matrix
     vector<long> row;
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
@@ -141,7 +141,7 @@ vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
     BsiSigned<uint64_t> bsi;
     for (int i=0; i<n; i++) {
         row[i] = precision;
-        res.push_back(bsi.buildBsiAttributeFromVectorSigned(row,0.5));
+        res.push_back(bsi.buildBsiVectorFromVectorSigned(row,0.5));
         row[i] = 0;
     }
 
@@ -155,7 +155,7 @@ vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
             }
         }
         // Interchange rows
-        BsiAttribute<uint64_t>* temp = mat[i];
+        BsiVector<uint64_t>* temp = mat[i];
         mat[i] = mat[piv];
         mat[piv] = temp;
 
@@ -191,7 +191,7 @@ vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
  * A = P * L * U
  * Matrices are implemented with arrays of signed BsiVector's
 */
-void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b) {
+void sgesv(int n, int m, vector<BsiVector<uint64_t>*> a, vector<int> ipiv, vector<BsiVector<uint64_t>*> b) {
     // Compute LU factorization of A
     sgetrf(n, n, a, ipiv);
     // Solve the system A * X = B by overwriting B with X
@@ -201,7 +201,7 @@ void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, ve
 /*
  * Auxiliary call to LAPACK subroutine for computing an LU factorization
 */
-void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv) {
+void sgetrf(int m, int n, vector<BsiVector<uint64_t>*> a, vector<int> ipiv) {
     if (m == 0 || n == 0) return;
     sgetrf2(m, n, a, ipiv);
 }
@@ -218,7 +218,7 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv) {
  * where A11 is n1-by-n1, A22 is n2-by-n2, n1 = min(m,n)/2, n2 = n-n1
  * Matrices are implemented with arrays of signed BsiVector's
 */
-void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv) {
+void sgetrf2(int m, int n, vector<BsiVector<uint64_t>*> a, vector<int> ipiv) {
     if (m == 0 || n == 0) return;
     if (m == 1) ipiv[0] = 0;
     else if (n == 1) {
@@ -276,8 +276,8 @@ void testCompareTo() {
         //if (j < 17) {j++;continue;}
         for (int i = 0; i < n; i++) {
             //cout << v1[i] << " " << v2[i] << "\n";
-            BsiAttribute<uint64_t> *bsi1 = build.buildBsiVectorFromVectorSigned(v1, 0.5);
-            BsiAttribute<uint64_t> *bsi2 = build.buildBsiVectorFromVectorSigned(v2, 0.5);
+            BsiVector<uint64_t> *bsi1 = build.buildBsiVectorFromVectorSigned(v1, 0.5);
+            BsiVector<uint64_t> *bsi2 = build.buildBsiVectorFromVectorSigned(v2, 0.5);
             int res = bsi1->compareTo(bsi2,i);
             if (v1[i] < v2[i]) {
                 if (res != -1) {
@@ -305,6 +305,6 @@ void testCompareTo() {
     }
 }
 
-void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b) {
+void sgetrs(int n, int m, vector<BsiVector<uint64_t>*> a, vector<int> ipiv, vector<BsiVector<uint64_t>*> b) {
 
 }
