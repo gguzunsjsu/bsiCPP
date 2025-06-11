@@ -61,9 +61,9 @@ void testMultSum() {
     int PRECISION = 1;
     BsiAttribute<uint64_t>* j_bsi = bsi.buildBsiAttributeFromVectorSigned(j,0.5);
 
-    /*BsiAttribute<uint64_t>* u_bsi = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[2]));
-    BsiAttribute<uint64_t>* v_bsi = H_bsi[3]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[4]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[5]));
-    BsiAttribute<uint64_t>* w_bsi = H_bsi[6]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[7]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[8]));
+    /*BsiVector<uint64_t>* u_bsi = H_bsi[0]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[1]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[2]));
+    BsiVector<uint64_t>* v_bsi = H_bsi[3]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[4]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[5]));
+    BsiVector<uint64_t>* w_bsi = H_bsi[6]->multiplyWithBsiHorizontal(j_bsi,PRECISION)->SUM(H_bsi[7]->multiplyWithBsiHorizontal(i_bsi,PRECISION)->SUM(H_bsi[8]));
 
     for (int k=0; k<u_bsi->rows; k++) {
         long u = H_bsi[0]->getValue(k) * j_bsi->getValue(k) + H_bsi[1]->getValue(k) * i_bsi->getValue(k) + H_bsi[2]->getValue(k);
@@ -90,12 +90,12 @@ void testMultByConstant() {
     int c = 100000000;
     BsiSigned<uint64_t> bsi;
     BsiAttribute<uint64_t> *test = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
-    for (int i=0; i<v.size(); i++) {
+    for (int i=0; i<v.numSlices(); i++) {
         v[i] *= c;
     }
     BsiAttribute<uint64_t> *sol = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
     test = test->multiplyByConstant(c);
-    for (int i=0; i<v.size(); i++) {
+    for (int i=0; i<v.numSlices(); i++) {
         cout << test->getValue(i) << " ";
     }
     cout << "\n";
@@ -119,7 +119,7 @@ void testInverse() {
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
     int precision = 10000;
-    int n = mat.size();
+    int n = mat.numSlices();
     vector<BsiAttribute<uint64_t>*> res; // initialize as identity matrix
     vector<long> row;
     for (int i=0; i<n; i++) {
@@ -189,7 +189,7 @@ vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> mat) {
  * where A is an n-by-n matrix, and X and B are n-by-m matrices.
  * LU decomposition with partial pivoting and row interchanges is used to factor A as
  * A = P * L * U
- * Matrices are implemented with arrays of signed BsiAttribute's
+ * Matrices are implemented with arrays of signed BsiVector's
 */
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b) {
     // Compute LU factorization of A
@@ -216,7 +216,7 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv) {
  * A = [ A11 A12 ]
  *     [ A21 A22 ]
  * where A11 is n1-by-n1, A22 is n2-by-n2, n1 = min(m,n)/2, n2 = n-n1
- * Matrices are implemented with arrays of signed BsiAttribute's
+ * Matrices are implemented with arrays of signed BsiVector's
 */
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv) {
     if (m == 0 || n == 0) return;

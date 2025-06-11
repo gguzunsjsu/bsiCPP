@@ -7,7 +7,7 @@
 
 #include "BsiUnsigned.hpp"
 #include "BsiSigned.hpp"
-#include "BsiAttribute.hpp"
+#include "BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 
 #include "testBSIAttributeBuilding.h"
@@ -15,7 +15,7 @@ using namespace std;
 
 bool validateBuild(vector<long> array, double compressThreshold) {
 	//Build the BSI representation of the array
-	BsiAttribute<uint64_t>* bsi_1;
+	BsiVector<uint64_t>* bsi_1;
 	BsiUnsigned<uint64_t> ubsi;
 	bsi_1 = ubsi.buildBsiAttributeFromVector(array, compressThreshold);
 	//Check if the BSI is stored properly
@@ -31,7 +31,7 @@ bool validateBuild(vector<long> array, double compressThreshold) {
 	}
 	return result;
 }
-bool validateBSIWithArray(vector<long> array, BsiAttribute<uint64_t>* bsi){
+bool validateBSIWithArray(vector<long> array, BsiVector<uint64_t>* bsi){
 	bool result = true;
 	for (int i = 0; i < array.size(); i++) {
 		if (array[i] != bsi->getValue(i)) {
@@ -44,7 +44,7 @@ bool validateBSIWithArray(vector<long> array, BsiAttribute<uint64_t>* bsi){
 	return result;
 }
 
-bool validateMultiplicationByAConstant(std::vector<long> array, BsiAttribute<uint64_t>* bsi, int multiplier) {
+bool validateMultiplicationByAConstant(std::vector<long> array, BsiVector<uint64_t>* bsi, int multiplier) {
 
 	//Build the BSI representation of the array
 	bool result = true;
@@ -61,7 +61,7 @@ bool validateMultiplicationByAConstant(std::vector<long> array, BsiAttribute<uin
 
 }
 
-bool validateBSIWithArray(BsiAttribute<uint64_t>* bsi, std::vector<long> array ) {
+bool validateBSIWithArray(BsiVector<uint64_t>* bsi, std::vector<long> array ) {
 	bool result = true;
 	for (int i = 0; i < array.size(); i++) {
 		if (array[i] != bsi->getValue(i)) {

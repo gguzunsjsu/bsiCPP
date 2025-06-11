@@ -10,7 +10,7 @@
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
@@ -40,8 +40,8 @@ int main(){
     std::cout << "Array sum duration: \t" << array_duration << std::endl;
 
     BsiUnsigned<uint64_t> ubsi;
-    BsiAttribute<uint64_t>* bsi;
-    BsiAttribute<uint64_t>* bsi2;
+    BsiVector<uint64_t>* bsi;
+    BsiVector<uint64_t>* bsi2;
 
 
     bsi = ubsi.buildBsiAttributeFromVector(array1, 0.5);

@@ -1,7 +1,7 @@
 Case 1
 Entering the numbers 0 to 9 in the BSI Attribute
 BSI 
-	size = 4
+	numSlices = 4
 	0 th slice = 682  1010101010
 	1 st slice = 204	11001100
 	2 nd slice = 240	11110000
@@ -12,7 +12,7 @@ BSI
 Case 2
 Entering the numbers 0 to 32 in the BSI Attribute
 BSI 
-	size = 5
+	numSlices = 5
 	4 th slice = 1111111111111111111111111111111111111111111111110000000000000000
 	3 rd slice = 1111111111111111111111111111111111111111000000001111111100000000
 	2 nd slice = 1111111111111111111111111111111111110000111100001111000011110000
@@ -24,7 +24,7 @@ BSI
 Case 3
 Entering the numbers 0 to 31 in the BSI Attribute
 BSI 
-	size = 5
+	numSlices = 5
 	4 th slice = 1111111111111110000000000000000
 	3 rd slice = 1111111000000001111111100000000
 	2 nd slice = 1110000111100001111000011110000
@@ -32,10 +32,10 @@ BSI
 	0 th slice =  101010101010101010101010101010
 
 ********************************BSI Attribute************************
-size
+numSlices
 offset
 decimals
-bits -> The size of the word in bits - each bit will represent an element
+bits -> The numSlices of the word in bits - each bit will represent an element
 bsi  -> The representation of the elements in BitSliceVector format
 existenceBitMap -> each bit used to represent if the element in the corresponding index is non-zero
 sign -> each bit used to represent if the element in the corresponding index is negative(signed)

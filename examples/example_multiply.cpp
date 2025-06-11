@@ -11,7 +11,7 @@
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
@@ -43,13 +43,13 @@ int main(){
      * bsi multiply
      */
     BsiUnsigned<uint64_t> ubsi;
-    BsiAttribute<uint64_t>* bsi;
+    BsiVector<uint64_t>* bsi;
     bsi = ubsi.buildBsiAttributeFromVector(array1, 0.2);
     bsi->setPartitionID(0);
     bsi->setFirstSliceFlag(true);
     bsi->setLastSliceFlag(true);
 
-    BsiAttribute<uint64_t>* bsi_res;
+    BsiVector<uint64_t>* bsi_res;
 
     /*
      * print values of bsi

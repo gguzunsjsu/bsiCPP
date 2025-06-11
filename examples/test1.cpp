@@ -9,16 +9,16 @@
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
 template <class uword>
-std::vector<int> convertBSIToDecimal(const BsiAttribute<uword>& res) {
-    std::vector<int> decimals(res.bsi[0].size(), 0);
+std::vector<int> convertBSIToDecimal(const BsiVector<uword>& res) {
+    std::vector<int> decimals(res.bsi[0].numSlices(), 0);
     for (size_t i = 0; i < res.bsi.size(); ++i) {
         int weight = 1 << (res.offset + i);  // 2^(offset + i)
-        for (size_t row = 0; row < res.bsi[i].size(); ++row) {
+        for (size_t row = 0; row < res.bsi[i].numSlices(); ++row) {
             if (res.bsi[i].test(row)) {
                 decimals[row] += weight;
             }
@@ -57,8 +57,8 @@ int main(){
     array2 = {5, 2, 9};
 
     BsiUnsigned<uint64_t> ubsi;
-    BsiAttribute<uint64_t>* bsi_1;
-    BsiAttribute<uint64_t>* bsi_2;
+    BsiVector<uint64_t>* bsi_1;
+    BsiVector<uint64_t>* bsi_2;
 
     bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0.2);
     // bsi_1 = ubsi.buildBsiAttributeFromVector_without_compression(array1);
@@ -67,7 +67,7 @@ int main(){
     bsi_1->setPartitionID(0);
 
     std::cout << "Bsi 1: " << bsi_1->getNumberOfSlices() << std::endl;
-    std::cout << "Bsi 1 size: " << bsi_1->size << std::endl;
+    std::cout << "Bsi 1 numSlices: " << bsi_1->numSlices << std::endl;
     std::cout << "Bsi 1 value: " << bsi_1 << std::endl;
     std::cout <<"Number of elements in the bsi1 vector: " << bsi_1->getNumberOfRows() << std::endl;
     for (int i = 0; i < bsi_1->getNumberOfRows(); i++) {
@@ -83,7 +83,7 @@ int main(){
 
 
     std::cout << "Bsi 2_: " << bsi_2->getNumberOfSlices() << std::endl;
-    std::cout << "Bsi 2 size: " << bsi_2->size << std::endl;
+    std::cout << "Bsi 2 numSlices: " << bsi_2->numSlices << std::endl;
     std::cout << "Bsi 2 value: " << bsi_2 << std::endl;
     std::cout <<"Number of elements in the bsi2 vector: " << bsi_2->getNumberOfRows() << std::endl;
     //std::cout << bsi_2->getNumberOfRows() << std::endl;
@@ -93,8 +93,8 @@ int main(){
     }
 
     // auto t3 = std::chrono::high_resolution_clock::now();
-    BsiAttribute<uint64_t>* resultBsi = bsi_1->SUM(bsi_2);
-    // BsiAttribute<uint64_t>* resultBsi = bsi_1->sum_Horizontal(bsi_2);
+    BsiVector<uint64_t>* resultBsi = bsi_1->SUM(bsi_2);
+    // BsiVector<uint64_t>* resultBsi = bsi_1->sum_Horizontal(bsi_2);
     // auto t4 = std::chrono::high_resolution_clock::now();
     // auto bsi_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count();
 
@@ -107,7 +107,7 @@ int main(){
     // std::stringstream ss;
     // ss << resultBsi;
     // res = hexStringToVector(ss.str());
-    // for (int i = 0 ; i <res.size() ; i++) {
+    // for (int i = 0 ; i <res.numSlices() ; i++) {
     // std::cout << "Deci: " << res[i] << std::endl;
 
     // }

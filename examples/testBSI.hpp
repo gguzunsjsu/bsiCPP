@@ -2,7 +2,7 @@
 #define testBSI_H
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "testBSIAttributeBuilding.h"
 #include <iostream>
 #include <chrono>
@@ -33,7 +33,7 @@ public:
     double compressionThreshold;
     vector<long> array;
     BsiSigned<uword> signed_bsi;
-    BsiAttribute<uword> *bsi_attribute;
+    BsiVector<uword> *bsi_attribute;
     int numberOfElementsInTheArray;
     int maxValue;
 
@@ -156,7 +156,7 @@ public:
         cout << "\n\nEnter the number to multiply with ? ";
         cin >> multiplier;
         auto start = chrono::high_resolution_clock::now();
-        BsiAttribute<uint64_t> *result = this->bsi_attribute->multiplyByConstantNew(multiplier);
+        BsiVector<uint64_t> *result = this->bsi_attribute->multiplyByConstantNew(multiplier);
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
         cout << "\nTime for Multiplication By Constant for the BSI Attribute: " << duration.count() << endl;
@@ -165,12 +165,12 @@ public:
     void sumOfTwoBSIVectors()
     {
         // For simple testing, lets test the addition of the BSI Attribute with each other
-        BsiAttribute<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
 
-        BsiAttribute<uint64_t> *result = this->bsi_attribute->SUM(bsi2);
+        BsiVector<uint64_t> *result = this->bsi_attribute->SUM(bsi2);
         vector<long> sumArray;
         for (int i = 0; i < this->array.size(); i++)
         {
@@ -195,7 +195,7 @@ public:
     }
     void vectorMultiplicationOfBSI()
     {
-        BsiAttribute<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(this->array, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -205,7 +205,7 @@ public:
         {
             v.push_back(this->array[i] * this->array[i]);
         }
-        BsiAttribute<uint64_t> *bsi3 = this->bsi_attribute->multiplication(bsi2);
+        BsiVector<uint64_t> *bsi3 = this->bsi_attribute->multiplication(bsi2);
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Done with multiplication" << endl;
     }
@@ -235,7 +235,7 @@ public:
                 array1.push_back(std::rand() % this->range);
             }
         }
-        BsiAttribute<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -245,7 +245,7 @@ public:
         {
             v.push_back(this->array[i] * array1[i]);
         }
-        BsiAttribute<uint64_t>* bsi3 = this->bsi_attribute->multiplication(bsi2);
+        BsiVector<uint64_t>* bsi3 = this->bsi_attribute->multiplication(bsi2);
 
         cout << "Vector multiplication  correct ? " << validateBSIWithArray(v, bsi3) << "\n";
         cout << "Done with multiplication" << endl;
@@ -269,7 +269,7 @@ public:
             }
         }
         else if (randomChoice == 3) {
-            //Fill the arrays with numbers 1 to the size
+            //Fill the arrays with numbers 1 to the numSlices
             for (int i = 1; i <= numberOfElementsInTheArray; i++) {
                 array1.push_back(i % this->range);
             }
@@ -301,8 +301,8 @@ public:
         }
         cout << "\nDONE!\n";
         // Build the BSI attribute for this
-//        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
-        BsiAttribute<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVectorSigned(array1, this->compressionThreshold);
+//        BsiVector<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        BsiVector<uint64_t>* bsi2 = this->signed_bsi.buildBsiAttributeFromVectorSigned(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -380,7 +380,7 @@ public:
             array1.push_back(number % this->range);
         }
         // Build the BSI attribute for this
-        BsiAttribute<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
+        BsiVector<uint64_t> *bsi2 = this->signed_bsi.buildBsiAttributeFromVector(array1, this->compressionThreshold);
         bsi2->setPartitionID(0);
         bsi2->setFirstSliceFlag(true);
         bsi2->setLastSliceFlag(true);
@@ -388,10 +388,10 @@ public:
         cout << "BSI Attribute building is correct ? " << validateBSIWithArray(array1, bsi2) << "\n";
         // Multiple the two BSI Attributes
         /*
-        * BsiAttribute<uint64_t> *bsi3 = this->bsi_attribute->multiplication(bsi2);
+        * BsiVector<uint64_t> *bsi3 = this->bsi_attribute->multiplication(bsi2);
         // Validate multiplication
         vector<long> v;
-        for (long i = 0; i < this->array.size(); ++i)
+        for (long i = 0; i < this->array.numSlices(); ++i)
         {
             v.push_back(this->array[i] * array1[i]);
         }
@@ -405,14 +405,14 @@ public:
         hybridBitmap.reset();
         hybridBitmap.verbatim = true;
         /*
-        for (int j = 0; j < this->bsi_attribute->size + bsi3->size; j++)
+        for (int j = 0; j < this->bsi_attribute->numSlices + bsi3->numSlices; j++)
         {
             res->addSlice(hybridBitmap);
         }
         */
 
-        int size_a = this->bsi_attribute->size;
-        int size_b = bsi2->size;
+        int size_a = this->bsi_attribute->numSlices;
+        int size_b = bsi2->numSlices;
         std::vector<uint64_t> a(size_a);
         std::vector<uint64_t> b(size_b);
         std::vector<uint64_t> answer(size_a + size_b);
@@ -422,11 +422,11 @@ public:
         for (int bu = 0; bu < this->bsi_attribute->bsi[0].bufferSize(); bu++)
         {
             // For each slice, get the decimal representations added into an array
-            for (int j = 0; j < this->bsi_attribute->size; j++)
+            for (int j = 0; j < this->bsi_attribute->numSlices; j++)
             {
                 a[j] = this->bsi_attribute->bsi[j].getWord(bu); // fetching one word
             }
-            for (int j = 0; j < bsi2->size; j++)
+            for (int j = 0; j < bsi2->numSlices; j++)
             {
                 b[j] = bsi2->bsi[j].getWord(bu);
             }
@@ -493,11 +493,11 @@ public:
                     answer[ansSize - 1] = b[it] & C;
                 }
                 k++;
-            } // End of loop via size of b
+            } // End of loop via numSlices of b
             // So we have the answer for one buffer in ans
             // Add it as a slice to our result
             /*
-            for (int j = 0; j < ans.size(); j++)
+            for (int j = 0; j < ans.numSlices(); j++)
             {
                 res->bsi[j].addVerbatim(answer[j]);
             }

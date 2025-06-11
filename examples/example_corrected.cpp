@@ -13,7 +13,7 @@
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
@@ -29,10 +29,10 @@ int getRandomInt(int min, int max) {
 int main(){
     BsiUnsigned<uint64_t> ubsi;
     BsiUnsigned<uint64_t> ubsi_1;
-    BsiAttribute<uint64_t> *bsi_1;
-    BsiAttribute<uint64_t> *bsi_2;
-    BsiAttribute<uint64_t> *bsi_3;
-    BsiAttribute<uint64_t> *bsi_result;
+    BsiVector<uint64_t> *bsi_1;
+    BsiVector<uint64_t> *bsi_2;
+    BsiVector<uint64_t> *bsi_3;
+    BsiVector<uint64_t> *bsi_result;
 
     BsiSigned<uint64_t> *bsi_s = new BsiSigned<uint64_t>();
     HybridBitmap<uint64_t> hybridBitmap;
@@ -97,7 +97,7 @@ int main(){
     bsi_2->setPartitionID(0);
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);
-    // bsi_result = ubsi.buildBsiAttributeFromArray(result, result.size(), 0.2);
+    // bsi_result = ubsi.buildBsiAttributeFromArray(result, result.numSlices(), 0.2);
     std::chrono::high_resolution_clock::time_point t11 = std::chrono::high_resolution_clock::now();
 
     auto durationBuilding = std::chrono::duration_cast<std::chrono::microseconds>( t11 - t10 ).count();
@@ -147,7 +147,7 @@ int main(){
     cout <<"Duration multiply array: \t\t"<< duration1<<endl;
     cout<<"sum is: "<<sum<<endl;
    // cout<<"first element is: "<<result[0]<<endl;
-   // cout<<"last element is: "<<result[result.size()]<<endl;
+   // cout<<"last element is: "<<result[result.numSlices()]<<endl;
 
 
     std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
@@ -193,13 +193,13 @@ int main(){
 
 
 //
-//    for(int i=0; i< result.size(); i++){
+//    for(int i=0; i< result.numSlices(); i++){
 //        std::cout << result[i] <<" ";
 //    }
 //
 //    std::cout << endl;
 //
-//    for(int i=0; i< array2.size(); i++){
+//    for(int i=0; i< array2.numSlices(); i++){
 //        string s1 = std::to_string(bsi_3->getValue(i));
 //        std::cout << s1 <<" ";
 //    }
@@ -212,10 +212,10 @@ int main(){
 //    //std::cout<<bsi->isLastSlice();
 //    vector<vector<uint64_t>> rawData;
 //    vector<uint64_t> myvector1;
-//    vector<BsiAttribute<uint64_t>*> bsiData;
+//    vector<BsiVector<uint64_t>*> bsiData;
 //
 //
-////    bsi.push_back(ubsi.buildBsiAttributeFromArray(row, row.size(), 0.2));
+////    bsi.push_back(ubsi.buildBsiAttributeFromArray(row, row.numSlices(), 0.2));
 //
 //    string temp;
 //
@@ -238,8 +238,8 @@ int main(){
 //        cerr<<"File can't be open"<<endl;
 //        return -1;
 //    }
-//    int atts = rawData[0].size();
-//    int rows = rawData.size();
+//    int atts = rawData[0].numSlices();
+//    int rows = rawData.numSlices();
 //
 //    cout<<"Total rows: "<<rows<<" Attributes: "<<atts<<endl;
 //    for(vector<uint64_t>::iterator it = rawData[0].begin(); it < rawData[0].end(); it++){
@@ -258,10 +258,10 @@ int main(){
 //                myvector1.push_back(rawData[i][j]);
 //            }
 //        }
-//        //cout<<" buffer size: "<<buffer.size()<<endl;
-//        bsiData.push_back(ubsi.buildBsiAttributeFromArray(buffer, buffer.size(), 0.2));
+//        //cout<<" buffer numSlices: "<<buffer.numSlices()<<endl;
+//        bsiData.push_back(ubsi.buildBsiAttributeFromArray(buffer, buffer.numSlices(), 0.2));
 //    }
-//    for(int i=0; i< myvector1.size(); i++){
+//    for(int i=0; i< myvector1.numSlices(); i++){
 //        cout<<myvector1[i]<<" ";
 //    }
 //    cout<<endl;
@@ -281,9 +281,9 @@ int main(){
 //        myvector1.push_back(i);
 //    }
 
-//    int vectorSize = myvector.size();
-//    int vectorSize1 = myvector1.size();
-//    int vectorSize2 = myvector2.size();
+//    int vectorSize = myvector.numSlices();
+//    int vectorSize1 = myvector1.numSlices();
+//    int vectorSize2 = myvector2.numSlices();
 //    bsi_1 = bsi.buildBsiAttributeFromArray(myvector, vectorSize, 0.2);
 //    bsi_2 = bsi.buildBsiAttributeFromArray(myvector1, vectorSize1, 0.2);
 //    bsi_4 = bsi.buildBsiAttributeFromArray(myvector2, vectorSize2, 0.2);
