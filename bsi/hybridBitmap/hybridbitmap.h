@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
+#include <type_traits>
 
 #include "hybridutil.h"
 #include "boolarray.h"
@@ -16,6 +17,8 @@ template <class uword> class HybridBitmapSetBitForwardIterator;
 class BitmapStatistics;
 
 template <class uword> class HybridBitmapRawIterator;
+
+
 
 /**
  * This class is a compressed bitmap.
@@ -38,6 +41,8 @@ public:
         total += buffer.capacity() * sizeof(uword);
         return total;
     }
+
+
 
 
 
@@ -1081,8 +1086,6 @@ public:
      */
     size_t numberOfOnes() const;
 
-    size_t numberOfOnes_popcount() const;
-
     /**
      * Swap the content of this bitmap with another bitmap.
      * No copying is done. (Running time complexity is constant.)
@@ -1757,9 +1760,30 @@ template <class uword> void HybridBitmap<uword>::inplace_logicalnot() {
 template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
     size_t tot(0);
     size_t pointer(0);
+    if (8*sizeof(uword)==32) {
+        if(verbatim){
+            for (int i = 0; i < bufferSize(); i++) {
+                tot += __builtin_popcount(buffer[i]);
+            }
+        }else{
+            while (pointer < buffer.size()) {
+                size_t temp = buffer.size();
+                ConstRunningLengthWord<uword> rlw(buffer[pointer]);
+                if (rlw.getRunningBit()) {
+                    tot += static_cast<size_t>(rlw.getRunningLength() * wordinbits);
+                }
+                ++pointer;
+                for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
+                    tot += __builtin_popcount(buffer[pointer]);
+                    ++pointer;
+                }
+            }
+        }
+    }else
+        {
     if(verbatim){
         for (int i = 0; i < bufferSize(); i++) {
-            tot += std::__popcount((uword)buffer[i]);
+            tot += __builtin_popcountl(buffer[i]);
         }
     }else{
         while (pointer < buffer.size()) {
@@ -1770,13 +1794,16 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
             }
             ++pointer;
             for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
-                tot += std::__popcount((uword)buffer[pointer]);
+                tot += __builtin_popcountl(buffer[pointer]);
                 ++pointer;
             }
         }
     }
+}
     return tot;
 }
+
+
 
 
 template <class uword>

@@ -27,7 +27,7 @@ int main() {
 
     int one_range = 1000;
     int two_range = 1000;
-    int vectorLength = 1000000;
+    int vectorLength = 10000000;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -114,23 +114,23 @@ int main() {
     */
 
 //    BsiSigned<uint64_t> ubsi;
-    BsiUnsigned<uint64_t> ubsi;
+    BsiUnsigned<uint32_t> ubsi;
 
-    BsiVector<uint64_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
+    BsiVector<uint32_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
     one_bsi->setFirstSliceFlag(true);
     one_bsi->setLastSliceFlag(true);
     one_bsi->setPartitionID(0);
 
-    BsiVector<uint64_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
+    BsiVector<uint32_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
     two_bsi->setFirstSliceFlag(true);
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
 
-    BsiVector<uint64_t>* resultBsi;
-    BsiVector<uint64_t>* resultBsi2;
-    BsiVector<uint64_t>* resultBsi3;
-    BsiVector<uint64_t>* resultBsi_4;
-    BsiVector<uint64_t>* resultBsi5;
+    BsiVector<uint32_t>* resultBsi;
+    BsiVector<uint32_t>* resultBsi2;
+    BsiVector<uint32_t>* resultBsi3;
+    BsiVector<uint32_t>* resultBsi_4;
+    BsiVector<uint32_t>* resultBsi5;
     std::cout << "Slices in bsi One: " << one_bsi->numSlices << std::endl;
     std::cout << "Slices in bsi Two: " << two_bsi->numSlices << std::endl;
 
@@ -258,24 +258,36 @@ int main() {
     std::cout << "bsi Multiply duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t12-t11).count() << std::endl;
 
 
-    // SumOfBSI:
-    std::cout << "Sum of BSI original" << std::endl;
+    // Dot product:
+    std::cout << "Dot product" << std::endl;
 
     auto t13 = std::chrono::high_resolution_clock::now();
-    long sumOfBsi= one_bsi->sumOfBsi();
+    long dotres = one_bsi->dotProduct(two_bsi);
     auto t14 = std::chrono::high_resolution_clock::now();
-    std::cout << "sum of Bsi original: " << sumOfBsi << std::endl;
-    std::cout << "sum of Bsi original duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t14-t13).count() << std::endl;
+    std::cout << "Dot product: " << dotres << std::endl;
+    std::cout << "Dot Product time: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t14-t13).count() << std::endl;
 
 
-    // SumOfBSI updated:
-    std::cout << "Sum of BSI original" << std::endl;
+    // Dot product:
+    std::cout << "Dot " << std::endl;
 
     auto t15 = std::chrono::high_resolution_clock::now();
-    sumOfBsi= one_bsi->sumOfBsi_pop();
+    dotres = one_bsi->dot(two_bsi);
     auto t16 = std::chrono::high_resolution_clock::now();
-    std::cout << "sum of Bsi original: " << sumOfBsi << std::endl;
-    std::cout << "sum of Bsi original updated: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t16-t15).count() << std::endl;
+    std::cout << "Dot: " << dotres << std::endl;
+    std::cout << "Dot time: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t16-t15).count() << std::endl;
+
+    // Dot product:
+    std::cout << "Dot vector " << std::endl;
+
+    auto t17 = std::chrono::high_resolution_clock::now();
+    dotres = 0;
+    for (int i=0; i<one.size(); i++) {
+        dotres += one[i]*two[i];
+    }
+    auto t18 = std::chrono::high_resolution_clock::now();
+    std::cout << "Dot vector: " << dotres << std::endl;
+    std::cout << "Dot vector time: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t18-t17).count() << std::endl;
 
 
     return 0;
