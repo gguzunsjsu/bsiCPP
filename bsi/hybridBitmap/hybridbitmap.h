@@ -137,7 +137,7 @@ public:
          */
 //        double aaa = n;
 //        double a1 = aaa/ans.sizeinbits;
-        ans.setDensity(static_cast<double>(n)/ans.sizeinbits()); //to ensure floating point division
+        ans.setDensity(static_cast<double>(n)/ans.sizeInBits()); //to ensure floating point division
         return ans;
     }
 
