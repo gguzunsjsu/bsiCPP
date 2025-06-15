@@ -3,6 +3,8 @@
 #include <chrono>
 #include <random>
 #include <iomanip>
+#include <numeric>
+#include <cuda_runtime.h>
 
 // Only include what we need
 #include "../bsi/BsiAttribute.hpp"
@@ -35,9 +37,13 @@ int main(int argc, char* argv[]) {
     // Generate random data
     std::vector<long> array1(vectorLen);
     std::vector<long> array2(vectorLen);
-    
-    std::random_device rd;
-    std::mt19937 gen(rd());
+
+    // Seed RNG for reproducibility (default or from argv[3])
+    unsigned int seed = 12345;
+    if (argc > 3) seed = static_cast<unsigned int>(std::stoul(argv[3]));
+    std::mt19937 gen(seed);
+    std::cout << "Using random seed: " << seed << std::endl;
+
     std::uniform_int_distribution<> dist(0, range-1);
     
     for (int i = 0; i < vectorLen; i++) {
@@ -67,78 +73,115 @@ int main(int argc, char* argv[]) {
     auto build_time = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
     std::cout << "BSI build time: " << build_time << " ms" << std::endl;
     std::cout << "Memory used per BSI attribute: " << bsi1->getSizeInMemory()/(1024*1024) << " MB" << std::endl;
-    
-    // Compute dot product using vectors (baseline)
-    std::cout << "\nRunning dot product benchmarks..." << std::endl;
-    t1 = std::chrono::high_resolution_clock::now();
-    long long vector_dot = 0;
-    for (int i = 0; i < vectorLen; i++) {
-        vector_dot += array1[i] * array2[i];
-    }
-    t2 = std::chrono::high_resolution_clock::now();
-    auto vector_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
-    
-    // Compute dot product using BSI CPU
-    t1 = std::chrono::high_resolution_clock::now();
-    long long bsi_cpu_dot = bsi1->dot(bsi2);
-    t2 = std::chrono::high_resolution_clock::now();
-    auto bsi_cpu_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
-    
-    // Compute dot product using BSI GPU if available
-    long long bsi_gpu_dot = 0;
-    long long bsi_gpu_time = 0;
+
     if (cuda_available) {
-        cuda_print_device_info(); // Print GPU info before benchmark
+        // Warm up GPU: create context & compile kernels (exclude one-time overhead)
+        cudaFree(0);
+        vector_dot_cuda(array1, array2);
+        bsi_dot_cuda(bsi1, bsi2);
+    }
 
-        t1 = std::chrono::high_resolution_clock::now();
-        bsi_gpu_dot = bsi_dot_cuda(bsi1, bsi2);
-        t2 = std::chrono::high_resolution_clock::now();
-        bsi_gpu_time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count();
-        std::cout << "BSI GPU kernel-only time: " << cuda_last_kernel_time_ms() << " ms" << std::endl;
+    // Repeat each benchmark 1000 times and average
+    const int runs = 1;
+    std::vector<long long> vecCpuTimes(runs), vecGpuTimes(runs), bsiCpuTimes(runs), bsiGpuTimes(runs);
+    long long vecCpuDot=0, vecGpuDot=0, bsiCpuDotVal=0, bsiGpuDotVal=0;
 
-        int launched_blocks = cuda_get_last_kernel_num_blocks();
-        int total_sms = cuda_get_sm_count();
-        if (total_sms > 0) { 
-            std::cout << "Launched blocks for kernel: " << launched_blocks << std::endl;
-            std::cout << "Total SMs on device: " << total_sms << std::endl;
-            int estimated_sms_utilized = std::min(launched_blocks, total_sms);
-            std::cout << "Estimated SMs utilized: " << estimated_sms_utilized 
-                      << " (based on launched blocks vs available SMs)" << std::endl;
-            int cores_per_sm = cuda_get_cores_per_sm();
-            if (cores_per_sm > 0) {
-                std::cout << "Estimated CUDA Cores utilized: " << estimated_sms_utilized * cores_per_sm << std::endl;
-            }
-            // Assuming block size of 256 for the main kernel, as set in bsi_dot_cuda_wrapper.cpp
-            const int kernel_block_size = 256;
-            std::cout << "Estimated Threads launched: " << launched_blocks * kernel_block_size << std::endl;
+    // Vector CPU
+    std::cout << "\nRunning vector CPU dot (" << runs << " runs)..." << std::endl;
+    for (int j = 0; j < runs; j++) {
+        long long tmp=0;
+        auto s = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < vectorLen; i++) tmp += array1[i] * array2[i];
+        auto e = std::chrono::high_resolution_clock::now();
+        vecCpuTimes[j] = std::chrono::duration_cast<std::chrono::microseconds>(e - s).count();
+        if (j == runs-1) vecCpuDot = tmp;
+    }
+    long long vectorCpuTime = std::accumulate(vecCpuTimes.begin(), vecCpuTimes.end(), 0LL) / runs;
+    std::cout << "Vector CPU dot: " << vecCpuDot << ", avg time: " << vectorCpuTime << " µs" << std::endl;
+
+    // Vector GPU
+    long long vectorGpuTime = 0;
+    if (cuda_available) {
+        cuda_print_device_info();
+        std::cout << "\nRunning vector GPU dot (" << runs << " runs)..." << std::endl;
+        for (int j = 0; j < runs; j++) {
+            vecGpuDot = vector_dot_cuda(array1, array2);
+            vecGpuTimes[j] = static_cast<long long>(cuda_last_kernel_time_ms() * 1000.0);
+        }
+        vectorGpuTime = std::accumulate(vecGpuTimes.begin(), vecGpuTimes.end(), 0LL) / runs;
+        std::cout << "Vector GPU dot: " << vecGpuDot << ", avg kernel time: " << vectorGpuTime << " µs" << std::endl;
+        int launchedBlocksV = cuda_get_last_kernel_num_blocks();
+        const int blockSize = 256;
+        std::cout << "Vector GPU launched blocks: " << launchedBlocksV
+                  << " | Threads: " << launchedBlocksV * blockSize << std::endl;
+    }
+
+    // BSI CPU
+    std::cout << "\nRunning BSI CPU dot (" << runs << " runs)..." << std::endl;
+    for (int j = 0; j < runs; j++) {
+        auto s = std::chrono::high_resolution_clock::now();
+        bsiCpuDotVal = bsi1->dot(bsi2);
+        auto e = std::chrono::high_resolution_clock::now();
+        bsiCpuTimes[j] = std::chrono::duration_cast<std::chrono::microseconds>(e - s).count();
+    }
+    long long bsiCpuTime = std::accumulate(bsiCpuTimes.begin(), bsiCpuTimes.end(), 0LL) / runs;
+    std::cout << "BSI CPU dot: " << bsiCpuDotVal << ", avg time: " << bsiCpuTime << " µs" << std::endl;
+
+    // BSI GPU
+    long long bsiGpuTime = 0;
+    if (cuda_available) {
+        cuda_print_device_info();
+        std::cout << "\nRunning BSI GPU dot (" << runs << " runs)..." << std::endl;
+        for (int j = 0; j < runs; j++) {
+            bsiGpuDotVal = bsi_dot_cuda(bsi1, bsi2);
+            bsiGpuTimes[j] = static_cast<long long>(cuda_last_kernel_time_ms() * 1000.0);
+        }
+        bsiGpuTime = std::accumulate(bsiGpuTimes.begin(), bsiGpuTimes.end(), 0LL) / runs;
+        std::cout << "BSI GPU dot: " << bsiGpuDotVal << ", avg kernel time: " << bsiGpuTime << " µs" << std::endl;
+        int launchedBlocks = cuda_get_last_kernel_num_blocks();
+        int totalSMs = cuda_get_sm_count();
+        if (totalSMs > 0) {
+            std::cout << "Launched blocks: " << launchedBlocks << std::endl;
+            std::cout << "Total SMs: " << totalSMs << std::endl;
+            int estSM = std::min(launchedBlocks, totalSMs);
+            std::cout << "Estimated SMs utilized: " << estSM << std::endl;
+            int cores = cuda_get_cores_per_sm();
+            if (cores > 0)
+                std::cout << "Estimated CUDA cores: " << estSM * cores << std::endl;
+            const int bs = 256;
+            std::cout << "Estimated threads: " << launchedBlocks * bs << std::endl;
         }
     }
-    
+
     // Print results
     std::cout << "\n=== Results ===" << std::endl;
-    std::cout << "Vector dot product: " << vector_dot << ", time: " << vector_time << " µs" << std::endl;
-    std::cout << "BSI CPU dot product: " << bsi_cpu_dot << ", time: " << bsi_cpu_time << " µs" << std::endl;
-    
+    std::cout << "Vector CPU dot: " << vecCpuDot << ", avg time: " << vectorCpuTime << " µs" << std::endl;
     if (cuda_available) {
-        std::cout << "BSI GPU dot product: " << bsi_gpu_dot << ", time: " << bsi_gpu_time << " µs" << std::endl;
-        
-        // Verify results
-        if (bsi_cpu_dot == bsi_gpu_dot) {
+        std::cout << "Vector GPU dot: " << vecGpuDot << ", avg kernel time: " << vectorGpuTime << " µs" << std::endl;
+    }
+    std::cout << "BSI CPU dot: " << bsiCpuDotVal << ", avg time: " << bsiCpuTime << " µs" << std::endl;
+    if (cuda_available) {
+        std::cout << "BSI GPU dot: " << bsiGpuDotVal << ", avg kernel time: " << bsiGpuTime << " µs" << std::endl;
+    }
+
+    // Verify results
+    if (cuda_available) {
+        if (bsiCpuDotVal == bsiGpuDotVal) {
             std::cout << "\n CPU and GPU results match!" << std::endl;
         } else {
             std::cout << "\n CPU and GPU results don't match!" << std::endl;
-            std::cout << "Difference: " << (bsi_cpu_dot - bsi_gpu_dot) << std::endl;
+            std::cout << "Difference: " << (bsiCpuDotVal - bsiGpuDotVal) << std::endl;
         }
     }
     
     // Calculate speedups
     std::cout << "\n=== Performance Analysis ===" << std::endl;
     std::cout << std::fixed << std::setprecision(2);
-    std::cout << "BSI CPU vs Vector: " << (double)vector_time / bsi_cpu_time << "x" << std::endl;
-    
+    std::cout << "Vector GPU vs CPU: " << (double)vectorCpuTime / vectorGpuTime << "x" << std::endl;
+    std::cout << "BSI CPU vs Vector CPU: " << (double)vectorCpuTime / bsiCpuTime << "x" << std::endl;
     if (cuda_available) {
-        std::cout << "BSI GPU vs Vector: " << (double)vector_time / bsi_gpu_time << "x" << std::endl;
-        std::cout << "BSI GPU vs BSI CPU: " << (double)bsi_cpu_time / bsi_gpu_time << "x" << std::endl;
+        std::cout << "BSI GPU vs Vector GPU: " << (double)vectorGpuTime / bsiGpuTime << "x" << std::endl;
+        std::cout << "BSI GPU vs BSI CPU: " << (double)bsiCpuTime / bsiGpuTime << "x" << std::endl;
     }
     
     // Clean up

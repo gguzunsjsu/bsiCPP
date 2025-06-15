@@ -85,6 +85,15 @@ if [ "$HAS_CUDA" -eq 1 ]; then
         HAS_CUDA=0
         CUDA_DEFINES=""
     fi
+    
+    # Compile vector dot CUDA kernel
+    echo "Compiling vector dot CUDA kernel..."
+    nvcc -c ../bsi/hybridBitmap/vector_dot_cuda.cu -o vector_dot_cuda_kernel.o
+    if [ $? -ne 0 ]; then
+        echo "Error compiling vector_dot_cuda.cu. Falling back to CPU-only build."
+        HAS_CUDA=0
+        CUDA_DEFINES=""
+    fi
 fi
 
 # Compile C++ wrappers
@@ -124,7 +133,7 @@ fi
 # Link everything
 echo "Linking..."
 if [ "$HAS_CUDA" -eq 1 ]; then
-    g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o bsi_dot_cuda_kernel.o BsiSigned.o BsiUnsigned.o $CUDA_LIBS -o bsi_dot_benchmark
+    g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o bsi_dot_cuda_kernel.o vector_dot_cuda_kernel.o BsiSigned.o BsiUnsigned.o $CUDA_LIBS -o bsi_dot_benchmark
 else
     g++ $CPP_FLAGS bsi_dot_benchmark.o bsi_dot_cuda.o bsi_dot_cuda_wrapper.o BsiSigned.o BsiUnsigned.o -o bsi_dot_benchmark
 fi
