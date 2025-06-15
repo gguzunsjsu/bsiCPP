@@ -27,7 +27,7 @@ int main() {
 
     int one_range = 1000;
     int two_range = 1000;
-    int vectorLength = 10000000;
+    int vectorLength = 1000;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
