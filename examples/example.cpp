@@ -25,9 +25,9 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    int one_range = 1000;
-    int two_range = 1000;
-    int vectorLength = 1000;
+    int one_range = 10000;
+    int two_range = 10000;
+    int vectorLength = 10000000;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -114,23 +114,23 @@ int main() {
     */
 
 //    BsiSigned<uint64_t> ubsi;
-    BsiUnsigned<uint32_t> ubsi;
+    BsiUnsigned<uint64_t> ubsi;
 
-    BsiVector<uint32_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
+    BsiVector<uint64_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
     one_bsi->setFirstSliceFlag(true);
     one_bsi->setLastSliceFlag(true);
     one_bsi->setPartitionID(0);
 
-    BsiVector<uint32_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
+    BsiVector<uint64_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
     two_bsi->setFirstSliceFlag(true);
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
 
-    BsiVector<uint32_t>* resultBsi;
-    BsiVector<uint32_t>* resultBsi2;
-    BsiVector<uint32_t>* resultBsi3;
-    BsiVector<uint32_t>* resultBsi_4;
-    BsiVector<uint32_t>* resultBsi5;
+    BsiVector<uint64_t>* resultBsi;
+    BsiVector<uint64_t>* resultBsi2;
+    BsiVector<uint64_t>* resultBsi3;
+    BsiVector<uint64_t>* resultBsi_4;
+    BsiVector<uint64_t>* resultBsi5;
     std::cout << "Slices in bsi One: " << one_bsi->numSlices << std::endl;
     std::cout << "Slices in bsi Two: " << two_bsi->numSlices << std::endl;
 
