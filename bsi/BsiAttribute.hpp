@@ -687,9 +687,9 @@ BsiAttribute<uword>* BsiAttribute<uword>::createRandomBsi(int vectorLength, int 
             }
             compressedBitmap.setSizeInBits(vectorLength);
             compressedBitmap.density = density;
-            result->addSlice(compressedBitmap);
+            result->bsi[s] = compressedBitmap;
         } else {
-            result->addSlice(sliceBitmaps[s]);
+            result->bsi[s] = sliceBitmaps[s];
         }
     }
     result->is_signed = false;
