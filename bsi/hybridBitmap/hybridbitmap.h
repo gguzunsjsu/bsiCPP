@@ -10,6 +10,12 @@
 #include "boolarray.h"
 #include "runninglengthword.h"
 
+int popcount_u128(__uint128_t value) {
+    uint64_t low = static_cast<uint64_t>(value);
+    uint64_t high = static_cast<uint64_t>(value >> 64);
+    return __builtin_popcountll(low) + __builtin_popcountll(high);
+}
+
 template <class uword> class HybridBitmapIterator;
 
 template <class uword> class HybridBitmapSetBitForwardIterator;
@@ -1779,7 +1785,7 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
                 }
             }
         }
-    }else
+    }else if(8*sizeof(uword)==64)
         {
     if(verbatim){
         for (int i = 0; i < bufferSize(); i++) {
@@ -1800,6 +1806,26 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
         }
     }
 }
+    else { //128 bits
+        if(verbatim){
+            for (int i = 0; i < bufferSize(); i++) {
+                tot += __builtin_popcountll(buffer[i])+__builtin_popcountll(buffer[i]>>64);
+            }
+        }else{
+            while (pointer < buffer.size()) {
+                size_t temp = buffer.size();
+                ConstRunningLengthWord<uword> rlw(buffer[pointer]);
+                if (rlw.getRunningBit()) {
+                    tot += static_cast<size_t>(rlw.getRunningLength() * wordinbits);
+                }
+                ++pointer;
+                for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
+                    tot += __builtin_popcountll(buffer[pointer])+__builtin_popcountll(buffer[pointer]>>64);
+                    ++pointer;
+                }
+            }
+        }
+    }
     return tot;
 }
 
