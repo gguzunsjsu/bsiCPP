@@ -692,12 +692,6 @@ BsiAttribute<uword>* BsiAttribute<uword>::createRandomBsi(int vectorLength, int 
             result->addSlice(sliceBitmaps[s]);
         }
     }
-    result->existenceBitmap.setSizeInBits(vectorLength,true);
-    result->existenceBitmap.density=1;
-    result->lastSlice=true;
-    result->firstSlice=true;
-    result->twosComplement = false;
-    result->rows = vectorLength;
     result->is_signed = false;
     return result;
 }
