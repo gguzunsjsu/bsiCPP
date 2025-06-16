@@ -57,7 +57,14 @@ public:
     void multiply(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const;
     long sumOfBsi()const override;
     HybridBitmap<uword> getExistenceBitmap();
-  
+
+    /*
+     * unsigned division implementation
+     */
+    std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
+            const BsiAttribute<uword>& dividend,
+            const BsiAttribute<uword>& divisor
+    ) const override;
     
     /*
      Declaring Other Functions
@@ -494,6 +501,7 @@ BsiAttribute<uword>* BsiUnsigned<uword>::SUM(long a)const{
         res->firstSlice=this->firstSlice;
         res->lastSlice=this->lastSlice;
         res->existenceBitmap = this->existenceBitmap;
+        res->rows = this->rows;
         return res;
 };
 
@@ -2708,6 +2716,143 @@ HybridBitmap<uword> BsiUnsigned<uword>::reLU(const BsiAttribute<uword>* a) const
         res = res.And(a->bsi[i].Not().Or(this->bsi[i]));
     }
     return res;
+}
+
+/*
+ * divide funtion implementations
+ */
+/*
+ * Binary long division
+ */
+template <class uword>
+std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiUnsigned<uword>::divide(
+        const BsiAttribute<uword>& dividend,
+        const BsiAttribute<uword>& divisor
+) const {
+    // Create vectors to store the quotient and remainder values
+    std::vector<long> quotientValues(dividend.rows, 0);
+    std::vector<long> remainderValues(dividend.rows, 0);
+
+    // Use direct loop to compute division and remainder - safer approach
+    // Process rows with binary division algorithm for better performance
+    for (int row = 0; row < dividend.rows; row++) {
+        long dividendVal = dividend.getValue(row);
+        long divisorVal = divisor.getValue(row);
+
+        // Handle division by zero
+        if (divisorVal == 0) {
+            quotientValues[row] = 0;
+            remainderValues[row] = dividendVal;
+            continue;
+        }
+
+        // Special case: dividend is 0
+        if (dividendVal == 0) {
+            quotientValues[row] = 0;
+            remainderValues[row] = 0;
+            continue;
+        }
+
+        // Optimize power-of-2 divisors
+        if ((divisorVal & (divisorVal - 1)) == 0 && divisorVal > 0) {
+            // Perfect power of 2 divisor - use bit shifting
+            int shift = 0;
+            while ((divisorVal >> shift) > 1) shift++;
+
+            quotientValues[row] = dividendVal >> shift;
+            remainderValues[row] = dividendVal & (divisorVal - 1);
+            continue;
+        }
+
+        // Special case: dividend < divisor
+        if (dividendVal < divisorVal) {
+            quotientValues[row] = 0;
+            remainderValues[row] = dividendVal;
+            continue;
+        }
+
+        // Special case: dividend == divisor
+        if (dividendVal == divisorVal) {
+            quotientValues[row] = 1;
+            remainderValues[row] = 0;
+            continue;
+        }
+
+        // General case: use binary long division for better performance
+        // Find bit lengths
+        int dividendBits = 0;
+        long tempDiv = dividendVal;
+        while (tempDiv > 0) {
+            dividendBits++;
+            tempDiv >>= 1;
+        }
+
+        int divisorBits = 0;
+        long tempDsr = divisorVal;
+        while (tempDsr > 0) {
+            divisorBits++;
+            tempDsr >>= 1;
+        }
+
+        // Initialize for long division
+        long quotientVal = 0;
+        long remainder = 0;
+
+        // Initialize partial remainder with most significant bits of dividend
+        if (dividendBits >= divisorBits) {
+            remainder = dividendVal >> (dividendBits - divisorBits);
+
+            // Run the binary long division algorithm
+            int shiftAmount = dividendBits - divisorBits;
+
+            for (int i = shiftAmount; i >= 0; i--) {
+                // Determine if we should subtract
+                if (remainder >= divisorVal) {
+                    remainder -= divisorVal;
+                    quotientVal |= (1L << i);
+                }
+
+                // Bring down the next bit from dividend (if not the last iteration)
+                if (i > 0) {
+                    remainder = (remainder << 1) | ((dividendVal >> (i - 1)) & 1);
+                }
+            }
+        } else {
+            // If dividend < divisor, quotient is 0, remainder is dividend
+            quotientVal = 0;
+            remainder = dividendVal;
+        }
+
+        // Store the results
+        quotientValues[row] = quotientVal;
+        remainderValues[row] = remainder;
+    }
+
+    // Create BSI attributes for the results
+    BsiUnsigned<uword>* quotientBsi = new BsiUnsigned<uword>();
+    BsiAttribute<uword>* quotient = quotientBsi->buildBsiAttributeFromVector(quotientValues, 0.0);
+
+    BsiUnsigned<uword>* remainderBsi = new BsiUnsigned<uword>();
+    BsiAttribute<uword>* remainder = remainderBsi->buildBsiAttributeFromVector(remainderValues, 0.0);
+
+    // Copy metadata
+    quotient->existenceBitmap = dividend.existenceBitmap;
+    quotient->rows = dividend.rows;
+    quotient->index = dividend.index;
+    quotient->firstSlice = true;
+    quotient->lastSlice = true;
+
+    remainder->existenceBitmap = dividend.existenceBitmap;
+    remainder->rows = dividend.rows;
+    remainder->index = dividend.index;
+    remainder->firstSlice = true;
+    remainder->lastSlice = true;
+
+    // Clean up temporary objects
+    delete quotientBsi;
+    delete remainderBsi;
+
+    return std::make_pair(quotient, remainder);
 }
 
 #endif /* BsiUnsigned_hpp */

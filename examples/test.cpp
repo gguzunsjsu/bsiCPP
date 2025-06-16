@@ -21,6 +21,7 @@ void testCompressedShift();
 void testBuiltinOperators();
 void testRelu();
 void testSumConstant();
+void testRandom();
 
 vector<BsiAttribute<uint64_t>*> inv(vector<BsiAttribute<uint64_t>*> matrix);
 void sgesv(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
@@ -28,8 +29,27 @@ void sgetrf(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrf2(int m, int n, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv);
 void sgetrs(int n, int m, vector<BsiAttribute<uint64_t>*> a, vector<int> ipiv, vector<BsiAttribute<uint64_t>*> b);
 int main() {
-    testSumConstant();
+    testRandom();
     return 0;
+}
+
+void testRandom() {
+    int size = 640;
+    double high = 4.107443048544934;
+    double low = 3.3826798753475913;
+    BsiSigned<uint64_t> bsi;
+    int precision = static_cast<int>(pow(10,5));
+    BsiAttribute<uint64_t>* res = bsi.createRandomBsi(size,static_cast<int>((high-low)*precision),0.5);
+    res = res->SUM(static_cast<long>(low*precision));
+    res->decimals = precision;
+    cout << res->rows << "\n";
+
+    high = 3.918487309781472;
+    low = 3.1357142448781126;
+    res = bsi.createRandomBsi(size,static_cast<int>((high-low)*precision),0.5);
+    res = res->SUM(static_cast<long>(low*precision));
+    res->decimals = precision;
+    cout << res->rows << "\n";
 }
 
 void testSumConstant() {

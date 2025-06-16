@@ -117,6 +117,13 @@ public:
     virtual long long int dot_withoutCompression(BsiAttribute<uword>* a) const = 0;
     virtual void multiplicationInPlace(BsiAttribute<uword> *a)=0;
 
+    /*
+     * division implementation
+     */
+    virtual std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
+            const BsiAttribute<uword>& dividend,
+            const BsiAttribute<uword>& divisor) const = 0;
+
     virtual BsiAttribute<uword>* negate()=0;
 
     virtual long sumOfBsi()const=0;

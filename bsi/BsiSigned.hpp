@@ -83,8 +83,14 @@ public:
     BsiAttribute<uword>* sum_Horizontal_Hybrid_other(const BsiAttribute<uword> *a) const;
     BsiAttribute<uword>* sum_Horizontal(const BsiAttribute<uword> *a) const;
     void sum(uword a[],int size_a, uword b[], int size_b, uword ans[], int size_ans)const;
-    
-    
+
+    /*
+     * division
+     */
+    std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
+            const BsiAttribute<uword>& dividend,
+            const BsiAttribute<uword>& divisor
+    ) const override;
     
     void multiplyKaratsuba(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const;
     void sumOfWordsKaratsuba(std::vector<uword> &a, std::vector<uword> &b, std::vector<uword> &ans)const;
@@ -417,6 +423,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     res->lastSlice=this->lastSlice;
     res->existenceBitmap = this->existenceBitmap;
     res->twosComplement=false;
+    res->rows = this->rows;
     return res;
 };
 
@@ -3017,4 +3024,17 @@ HybridBitmap<uword> BsiSigned<uword>::reLU(const BsiAttribute<uword>* a) const {
     HybridBitmap<uword> a_neg = a->sign.andNot(this->sign);
     return greater.Xor(both_neg).andNot(this_neg).Or(a_neg).And(this->existenceBitmap);
 }
+
+/*
+ * division function definition
+ */
+template <class uword>
+std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiSigned<uword>::divide(
+        const BsiAttribute<uword>& dividend,
+        const BsiAttribute<uword>& divisor
+) const {
+    // Temporary implementation - just throw an exception
+    throw std::runtime_error("Signed division not yet implemented");
+}
+
 #endif /* BsiSigned_hpp */
