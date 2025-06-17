@@ -2,7 +2,7 @@
 //  BsiAttribute.cpp
 //
 #include "hybridBitmap/hybridbitmap.h"
-#include "BsiAttribute.hpp"
+#include "BsiVector.hpp"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -10,5 +10,4 @@
 #include <bitset>
 //#include "BsiSigned.hpp"
 //#include "BsiUnsigned.hpp"
-
 
