@@ -16,7 +16,7 @@ CMakeFiles
 *.ilk
 CMakeCache.txt
 
-*.hpp
+
 cmake-build-debug/*
 example_add
 example_new
