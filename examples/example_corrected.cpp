@@ -3,6 +3,7 @@
 //
 
 
+#include <avxintrin.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -16,6 +17,11 @@
 #include "../bsi/BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
+typedef __int128 int128_t;
+typedef unsigned __int128 uint128_t;
+
+typedef unsigned _BitInt(256) uint256_t;
+typedef /*signed*/ _BitInt(256) int256_t;
 
 int getRandomInt(int min, int max) {
     std::random_device rd; // Obtain a random seed from the OS
@@ -27,15 +33,15 @@ int getRandomInt(int min, int max) {
 
 
 int main(){
-    BsiUnsigned<uint64_t> ubsi;
-    BsiUnsigned<uint64_t> ubsi_1;
-    BsiVector<uint64_t> *bsi_1;
-    BsiVector<uint64_t> *bsi_2;
-    BsiVector<uint64_t> *bsi_3;
-    BsiVector<uint64_t> *bsi_result;
+    BsiUnsigned<__m256i_u> ubsi;
+    BsiUnsigned<__m256i_u> ubsi_1;
+    BsiVector<uint128_t> *bsi_1;
+    BsiVector<uint128_t> *bsi_2;
+    BsiVector<uint128_t> *bsi_3;
+    BsiVector<uint128_t> *bsi_result;
 
     BsiSigned<uint64_t> *bsi_s = new BsiSigned<uint64_t>();
-    HybridBitmap<uint64_t> hybridBitmap;
+    HybridBitmap<uint128_t> hybridBitmap;
     //ifstream fin1,fin2;
     //ofstream fout1;
     //fin1.open("/Users/adityapatel/multiplicationTestData1.txt");
@@ -49,7 +55,7 @@ int main(){
     string line_str;
     int range1 = 100;
     int range2 = 100;
-    int vectorLen = 100000;
+    int vectorLen = 10000000;
     vector<long> array1(vectorLen);
     vector<long> array2(vectorLen);
     vector<long> result(vectorLen);
@@ -112,7 +118,7 @@ int main(){
     for (int  i= 0 ; i< bsi_1->getNumberOfSlices() ; i++){
         ubsi.addSlice(bsi_1->getSlice(i));
     }
-    HybridBitmap<uint64_t> existtenceBitmap = bsi_1->getExistenceBitmap();
+    HybridBitmap<uint128_t> existtenceBitmap = bsi_1->getExistenceBitmap();
     ubsi.setExistenceBitmap(bsi_1->getExistenceBitmap());
     ubsi.setNumberOfRows(bsi_1->rows);
     ubsi.setPartitionID(bsi_1->getPartitionID());

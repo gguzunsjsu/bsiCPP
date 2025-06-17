@@ -14,6 +14,7 @@
 #include <chrono>
 #include <random>
 #include <vector>
+#include <immintrin.h>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
@@ -29,9 +30,9 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    int one_range = 60;
-    int two_range = 60;
-    int vectorLength = 10000000;
+    int one_range = 100;
+    int two_range = 100;
+    int vectorLength = 1000000;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -187,7 +188,7 @@ int main() {
     auto t7 = std::chrono::high_resolution_clock::now();
     int constant = 9;
 
-    resultBsi3 = one_bsi->multiplyByConstantNew(constant);
+    resultBsi3 = one_bsi->multiplyByConstant(constant);
 
     std::cout << "resultBsi3 numSlices: " << resultBsi3 << std::endl;
     std::cout << "resultBsi 0: " << resultBsi3->getValue(one.size()-1) << std::endl;

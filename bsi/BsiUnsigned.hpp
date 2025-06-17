@@ -1620,7 +1620,7 @@ long BsiUnsigned<uword>::dotProduct(BsiVector<uword>* unbsi) const{
         // Get the number of ones in each element of the answer vector and sum it
         for (auto n = 0; n < answer.size(); n++)
         {
-            long temp = countOnes(answer[n]) * (1 << n);
+            long temp = __builtin_popcountl(answer[n]) * (1 << n);
             dotProductSum += temp;
         }
     }
