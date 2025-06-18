@@ -3,7 +3,7 @@
 //
 
 
-#include <avxintrin.h>
+//#include <avxintrin.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -20,8 +20,6 @@
 typedef __int128 int128_t;
 typedef unsigned __int128 uint128_t;
 
-typedef unsigned _BitInt(256) uint256_t;
-typedef /*signed*/ _BitInt(256) int256_t;
 
 int getRandomInt(int min, int max) {
     std::random_device rd; // Obtain a random seed from the OS
@@ -33,8 +31,8 @@ int getRandomInt(int min, int max) {
 
 
 int main(){
-    BsiUnsigned<__m256i_u> ubsi;
-    BsiUnsigned<__m256i_u> ubsi_1;
+    BsiUnsigned<uint128_t> ubsi;
+    BsiUnsigned<uint128_t> ubsi_1;
     BsiVector<uint128_t> *bsi_1;
     BsiVector<uint128_t> *bsi_2;
     BsiVector<uint128_t> *bsi_3;
@@ -48,13 +46,13 @@ int main(){
     //fin2.open("/Users/adityapatel/multiplicationTestData2.txt");
     //fout1.open("/Users/adityapatel/multiplicationTestResult1.txt");
 
-    vector<uint64_t> result_arr;
+    vector<uint128_t> result_arr;
     vector<double> v1;
     vector<double> v2;
     vector<double> vres;
     string line_str;
-    int range1 = 100;
-    int range2 = 100;
+    int range1 = 127;
+    int range2 = 127;
     int vectorLen = 10000000;
     vector<long> array1(vectorLen);
     vector<long> array2(vectorLen);
@@ -95,11 +93,11 @@ int main(){
 
     std::chrono::high_resolution_clock::time_point t10 = std::chrono::high_resolution_clock::now();
 
-    bsi_1 = ubsi.buildBsiVectorFromVector(array1, 0.2);
+    bsi_1 = ubsi.buildBsiVectorFromVector(array1, 0);
     bsi_1->setPartitionID(0);
     bsi_1->setFirstSliceFlag(true);
     bsi_1->setLastSliceFlag(true);
-    bsi_2 = ubsi.buildBsiVectorFromVector(array2, 0.2);
+    bsi_2 = ubsi.buildBsiVectorFromVector(array2, 0);
     bsi_2->setPartitionID(0);
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);

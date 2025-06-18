@@ -447,7 +447,7 @@ public:
         return answer;
     }
     HybridBitmap Xor(const HybridBitmap &a) const {
-        HybridBitmap answer = new HybridBitmap(this);
+        HybridBitmap answer;
         Xor(a, answer);
         return answer;
     }
@@ -3174,34 +3174,30 @@ void HybridBitmap<uword>::shiftRowWithCarry(const HybridBitmap &this_bitmap, Hyb
 template <class uword>
 void HybridBitmap<uword>::And(const HybridBitmap &a, HybridBitmap &container) const {
     container.density=density*a.density;
-    if (verbatim && a.verbatim) {
+    if (a.density==0 ) {
+        container = a;
+    }else if (density==0){
+        container = *this;
+    }else if (a.density==1) {
+        container = *this;
+    }else if (density==1) {
+        container = a;
+    }
+    else if (verbatim && a.verbatim) {
         //if(container.density<andThreshold){
         if(std::min(density, a.density)<andThreshold){
-            if(container.density==0){
-                container.verbatim=false;
-                container.setSizeInBits(std::max(sizeinbits, a.sizeinbits),false);
-            }else{
                 andVerbatimCompress(a, container);
-            }
         }else{
             andVerbatim(a, container);
         }
     } else if(verbatim || a.verbatim) {
-        if(container.density==0){
-            container.verbatim=false;
-            container.setSizeInBits(std::max(sizeinbits, a.sizeinbits),false);
-        }else{
             andHybridCompress(a, container);
             container.setSizeInBits(std::max(sizeinbits, a.sizeinbits));
-        }
+
     }else{
-        if(container.density==0){
-            container.verbatim=false;
-            container.setSizeInBits(std::max(sizeinbits, a.sizeinbits),false);
-        }else{
             //container.reserve(actualsizeinwords > a.actualsizeinwords ? actualsizeinwords : a.actualsizeinwords);
             logicaland(a, container);
-        }
+
     }
     //        container.age = Math.max(this.age, a.age)+1;
     ////        if(container.age>20){
@@ -3581,7 +3577,21 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
     //double expDens = (this.setbits+a.setbits)/(double)(this.sizeinbits)-(this.setbits/(double)this.sizeinbits*a.setbits/(double)a.sizeinbits);
     container.density= (density+a.density)-(density*a.density);
     //    container.sizeinbits=this.sizeinbits;
-    if (verbatim && a.verbatim) {
+    if (density==0 || a.density==0) { //if one of the bitmaps is all zeros
+        if (a.density==0) {
+            container = a;
+        }else {
+            container = *this;
+        }
+    }
+    else if (density==1 || a.density==1) {
+        if (a.density==1) {
+            container = a;
+        }else {
+            container = *this;
+        }
+    }
+    else if (verbatim && a.verbatim) {
         if(container.density>(1-orThreshold)){
             //if(Math.max(this.density, a.density)>){
             orVerbatimCompress(a,container);
@@ -3632,7 +3642,20 @@ void HybridBitmap<uword>::Xor(const HybridBitmap &a, HybridBitmap &container) co
     //double expDens = this.setbits/(double)this.sizeinbits*(a.sizeinbits-a.setbits)/(double)a.sizeinbits+a.setbits/(double)a.sizeinbits*(this.sizeinbits-this.setbits)/(double)this.sizeinbits;
     container.density=density*(1-a.density)+a.density*(1-density);
     //    container.sizeinbits=this.sizeinbits;
-    if (verbatim && a.verbatim) {
+    if (a.density==0 || density==0) { //if one of the bitmaps is all zeros
+        if (a.density==0) {
+            container = *this;
+        }else {
+            container = a;
+        }
+    }else if (a.density==1 || density==1) {
+        if (a.density==1) {
+            container = logicalnot();
+        }else {
+            container = a.logicalnot();
+        }
+    }
+    else if (verbatim && a.verbatim) {
         xorVerbatim(a, container);
     }else if(verbatim || a.verbatim){
         xorHybrid(a, container);
@@ -4506,7 +4529,7 @@ void HybridBitmap<uword>::xorHybridCompress(const HybridBitmap &a, HybridBitmap 
 
 template <class uword>
 void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &container)const {
-    container.reset();
+    //container.reset();
     container.verbatim=true;
     container.density=density*(1-a.density)+a.density*(1-density);
     int j = 0;

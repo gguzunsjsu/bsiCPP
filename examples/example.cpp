@@ -121,6 +121,10 @@ int main() {
 //    BsiSigned<uint64_t> ubsi;
     BsiUnsigned<uint128_t> ubsi;
 
+    std::cout << "Building bit vectors..." << std::endl;
+    auto t9 = std::chrono::high_resolution_clock::now();
+
+
     BsiVector<uint128_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
     one_bsi->setFirstSliceFlag(true);
     one_bsi->setLastSliceFlag(true);
@@ -130,6 +134,11 @@ int main() {
     two_bsi->setFirstSliceFlag(true);
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
+
+    auto t10 = std::chrono::high_resolution_clock::now();
+    std::cout << "Time to build bitVectors: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
+
+
 
     BsiVector<uint128_t>* resultBsi;
     BsiVector<uint128_t>* resultBsi2;
@@ -186,7 +195,7 @@ int main() {
     std::cout << "3: multiplyByConstant = one * const" << std::endl;
 
     auto t7 = std::chrono::high_resolution_clock::now();
-    int constant = 9;
+    int constant = 10;
 
     resultBsi3 = one_bsi->multiplyByConstant(constant);
 
@@ -216,28 +225,28 @@ int main() {
 
 
     //multiplyBSI:
-    std::cout << "4: multiplyBSI = one * two" << std::endl;
-    auto t9 = std::chrono::high_resolution_clock::now();
+  //  std::cout << "4: multiplyBSI = one * two" << std::endl;
+//    auto t9 = std::chrono::high_resolution_clock::now();
 
 
 //    BsiVector<uint64_t>* resultBsi3 = one_bsi->multiplyByConstant(constant);
-    resultBsi_4 = one_bsi->multiplyBSI(two_bsi);
+//    resultBsi_4 = one_bsi->multiplyBSI(two_bsi);
 
-    auto t10 = std::chrono::high_resolution_clock::now();
-
-    std::cout << "resultBsi_4 numSlices: " << resultBsi_4 << std::endl;
-    std::cout << "resultBsi 0: " << resultBsi_4->getValue(one.size()-1) << std::endl;
-    std::cout << "resultBsi 1: " << resultBsi_4->getValue(one.size()-2) << std::endl;
-    std::cout << "resultBsi 2: " << resultBsi_4->getValue(one.size()-3) << std::endl;
-    std::cout << "resultBsi 3: " << resultBsi_4->getValue(one.size()-4) << std::endl;
-    std::cout << "resultBsi 4: " << resultBsi_4->getValue(one.size()-5) << std::endl;
-    std::cout << "result 0: " << one[one.size()-1]*constant << std::endl;
-    std::cout << "result 1: " << one[one.size()-2]*constant << std::endl;
-    std::cout << "result 2: " << one[one.size()-3]*constant << std::endl;
-    std::cout << "result 3: " << one[one.size()-4]*constant << std::endl;
-    std::cout << "result 4: " << one[one.size()-5]*constant << std::endl;
-
-    std::cout << "bsi multiplyBSI duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
+ ///   auto t10 = std::chrono::high_resolution_clock::now();
+    //
+    // std::cout << "resultBsi_4 numSlices: " << resultBsi_4 << std::endl;
+    // std::cout << "resultBsi 0: " << resultBsi_4->getValue(one.size()-1) << std::endl;
+    // std::cout << "resultBsi 1: " << resultBsi_4->getValue(one.size()-2) << std::endl;
+    // std::cout << "resultBsi 2: " << resultBsi_4->getValue(one.size()-3) << std::endl;
+    // std::cout << "resultBsi 3: " << resultBsi_4->getValue(one.size()-4) << std::endl;
+    // std::cout << "resultBsi 4: " << resultBsi_4->getValue(one.size()-5) << std::endl;
+    // std::cout << "result 0: " << one[one.size()-1]*constant << std::endl;
+    // std::cout << "result 1: " << one[one.size()-2]*constant << std::endl;
+    // std::cout << "result 2: " << one[one.size()-3]*constant << std::endl;
+    // std::cout << "result 3: " << one[one.size()-4]*constant << std::endl;
+    // std::cout << "result 4: " << one[one.size()-5]*constant << std::endl;
+    //
+    //std::cout << "bsi mltiply horizontal duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
 
 
 

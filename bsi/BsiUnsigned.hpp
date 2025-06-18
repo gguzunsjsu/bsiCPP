@@ -1161,7 +1161,11 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyByConstant(int number)const{
                 if (res == nullptr) {
                     res = new BsiUnsigned<uword>();
                     HybridBitmap<uword> zeroBitmap;
-                    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                    int wholeWords = floor(this->rows/(float)this->bits);
+                    zeroBitmap.addStreamOfEmptyWords(false,wholeWords);
+                    zeroBitmap.addVerbatim(0, this->rows-(wholeWords*this->bits));
+                    zeroBitmap.density = 0;
+                    //zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
                     //                res->offset = k;
                     for (int i = 0; i < this->numSlices; i++) {
                         res->bsi.push_back(zeroBitmap);
@@ -1250,7 +1254,10 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyByConstant(int number)const{
                 if (res == nullptr) {
                     res = new BsiUnsigned<uword>();
                     HybridBitmap<uword> zeroBitmap;
-                    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                    int wholeWords = floor(this->rows/(float)this->bits);
+                    zeroBitmap.addStreamOfEmptyWords(false,wholeWords);
+                    zeroBitmap.addVerbatim(0, this->rows-(wholeWords*this->bits));
+                    zeroBitmap.density = 0;
                     //                res->offset = k;
                     for (int i = 0; i < this->numSlices; i++) {
                         res->bsi.push_back(zeroBitmap);
