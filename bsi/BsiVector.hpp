@@ -458,8 +458,8 @@ int BsiVector<uword>::sliceLengthFinder(uword value) const{
 template <class uword>
 BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, double compressThreshold) const {
     long numberOfElements = nums.size();
-    int64_t max = INT64_MIN;
-    int64_t min = INT64_MAX;
+    long max = INT64_MIN;
+    long min = INT64_MAX;
    // std::vector<long> array(nums.size());
     int count = 0;
 
@@ -546,6 +546,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 }
 
 /*
+ *This function is not working correctly now. Still needs work
  * Used for converting vector into BSI
  * @param compressThreshold determined whether to compress the bit vector or not. Set it to zero to NOT compress.
  */
