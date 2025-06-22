@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "BsiVector.hpp"
+#include "BsiSigned.hpp"
 #include <cmath>
 #include <cstdint>
 

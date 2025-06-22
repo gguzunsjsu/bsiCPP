@@ -4,7 +4,7 @@
 #include <vector>
 
 // Forward declarations
-template <class uword> class BsiAttribute;
+template <class uword> class BsiVector;
 template <class uword> class BsiUnsigned;
 
 /**
@@ -16,7 +16,7 @@ template <class uword> class BsiUnsigned;
  * @return The dot product result
  */
 template <class uword>
-long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<uword>* bsi2);
+long long int bsi_dot_cuda(const BsiVector<uword>* bsi1, const BsiVector<uword>* bsi2);
 
 /**
  * CUDA-accelerated dot product for vectors
