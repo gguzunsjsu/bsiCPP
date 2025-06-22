@@ -67,7 +67,7 @@ long long int bsi_dot_product_cuda(
 
     // Ensure all slices have the same buffer size and capture it
     size_t word_count = bsi1_slices[0].bufferSize();
-    std::cout << "Word count:" << word_count << std::endl;
+    // std::cout << "Word count:" << word_count << std::endl;
     for (const auto &s : bsi1_slices) {
         if (s.bufferSize() != word_count) {
             throw std::runtime_error("All slices in first BSI must have the same buffer size");
