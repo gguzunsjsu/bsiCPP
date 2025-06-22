@@ -10,7 +10,7 @@
 #include "boolarray.h"
 #include "runninglengthword.h"
 
-int popcount_u128(__uint128_t value) {
+static inline int popcount_u128(__uint128_t value) {
     uint64_t low = static_cast<uint64_t>(value);
     uint64_t high = static_cast<uint64_t>(value >> 64);
     return __builtin_popcountll(low) + __builtin_popcountll(high);
