@@ -7,7 +7,7 @@
 #include <cuda_runtime.h>
 
 // Only include what we need
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/hybridBitmap/bsi_dot_cuda.h"
 
@@ -59,12 +59,12 @@ int main(int argc, char* argv[]) {
     
     // Build BSI attributes from vectors
     auto t1 = std::chrono::high_resolution_clock::now();
-    BsiAttribute<uint64_t>* bsi1 = ubsi1.buildBsiAttributeFromVector(array1, 0.2);
+    BsiVector<uint64_t>* bsi1 = ubsi1.buildBsiVectorFromVector(array1, 0.2);
     bsi1->setPartitionID(0);
     bsi1->setFirstSliceFlag(true);
     bsi1->setLastSliceFlag(true);
     
-    BsiAttribute<uint64_t>* bsi2 = ubsi2.buildBsiAttributeFromVector(array2, 0.2);
+    BsiVector<uint64_t>* bsi2 = ubsi2.buildBsiVectorFromVector(array2, 0.2);
     bsi2->setPartitionID(0);
     bsi2->setFirstSliceFlag(true);
     bsi2->setLastSliceFlag(true);
