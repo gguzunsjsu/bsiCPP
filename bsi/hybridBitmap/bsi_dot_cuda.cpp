@@ -54,7 +54,7 @@ bool cuda_dot_available() {
 }
 
 template <class uword>
-long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<uword>* bsi2) {
+long long int bsi_dot_cuda(const BsiVector<uword>* bsi1, const BsiVector<uword>* bsi2) {
 #ifdef USE_CUDA
     try {
         // Get slices from both BSIs
@@ -85,12 +85,12 @@ long long int bsi_dot_cuda(const BsiAttribute<uword>* bsi1, const BsiAttribute<u
         std::cerr << "Falling back to CPU implementation." << std::endl;
         // Fall back to CPU implementation
         // Need to cast away const since the dot method expects a non-const pointer
-        return bsi1->dot(const_cast<BsiAttribute<uword>*>(bsi2));
+        return bsi1->dot(const_cast<BsiVector<uword>*>(bsi2));
     }
 #else
     // Just use regular CPU implementation if CUDA is not enabled
     // Need to cast away const since the dot method expects a non-const pointer
-    return bsi1->dot(const_cast<BsiAttribute<uword>*>(bsi2));
+    return bsi1->dot(const_cast<BsiVector<uword>*>(bsi2));
 #endif
 }
 
@@ -222,5 +222,5 @@ long long int vector_dot_cuda(const std::vector<long>& vec1, const std::vector<l
 
 // Explicit template instantiations
 template long long int bsi_dot_cuda<uint64_t>(
-    const BsiAttribute<uint64_t>* bsi1, 
-    const BsiAttribute<uint64_t>* bsi2);
+    const BsiVector<uint64_t>* bsi1, 
+    const BsiVector<uint64_t>* bsi2);
