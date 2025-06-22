@@ -1,6 +1,6 @@
 #include "bsi_dot_cuda.h"
 #include "bsi_dot_cuda_wrapper.h"
-#include "../BsiAttribute.hpp"
+#include "../BsiVector.hpp"
 #include "../BsiUnsigned.hpp"
 #include <iostream>
 #include <vector>
