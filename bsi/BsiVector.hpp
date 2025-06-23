@@ -553,67 +553,111 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 template <class uword>
 BsiVector<uword>* BsiVector<uword>::buildBsiVectorFromVector(std::vector<long> nums, double compressThreshold) const{
     long max = INT64_MIN;
-    //long min = INT64_MAX;
+    long min = INT64_MAX;
     int numberOfElements = nums.size();
     int count = 0;
 
     for (int it = 0; it  < numberOfElements; it++, count++) {
         max = std::max(max, nums[count]);
-      //  min = std::min(min, nums[count]);
+        min = std::min(min, nums[count]);
     }
 
-   // int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
-    int slices = std::__bit_width(max);
-    BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
+    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
 
-
-    //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
-    std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
-
-    for(int i=0; i<slices; i++){
-        double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
-        double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
-        if(compressRatio<compressThreshold && compressRatio!=0 ){
-            //build compressed bitmap
-            HybridBitmap<uword> bitmap;
-            for(int j=1; j<bitSlices[i].size(); j++){
-                bitmap.addWord(bitSlices[i][j]);
+    if (min < 0) {
+        BsiVector<uword>* res = new BsiSigned<uword>(slices+1);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+1,numberOfElements);
+        for(int i=0; i<=slices; i++){
+            double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
+            double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
+            if(compressRatio<compressThreshold && compressRatio!=0 ){
+                //build compressed bitmap
+                HybridBitmap<uword> bitmap;
+                for(int j=1; j<bitSlices[i].size(); j++){
+                    bitmap.addWord(bitSlices[i][j]);
+                }
+                bitmap.density=bitDensity;
+                res->addSlice(bitmap);
+            }else {
+                HybridBitmap<uword> bitmap(true);
+                bitmap.reset();
+                bitmap.verbatim = true;
+                //                std::copy(bitSlices[i].begin(), bitSlices[i].end(), bitmap.buffer.begin());
+                for (typename std::vector<uword>::iterator it=bitSlices[i].begin()+1; it != bitSlices[i].end(); it++){
+                    bitmap.addVerbatim(*it,numberOfElements);
+                }
+                // bitmap.buffer=Arrays.copyOfRange(bitSlices[i], 1, bitSlices[i].length);
+                //bitmap.actualsizeinwords=bitSlices[i].length-1;
+                bitmap.setSizeInBits(numberOfElements);
+                bitmap.density=bitDensity;
+                res->addSlice(bitmap);
             }
-            //bitmap.setSizeInBits(numberOfElements);
-            bitmap.density=bitDensity;
-            res->addSlice(bitmap);
-
-        }else{
-            //build verbatim Bitmap
-            HybridBitmap<uword> bitmap(true);
-            bitmap.reset();
-            bitmap.verbatim = true;
-            //                std::copy(bitSlices[i].begin(), bitSlices[i].end(), bitmap.buffer.begin());
-            for (typename std::vector<uword>::iterator it=bitSlices[i].begin()+1; it != bitSlices[i].end(); it++){
-                bitmap.addVerbatim(*it,numberOfElements);
-            }
-            // bitmap.buffer=Arrays.copyOfRange(bitSlices[i], 1, bitSlices[i].length);
-            //bitmap.actualsizeinwords=bitSlices[i].length-1;
-            bitmap.setSizeInBits(numberOfElements);
-            bitmap.density=bitDensity;
-            res->addSlice(bitmap);
-            
         }
-    }
-    int wholeWords = floor(numberOfElements/(float)bits);
-    res->sign.addStreamOfEmptyWords(false,wholeWords);
-    res->sign.addVerbatim(0, numberOfElements-(wholeWords*bits));
-    res->sign.density = 0;
+        res->sign = res->bsi[res->numSlices - 1];
+        res->lastSlice = true;
+        res->firstSlice = true;
+        res->twosComplement = true;
+        res->rows = numberOfElements;
+        res->is_signed = true;
+        int wholeWords = floor(numberOfElements/(float)bits);
+        res->existenceBitmap.addStreamOfEmptyWords(true,wholeWords);
+        res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
+        res->existenceBitmap.density = 1;
+        return res;
 
-    //this existence bitmap causing issues with SUM
-    res->existenceBitmap.addStreamOfEmptyWords(true,wholeWords);
-    res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
-    res->existenceBitmap.density = 1;
-    res->firstSlice=true;
-    //res->twosComplement = false;
-    res->rows = numberOfElements;
-    //res->is_signed = true;
-    return res;
+    }else {
+        //int slices = std::__bit_width(max);
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices);
+
+
+        //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
+
+        for(int i=0; i<slices; i++){
+            double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
+            double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
+            if(compressRatio<compressThreshold && compressRatio!=0 ){
+                //build compressed bitmap
+                HybridBitmap<uword> bitmap;
+                for(int j=1; j<bitSlices[i].size(); j++){
+                    bitmap.addWord(bitSlices[i][j]);
+                }
+                //bitmap.setSizeInBits(numberOfElements);
+                bitmap.density=bitDensity;
+                res->addSlice(bitmap);
+
+            }else{
+                //build verbatim Bitmap
+                HybridBitmap<uword> bitmap(true);
+                bitmap.reset();
+                bitmap.verbatim = true;
+                //                std::copy(bitSlices[i].begin(), bitSlices[i].end(), bitmap.buffer.begin());
+                for (typename std::vector<uword>::iterator it=bitSlices[i].begin()+1; it != bitSlices[i].end(); it++){
+                    bitmap.addVerbatim(*it,numberOfElements);
+                }
+                // bitmap.buffer=Arrays.copyOfRange(bitSlices[i], 1, bitSlices[i].length);
+                //bitmap.actualsizeinwords=bitSlices[i].length-1;
+                bitmap.setSizeInBits(numberOfElements);
+                bitmap.density=bitDensity;
+                res->addSlice(bitmap);
+
+            }
+        }
+        int wholeWords = floor(numberOfElements/(float)bits);
+        res->sign.addStreamOfEmptyWords(false,wholeWords);
+        res->sign.addVerbatim(0, numberOfElements-(wholeWords*bits));
+        res->sign.density = 0;
+
+        //this existence bitmap causing issues with SUM
+        res->existenceBitmap.addStreamOfEmptyWords(true,wholeWords);
+        res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
+        res->existenceBitmap.density = 1;
+        res->firstSlice=true;
+        //res->twosComplement = false;
+        res->rows = numberOfElements;
+        //res->is_signed = true;
+        return res;
+    }
 };
 
 /*

@@ -30,9 +30,9 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    int one_range = 100;
-    int two_range = 100;
-    int vectorLength = 1000000;
+    int one_range = 10;
+    int two_range = 10;
+    int vectorLength = 10;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -54,7 +54,7 @@ int main() {
     std::vector<long> two;
     for(int i = 0; i < vectorLength; i++) {
         one.push_back(1 + (gen() % one_range));
-        two.push_back(1 + (gen() % two_range));
+        two.push_back(-1*two_range + rand() % (two_range + two_range + 1));
     }
 
 
@@ -148,8 +148,20 @@ int main() {
     std::cout << "Slices in bsi One: " << one_bsi->numSlices << std::endl;
     std::cout << "Slices in bsi Two: " << two_bsi->numSlices << std::endl;
 
+    std::cout << "Second vector: " << std::endl;
+
+    std::cout << "vector two bsi 1: " << two_bsi->getValue(0) << std::endl;
+    std::cout << "vector two bsi 2: " << two_bsi->getValue(1) << std::endl;
+    std::cout << "vector two bsi 3: " << two_bsi->getValue(2) << std::endl;
+    std::cout << "vector two bsi 4: " << two_bsi->getValue(3) << std::endl;
+    std::cout << "vector two 1: " << two[0] << std::endl;
+    std::cout << "vector two 2: " << two[1] << std::endl;
+    std::cout << "vector two 3: " << two[2] << std::endl;
+    std::cout << "vector two 4: " << two[3] << std::endl;
+
+
     //multiplication:
-    std::cout << "1: Multiplication = one x two" << std::endl;
+    std::cout << "Bsi Multiplication: " << std::endl;
 
     auto t3 = std::chrono::high_resolution_clock::now();
     resultBsi = one_bsi->multiplication(two_bsi);

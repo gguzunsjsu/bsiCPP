@@ -353,26 +353,25 @@ BsiVector<uword>* BsiSigned<uword>::convertToTwos(int bits){
 };
 
 /*
- * getValue for fetching value of i'th position
+ * getValue: fetches the decimal value on position @pos of a bsiVector
  */
 template <class uword>
-long BsiSigned<uword>::getValue(int i) const{
+long BsiSigned<uword>::getValue(int pos) const{
     if(this->twosComplement){ // not implemented for compressed
-        bool sign = this->bsi[this->numSlices - 1].get(i);
+        bool sign = this->bsi[this->numSlices - 1].get(pos);
         long sum=0;
-        HybridBitmap<uword> B_i;
-        for (int j = 0; j < this->numSlices - 1; i++) {
-            B_i = this->bsi[j];
-            if(B_i.get(i)^sign)
-                sum =sum|( 1<<(this->offset + i));
+        //HybridBitmap<uword> B_i;
+        for (int j = 0; j < this->numSlices - 1; j++) {
+            //B_i = this->bsi[j];
+            if(this->bsi[j].get(pos)^sign)
+                sum =sum|( 1<<(this->offset + j));
         }
-        
         return (sum+((sign)?1:0))*((sign)?-1:1);
     }else{
-        long sign = (this->sign.get(i))?-1:1;
+        long sign = (this->sign.get(pos))?-1:1;
         long sum = 0;
         for (int j = 0; j < this->numSlices; j++) {
-            if(this->bsi[j].get(i))
+            if(this->bsi[j].get(pos))
                 sum += 1<<(this->offset + j);
             /*if (this->bsi[j].isVerbatim()) {
                 if(this->bsi[j].get(i))
