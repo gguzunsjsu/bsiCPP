@@ -476,9 +476,12 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
             if(compressRatio<compressThreshold && compressRatio!=0 ){
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
-                for(int j=1; j<bitSlices[i].size(); j++){
+                for(int j=1; j<bitSlices[i].size()-1; j++){
                     bitmap.addWord(bitSlices[i][j]);
                 }
+
+                int bitsthatmatter = bits-(bits*(bitSlices[i].size()-1)-numberOfElements);
+                bitmap.addWord(bitSlices[i][bitSlices[i].size()-1],bitsthatmatter);
                 bitmap.density=bitDensity;
                 res->addSlice(bitmap);
             }else {
@@ -522,10 +525,12 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
             if(compressRatio<compressThreshold && compressRatio!=0 ){
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
-                for(int j=1; j<bitSlices[i].size(); j++){
+                for(int j=1; j<bitSlices[i].size()-1; j++){
                     bitmap.addWord(bitSlices[i][j]);
                 }
-                //bitmap.setSizeInBits(numberOfElements);
+
+                int bitsthatmatter = bits-(bits*(bitSlices[i].size()-1)-numberOfElements);
+                bitmap.addWord(bitSlices[i][bitSlices[i].size()-1],bitsthatmatter);
                 bitmap.density=bitDensity;
                 res->addSlice(bitmap);
 
@@ -597,9 +602,12 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
             if(compressRatio<compressThreshold && compressRatio!=0 ){
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
-                for(int j=1; j<bitSlices[i].size(); j++){
+                for(int j=1; j<bitSlices[i].size()-1; j++){
                     bitmap.addWord(bitSlices[i][j]);
                 }
+
+                int bitsthatmatter = bits-(bits*(bitSlices[i].size()-1)-numberOfElements);
+                bitmap.addWord(bitSlices[i][bitSlices[i].size()-1],bitsthatmatter);
                 bitmap.density=bitDensity;
                 res->addSlice(bitmap);
             }else {
@@ -643,10 +651,12 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
             if(compressRatio<compressThreshold && compressRatio!=0 ){
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
-                for(int j=1; j<bitSlices[i].size(); j++){
+                for(int j=1; j<bitSlices[i].size()-1; j++){
                     bitmap.addWord(bitSlices[i][j]);
                 }
-                //bitmap.setSizeInBits(numberOfElements);
+
+                int bitsthatmatter = bits-(bits*(bitSlices[i].size()-1)-numberOfElements);
+                bitmap.addWord(bitSlices[i][bitSlices[i].size()-1],bitsthatmatter);
                 bitmap.density=bitDensity;
                 res->addSlice(bitmap);
 
