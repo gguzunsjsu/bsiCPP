@@ -30,9 +30,10 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    int one_range = 10;
-    int two_range = 10;
-    int vectorLength = 10;
+    int one_range = 100;
+    int two_range = 100;
+    int vectorLength = 100000;
+    int decimalPlaces = 3;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -50,11 +51,16 @@ int main() {
 //                             9532, 6318, 5836, 1355, 7574, 5366, 923, 8105, 4128, 5522, 8079, 5614, 9500, 1124, 9662, 8096, 4215, 5805, 8636, 3055, 4342, 3306};
 //    std::vector<long> two = {9173, 6213, 7136, 3150, 7709, 3049, 2233, 2729, 4630, 5721, 6472, 7239, 8922, 3978, 8275, 5955, 1584, 6472, 6248, 894, 2728,
 //                             2645, 7825, 4747, 7680, 3204, 1729, 2069, 4722, 7085, 7129, 3161, 5333, 4241, 9510, 3614, 3695, 2781, 352, 3647};
-    std::vector<long> one;
-    std::vector<long> two;
+    std::vector<double> one;
+    std::vector<double> two;
     for(int i = 0; i < vectorLength; i++) {
-        one.push_back(1 + (gen() % one_range));
-        two.push_back(-1*two_range + rand() % (two_range + two_range + 1));
+        //one.push_back(1 + (gen() % one_range));
+        one.push_back(static_cast<double>(rand()) / RAND_MAX);
+        two.push_back(static_cast<double>(rand()) / RAND_MAX);
+
+
+        //two.push_back(-1*two_range + rand() % (two_range + two_range + 1));
+       // two.push_back(1 + (gen() % two_range));
     }
 
 
@@ -121,16 +127,17 @@ int main() {
 //    BsiSigned<uint64_t> ubsi;
     BsiUnsigned<uint128_t> ubsi;
 
+
     std::cout << "Building bit vectors..." << std::endl;
     auto t9 = std::chrono::high_resolution_clock::now();
 
 
-    BsiVector<uint128_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
+    BsiVector<uint128_t>* one_bsi = ubsi.buildBsiVector(one, decimalPlaces, 0.2);
     one_bsi->setFirstSliceFlag(true);
     one_bsi->setLastSliceFlag(true);
     one_bsi->setPartitionID(0);
 
-    BsiVector<uint128_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
+    BsiVector<uint128_t>* two_bsi = ubsi.buildBsiVector(two, decimalPlaces,0.2);
     two_bsi->setFirstSliceFlag(true);
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
@@ -288,7 +295,7 @@ int main() {
     std::cout << "Dot product" << std::endl;
 
     auto t13 = std::chrono::high_resolution_clock::now();
-    long dotres = one_bsi->dotProduct(two_bsi);
+    double dotres = one_bsi->dotProduct(two_bsi);
     auto t14 = std::chrono::high_resolution_clock::now();
     std::cout << "Dot product: " << dotres << std::endl;
     std::cout << "Dot Product time: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t14-t13).count() << std::endl;
@@ -300,7 +307,7 @@ int main() {
     auto t15 = std::chrono::high_resolution_clock::now();
     dotres = one_bsi->dot(two_bsi);
     auto t16 = std::chrono::high_resolution_clock::now();
-    std::cout << "Dot: " << dotres << std::endl;
+    std::cout << "Dot: " << dotres/(double)pow(10,2*decimalPlaces) << std::endl;
     std::cout << "Dot time: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t16-t15).count() << std::endl;
 
     // Dot product:
