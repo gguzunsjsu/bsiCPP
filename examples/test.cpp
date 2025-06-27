@@ -35,31 +35,73 @@ int main() {
 
 void testRandom() {
     int size = 640;
-    double high = 4.107443048544934;
-    double low = 3.3826798753475913;
     BsiSigned<uint64_t> bsi;
     int precision = static_cast<int>(pow(10,5));
-    BsiAttribute<uint64_t>* res = bsi.createRandomBsi(size,static_cast<int>((high-low)*precision),0.5);
-    res = res->SUM(static_cast<long>(low*precision));
-    res->decimals = precision;
-    cout << res->rows << "\n";
+    BsiAttribute<uint64_t>* res;
 
-    high = 3.918487309781472;
-    low = 3.1357142448781126;
+    // test 1
+    double high = 4.107443048544934;
+    double low = 3.3826798753475913;
+//    cout << static_cast<int>((high-low)*precision) << "\n";
+//    res = bsi.createRandomBsi(size,static_cast<int>((high-low)*precision),0.5);
+
+//    for (int i=0; i<res->rows; i++) {
+//        cout << res->getValue(i) << " ";
+//    }
+//    cout << "\n";
+//    res = res->SUM(static_cast<long>(low*precision));
+//    res->decimals = precision;
+//    for (int i=0; i<res->rows; i++) {
+//        cout << res->getValue(i) << " ";
+//    }
+//    cout << "\n";
+
+    // test 2
+//    high = 3.918487309781472;
+//    low = 3.1357142448781126;
+//    res = bsi.createRandomBsi(size,static_cast<int>((high-low)*precision),0.5);
+//    res = res->SUM(static_cast<long>(low*precision));
+//    res->decimals = precision;
+//    for (int i=0; i<res->rows; i++) {
+//        cout << res->getValue(i) << " ";
+//    }
+//    cout << res->rows << "\n";
+
+    // test 3
+    high = 1;
+    low = -1;
+    cout << static_cast<int>((high-low)*precision) << "\n";
     res = bsi.createRandomBsi(size,static_cast<int>((high-low)*precision),0.5);
-    res = res->SUM(static_cast<long>(low*precision));
-    res->decimals = precision;
-    cout << res->rows << "\n";
+    for (int i=0; i<res->rows; i++) {
+        cout << res->getValue(i) << " ";
+    }
+//    res = res->SUM(static_cast<long>(low*precision));
+//    for (int i=0; i<res->rows; i++) {
+//        cout << res->getValue(i) << " ";
+//    }
+
 }
 
 void testSumConstant() {
-    vector<long> v = {6,4,3};
-    long c = 0;
+//    vector<long> v = {6,4,3};
+//    long c = 0;
+//    BsiSigned<uint64_t> bsi;
+//    BsiAttribute<uint64_t> *test = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+//    BsiAttribute<uint64_t> *sol = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+//    test = test->SUM(c);
+//    for (int i=0; i<v.size(); i++) {
+//        if (test->getValue(i) != sol->getValue(i)) {
+//            cout << "Got " << test->getValue(i) << " but expected " << sol->getValue(i);
+//            break;
+//        }
+//    }
+
+    long c = 1;
     BsiSigned<uint64_t> bsi;
-    BsiAttribute<uint64_t> *test = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
-    BsiAttribute<uint64_t> *sol = bsi.buildBsiAttributeFromVectorSigned(v,0.5);
+    BsiAttribute<uint64_t> *test = bsi.createRandomBsi(1000,10000,0.5);
+    BsiAttribute<uint64_t> *sol = test;
     test = test->SUM(c);
-    for (int i=0; i<v.size(); i++) {
+    for (int i=0; i<test->rows; i++) {
         if (test->getValue(i) != sol->getValue(i)) {
             cout << "Got " << test->getValue(i) << " but expected " << sol->getValue(i);
             break;

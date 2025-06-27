@@ -123,6 +123,8 @@ public:
     virtual std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
             const BsiAttribute<uword>& dividend,
             const BsiAttribute<uword>& divisor) const = 0;
+    std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> divide(
+            BsiAttribute<uword>* divisor) const;
 
     virtual BsiAttribute<uword>* negate()=0;
 
@@ -631,12 +633,13 @@ BsiAttribute<uword>* BsiAttribute<uword>::createRandomBsi(int vectorLength, int 
     int wordsPerSlice = (vectorLength + bits - 1) / bits;
 
     // BSI first to minimize allocations
-    BsiUnsigned<uword>* result = new BsiUnsigned<uword>(slices);
+    BsiSigned<uword>* result = new BsiSigned<uword>(slices);
     result->setFirstSliceFlag(true);
     result->setLastSliceFlag(true);
     result->setPartitionID(0);
     result->twosComplement = false;
     result->rows = vectorLength;
+    result->size = slices;
 
     // existence bitmap
     HybridBitmap<uword> existBitmap;
@@ -1349,5 +1352,10 @@ BsiAttribute<uword>* BsiAttribute<uword>::shift(int k) const {
     return res;
 }
 
+template <class uword>
+std::pair<BsiAttribute<uword>*, BsiAttribute<uword>*> BsiAttribute<uword>::divide(
+        BsiAttribute<uword>* divisor) const {
+    return this->divide((*this),*divisor);
+}
 
 #endif /* BsiAttribute_hpp */
