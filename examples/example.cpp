@@ -14,6 +14,7 @@
 #include <chrono>
 #include <random>
 #include <vector>
+#include <immintrin.h>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
@@ -24,14 +25,56 @@ typedef __int128 int128_t;
 typedef unsigned __int128 uint128_t;
 
 
+class ZipfDistribution {
+public:
+    ZipfDistribution(int N, double alpha) : N_(N), alpha_(alpha) {
+        calculate_probabilities();
+    }
+
+    int operator()(std::mt19937& rng) {
+        std::uniform_real_distribution<> dist(0.0, 1.0);
+        double U = dist(rng);
+
+        // Find the rank k corresponding to U
+        auto it = std::lower_bound(cumulative_probabilities_.begin(), cumulative_probabilities_.end(), U);
+        return std::distance(cumulative_probabilities_.begin(), it) + 1; // +1 because ranks start from 1
+    }
+
+private:
+    int N_;
+    double alpha_;
+    std::vector<double> probabilities_;
+    std::vector<double> cumulative_probabilities_;
+
+    void calculate_probabilities() {
+        probabilities_.resize(N_ + 1); // Ranks from 1 to N
+        cumulative_probabilities_.resize(N_ + 1);
+
+        double sum_inv_k_alpha = 0.0;
+        for (int k = 1; k <= N_; ++k) {
+            sum_inv_k_alpha += 1.0 / std::pow(static_cast<double>(k), alpha_);
+        }
+
+        double C = 1.0 / sum_inv_k_alpha;
+
+        cumulative_probabilities_[0] = 0.0; // Placeholder for 0th index
+        for (int k = 1; k <= N_; ++k) {
+            probabilities_[k] = C / std::pow(static_cast<double>(k), alpha_);
+            cumulative_probabilities_[k] = cumulative_probabilities_[k-1] + probabilities_[k];
+        }
+    }
+};
+
 
 int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    int one_range = 60;
-    int two_range = 60;
-    int vectorLength = 10000000;
+    int range = 10000;
+   // int two_range = 100;
+    int vectorLength = 100000;
+    double alpha = 3.0; // Skew parameter (alpha = 1.0 is classic Zipf)
+    int decimalPlaces = 2;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -49,11 +92,25 @@ int main() {
 //                             9532, 6318, 5836, 1355, 7574, 5366, 923, 8105, 4128, 5522, 8079, 5614, 9500, 1124, 9662, 8096, 4215, 5805, 8636, 3055, 4342, 3306};
 //    std::vector<long> two = {9173, 6213, 7136, 3150, 7709, 3049, 2233, 2729, 4630, 5721, 6472, 7239, 8922, 3978, 8275, 5955, 1584, 6472, 6248, 894, 2728,
 //                             2645, 7825, 4747, 7680, 3204, 1729, 2069, 4722, 7085, 7129, 3161, 5333, 4241, 9510, 3614, 3695, 2781, 352, 3647};
+    std::vector<double> one_double;
+    std::vector<double> two_double;
     std::vector<long> one;
     std::vector<long> two;
+
+
+
+
+    ZipfDistribution zipf_dist(range, alpha);
     for(int i = 0; i < vectorLength; i++) {
-        one.push_back(1 + (gen() % one_range));
-        two.push_back(1 + (gen() % two_range));
+        //one.push_back(1 + (gen() % one_range));
+        one.push_back(zipf_dist(gen)-2);
+        //two.push_back(-1*two_range + rand() % (two_range + two_range + 1));
+       // two.push_back(1 + (gen() % two_range));
+    }
+
+    for(int i = 0; i < vectorLength; i++) {
+        two.push_back(zipf_dist(gen)-2);
+       // two.push_back(static_cast<double>(rand()) / RAND_MAX);
     }
 
 
@@ -120,15 +177,25 @@ int main() {
 //    BsiSigned<uint64_t> ubsi;
     BsiUnsigned<uint128_t> ubsi;
 
-    BsiVector<uint128_t>* one_bsi = ubsi.buildBsiVectorFromVector(one, 0.2);
+
+    std::cout << "Building bit vectors..." << std::endl;
+    auto t9 = std::chrono::high_resolution_clock::now();
+
+
+    BsiVector<uint128_t>* one_bsi = ubsi.buildBsiVector(one,  0.2);
     one_bsi->setFirstSliceFlag(true);
     one_bsi->setLastSliceFlag(true);
     one_bsi->setPartitionID(0);
 
-    BsiVector<uint128_t>* two_bsi = ubsi.buildBsiVectorFromVector(two, 0.2);
+    BsiVector<uint128_t>* two_bsi = ubsi.buildBsiVector(two, 0.2);
     two_bsi->setFirstSliceFlag(true);
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
+
+    auto t10 = std::chrono::high_resolution_clock::now();
+    std::cout << "Time to build bitVectors: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
+
+
 
     BsiVector<uint128_t>* resultBsi;
     BsiVector<uint128_t>* resultBsi2;
@@ -138,8 +205,20 @@ int main() {
     std::cout << "Slices in bsi One: " << one_bsi->numSlices << std::endl;
     std::cout << "Slices in bsi Two: " << two_bsi->numSlices << std::endl;
 
+    std::cout << "Second vector: " << std::endl;
+
+    std::cout << "vector two bsi 1: " << two_bsi->getValue(0) << std::endl;
+    std::cout << "vector two bsi 2: " << two_bsi->getValue(1) << std::endl;
+    std::cout << "vector two bsi 3: " << two_bsi->getValue(2) << std::endl;
+    std::cout << "vector two bsi 4: " << two_bsi->getValue(3) << std::endl;
+    std::cout << "vector two 1: " << two[0] << std::endl;
+    std::cout << "vector two 2: " << two[1] << std::endl;
+    std::cout << "vector two 3: " << two[2] << std::endl;
+    std::cout << "vector two 4: " << two[3] << std::endl;
+
+
     //multiplication:
-    std::cout << "1: Multiplication = one x two" << std::endl;
+    std::cout << "Bsi Multiplication: " << std::endl;
 
     auto t3 = std::chrono::high_resolution_clock::now();
     resultBsi = one_bsi->multiplication(two_bsi);
@@ -185,21 +264,21 @@ int main() {
     std::cout << "3: multiplyByConstant = one * const" << std::endl;
 
     auto t7 = std::chrono::high_resolution_clock::now();
-    int constant = 9;
+    int constant = 10;
 
-    resultBsi3 = one_bsi->multiplyByConstantNew(constant);
-
-    std::cout << "resultBsi3 numSlices: " << resultBsi3 << std::endl;
-    std::cout << "resultBsi 0: " << resultBsi3->getValue(one.size()-1) << std::endl;
-    std::cout << "resultBsi 1: " << resultBsi3->getValue(one.size()-2) << std::endl;
-    std::cout << "resultBsi 2: " << resultBsi3->getValue(one.size()-3) << std::endl;
-    std::cout << "resultBsi 3: " << resultBsi3->getValue(one.size()-4) << std::endl;
-    std::cout << "resultBsi 4: " << resultBsi3->getValue(one.size()-5) << std::endl;
-    std::cout << "result 0: " << one[one.size()-1]*constant << std::endl;
-    std::cout << "result 1: " << one[one.size()-2]*constant << std::endl;
-    std::cout << "result 2: " << one[one.size()-3]*constant << std::endl;
-    std::cout << "result 3: " << one[one.size()-4]*constant << std::endl;
-    std::cout << "result 4: " << one[one.size()-5]*constant << std::endl;
+    // resultBsi3 = one_bsi->multiplyByConstant(constant);
+    //
+    // std::cout << "resultBsi3 numSlices: " << resultBsi3 << std::endl;
+    // std::cout << "resultBsi 0: " << resultBsi3->getValue(one.size()-1) << std::endl;
+    // std::cout << "resultBsi 1: " << resultBsi3->getValue(one.size()-2) << std::endl;
+    // std::cout << "resultBsi 2: " << resultBsi3->getValue(one.size()-3) << std::endl;
+    // std::cout << "resultBsi 3: " << resultBsi3->getValue(one.size()-4) << std::endl;
+    // std::cout << "resultBsi 4: " << resultBsi3->getValue(one.size()-5) << std::endl;
+    // std::cout << "result 0: " << one[one.size()-1]*constant << std::endl;
+    // std::cout << "result 1: " << one[one.size()-2]*constant << std::endl;
+    // std::cout << "result 2: " << one[one.size()-3]*constant << std::endl;
+    // std::cout << "result 3: " << one[one.size()-4]*constant << std::endl;
+    // std::cout << "result 4: " << one[one.size()-5]*constant << std::endl;
 
 
 //    std::cout << "resultBsi3 numSlices: " << one_bsi << std::endl;
@@ -215,28 +294,28 @@ int main() {
 
 
     //multiplyBSI:
-    std::cout << "4: multiplyBSI = one * two" << std::endl;
-    auto t9 = std::chrono::high_resolution_clock::now();
+  //  std::cout << "4: multiplyBSI = one * two" << std::endl;
+//    auto t9 = std::chrono::high_resolution_clock::now();
 
 
 //    BsiVector<uint64_t>* resultBsi3 = one_bsi->multiplyByConstant(constant);
-    resultBsi_4 = one_bsi->multiplyBSI(two_bsi);
+//    resultBsi_4 = one_bsi->multiplyBSI(two_bsi);
 
-    auto t10 = std::chrono::high_resolution_clock::now();
-
-    std::cout << "resultBsi_4 numSlices: " << resultBsi_4 << std::endl;
-    std::cout << "resultBsi 0: " << resultBsi_4->getValue(one.size()-1) << std::endl;
-    std::cout << "resultBsi 1: " << resultBsi_4->getValue(one.size()-2) << std::endl;
-    std::cout << "resultBsi 2: " << resultBsi_4->getValue(one.size()-3) << std::endl;
-    std::cout << "resultBsi 3: " << resultBsi_4->getValue(one.size()-4) << std::endl;
-    std::cout << "resultBsi 4: " << resultBsi_4->getValue(one.size()-5) << std::endl;
-    std::cout << "result 0: " << one[one.size()-1]*constant << std::endl;
-    std::cout << "result 1: " << one[one.size()-2]*constant << std::endl;
-    std::cout << "result 2: " << one[one.size()-3]*constant << std::endl;
-    std::cout << "result 3: " << one[one.size()-4]*constant << std::endl;
-    std::cout << "result 4: " << one[one.size()-5]*constant << std::endl;
-
-    std::cout << "bsi multiplyBSI duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
+ ///   auto t10 = std::chrono::high_resolution_clock::now();
+    //
+    // std::cout << "resultBsi_4 numSlices: " << resultBsi_4 << std::endl;
+    // std::cout << "resultBsi 0: " << resultBsi_4->getValue(one.size()-1) << std::endl;
+    // std::cout << "resultBsi 1: " << resultBsi_4->getValue(one.size()-2) << std::endl;
+    // std::cout << "resultBsi 2: " << resultBsi_4->getValue(one.size()-3) << std::endl;
+    // std::cout << "resultBsi 3: " << resultBsi_4->getValue(one.size()-4) << std::endl;
+    // std::cout << "resultBsi 4: " << resultBsi_4->getValue(one.size()-5) << std::endl;
+    // std::cout << "result 0: " << one[one.size()-1]*constant << std::endl;
+    // std::cout << "result 1: " << one[one.size()-2]*constant << std::endl;
+    // std::cout << "result 2: " << one[one.size()-3]*constant << std::endl;
+    // std::cout << "result 3: " << one[one.size()-4]*constant << std::endl;
+    // std::cout << "result 4: " << one[one.size()-5]*constant << std::endl;
+    //
+    //std::cout << "bsi mltiply horizontal duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
 
 
 
@@ -278,7 +357,9 @@ int main() {
     auto t15 = std::chrono::high_resolution_clock::now();
     dotres = one_bsi->dot(two_bsi);
     auto t16 = std::chrono::high_resolution_clock::now();
+    //std::cout << "Dot: " << dotres/(double)pow(10,2*decimalPlaces) << std::endl;
     std::cout << "Dot: " << dotres << std::endl;
+
     std::cout << "Dot time: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t16-t15).count() << std::endl;
 
     // Dot product:

@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include "BsiVector.hpp"
-#include "BsiSigned.hpp"
 #include <cmath>
 #include <cstdint>
 
@@ -1162,7 +1161,11 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyByConstant(int number)const{
                 if (res == nullptr) {
                     res = new BsiUnsigned<uword>();
                     HybridBitmap<uword> zeroBitmap;
-                    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                    int wholeWords = floor(this->rows/(float)this->bits);
+                    zeroBitmap.addStreamOfEmptyWords(false,wholeWords);
+                    zeroBitmap.addVerbatim(0, this->rows-(wholeWords*this->bits));
+                    zeroBitmap.density = 0;
+                    //zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
                     //                res->offset = k;
                     for (int i = 0; i < this->numSlices; i++) {
                         res->bsi.push_back(zeroBitmap);
@@ -1251,7 +1254,10 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyByConstant(int number)const{
                 if (res == nullptr) {
                     res = new BsiUnsigned<uword>();
                     HybridBitmap<uword> zeroBitmap;
-                    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits(), false);
+                    int wholeWords = floor(this->rows/(float)this->bits);
+                    zeroBitmap.addStreamOfEmptyWords(false,wholeWords);
+                    zeroBitmap.addVerbatim(0, this->rows-(wholeWords*this->bits));
+                    zeroBitmap.density = 0;
                     //                res->offset = k;
                     for (int i = 0; i < this->numSlices; i++) {
                         res->bsi.push_back(zeroBitmap);
@@ -1621,7 +1627,7 @@ long BsiUnsigned<uword>::dotProduct(BsiVector<uword>* unbsi) const{
         // Get the number of ones in each element of the answer vector and sum it
         for (auto n = 0; n < answer.size(); n++)
         {
-            long temp = countOnes(answer[n]) * (1 << n);
+            long temp = __builtin_popcountl(answer[n]) * (1 << n);
             dotProductSum += temp;
         }
     }
