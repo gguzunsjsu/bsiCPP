@@ -93,11 +93,11 @@ int main(){
 
     std::chrono::high_resolution_clock::time_point t10 = std::chrono::high_resolution_clock::now();
 
-    bsi_1 = ubsi.buildBsiVectorFromVector(array1, 0);
+    bsi_1 = ubsi.buildBsiVector(array1, 0);
     bsi_1->setPartitionID(0);
     bsi_1->setFirstSliceFlag(true);
     bsi_1->setLastSliceFlag(true);
-    bsi_2 = ubsi.buildBsiVectorFromVector(array2, 0);
+    bsi_2 = ubsi.buildBsiVector(array2, 0);
     bsi_2->setPartitionID(0);
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);
