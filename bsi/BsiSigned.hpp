@@ -387,23 +387,23 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     int i;
     for(i=1;i<this->size;i++){
         if((a&(1<<i))!=0){
-            res->bsi[i]=C.logicalxornot(this->bsi[i]);
+            res->bsi[i]=C.xorNot(this->bsi[i]);
             //res.bsi[i] = C.xor(this.bsi[i].NOT());
-            C=this->bsi[i].logicalor(C);
+            C=this->bsi[i].Or(C);
         }else{
-            res->bsi[i]=this->bsi[i].logicalxor(C);
-            C=this->bsi[i].logicaland(C);
+            res->bsi[i]=this->bsi[i].Xor(C);
+            C=this->bsi[i].And(C);
         }
         res->size++;
     }
     if(intSize>this->size){
         while (i<intSize){
             if((a&(1<<i))!=0){
-                res->bsi[i]=C.logicalxornot(this->bsi[this->size-1]);
-                C=this->bsi[this->size-1].logicalor(C);
+                res->bsi[i]=C.xorNot(this->bsi[this->size-1]);
+                C=this->bsi[this->size-1].Or(C);
             }else{
-                res->bsi[i]=C.logicalxor(this->bsi[this->size-1]);
-                C=this->bsi[this->size-1].logicaland(C);
+                res->bsi[i]=C.Xor(this->bsi[this->size-1]);
+                C=this->bsi[this->size-1].And(C);
             }
             res->size++;
             i++;
@@ -411,7 +411,7 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     }
     if(this->lastSlice && C.numberOfOnes()>0 ){
         if(a>0){
-            res->addSlice(this->sign.logicalandnot(C));
+            res->addSlice(this->sign.andNot(C));
         }else{
             res->addSlice(this->XOR(C,allOnes,this->sign));
         }

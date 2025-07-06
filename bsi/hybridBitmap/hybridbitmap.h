@@ -4666,7 +4666,7 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
             } else {
                 for (j = 0; j < runLength; j++) {
 //                    container.buffer[pos++] = ((buffer[i]));
-                    container.buffer.push_back(~(buffer[i]));
+                    container.buffer.push_back((buffer[i]));
                     i++;
                 }
             }
