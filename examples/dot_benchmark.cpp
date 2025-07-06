@@ -90,7 +90,8 @@ int main(){
 //            array2.push_back(*it);
 //        }
 //    }
-
+    double compressionRatio = 0.0;
+    std::cout << "Compression ratio: " << compressionRatio << std::endl;
     std::chrono::high_resolution_clock::time_point t10 = std::chrono::high_resolution_clock::now();
 
     bsi_1 = ubsi.buildBsiVector(array1, 0);
