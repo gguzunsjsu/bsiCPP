@@ -903,7 +903,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
             }
             //bitmap.setSizeInBits(numberOfElements);
             bitmap.density=bitDensity;
-            res->addSlice(bitmap);
+            res->bsi[i] = bitmap;
+//            res->addSlice(bitmap);
 
         }else{
             //build verbatim Bitmap
@@ -918,7 +919,8 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
             //bitmap.actualsizeinwords=bitSlices[i].length-1;
             bitmap.setSizeInBits(numberOfElements);
             bitmap.density=bitDensity;
-            res->addSlice(bitmap);
+            res->bsi[i] = bitmap;
+//            res->addSlice(bitmap);
 
         }
     }
@@ -929,6 +931,7 @@ BsiAttribute<uword>* BsiAttribute<uword>::buildBsiAttributeFromVectorSigned(std:
     res->twosComplement = false;
     res->rows = numberOfElements;
     res->is_signed = true;
+    res->size = slices;
     return res;
 };
 

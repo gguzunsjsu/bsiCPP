@@ -2388,9 +2388,11 @@ void HybridBitmap<uword>::fastaddStreamOfDirtyWords(const uword *v,
         RunningLengthWord<uword>::largestliteralcount) {
         RunningLengthWord<uword>::setNumberOfLiteralWords(
                 rlw, NumberOfLiteralWords + number);
+        buffer.resize(number+1);
         buffer[lastRLW] = rlw;
         for (size_t i = 0; i < number; ++i)
-            buffer.push_back(v[i]);
+            buffer[i+1] = v[i];
+//            buffer.push_back(v[i]);
         // buffer.insert(buffer.end(), v, v+number); // seems slower than push_back?
         return;
     }
