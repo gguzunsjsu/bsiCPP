@@ -1,137 +1,99 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
+#include <algorithm>
 #include <chrono>
-#include <memory>
+#include <cstdlib>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <vector>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
 #include "../bsi/BsiVector.hpp"
 
+struct RangeInfo {
+    std::size_t rangeMax;
+    int         expectedBits;
+    const char* label;
+};
+
 int main() {
-    const size_t vectorLength = 10000000;
-    std::vector<uint16_t> vector1;
-    std::vector<uint16_t> vector2;
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    constexpr std::size_t N = 10'000'000;
+    std::vector<RangeInfo> ranges = {
+        {101,      7,  "0-100"},
+        {1001,     10, "0-1000"},
+        {1u<<16,   16, "0-65535"}
+    };
 
-    int range = 1000;
+    auto MB = [](double bytes){ return bytes / (1024.0*1024.0); };
 
-    for(size_t i = 0; i < vectorLength; i++) {
-        vector1.push_back(std::rand() % range);
-        vector2.push_back(std::rand() % range);
-    }
+    for (auto& cfg : ranges) {
+        std::cout << "\n=== Benchmark range " << cfg.label << " ===\n";
 
-    /*
-     * Normal multiplication
-     */
-    std::vector<long> mul_res(vectorLength);
-    auto t3 = std::chrono::high_resolution_clock::now();
-    for(auto i=0; i<vectorLength; i++){
-        mul_res[i] = vector1[i] * vector2[i];
-    }
-    auto t4 = std::chrono::high_resolution_clock::now();
-    auto normalMul_duration = std::chrono::duration_cast<std::chrono::microseconds>(t4-t3).count();
-    long normalMul_sum = 0;
-    for(auto i=0; i<vectorLength; i++){
-        normalMul_sum += mul_res[i];
-    }
-
-    std::cout << "Normal multiplication duration: " << normalMul_duration << std::endl;
-    std::cout << "Normal multiplication result sum: " << normalMul_sum << std::endl;
-
-    size_t element_size = sizeof(vector1[0]);
-    size_t data_size = vector1.size() * element_size;
-    size_t capacity_size = vector1.capacity() * element_size;
-
-    std::cout << "Element size: " << element_size << " bytes (" << element_size * 8 << " bits)" << std::endl;
-    std::cout << "Data memory: " << data_size / (1024.0 * 1024.0) << " MB" << std::endl;
-    std::cout << "Allocated memory: " << capacity_size / (1024.0 * 1024.0) << " MB" << std::endl;
-
-    size_t max_value = 0;
-    for (const auto& val : vector1) {
-        max_value = std::max(max_value, static_cast<size_t>(val));
-    }
-
-    int bits_needed = 0;
-    size_t temp = max_value;
-    while (temp > 0) {
-        bits_needed++;
-        temp >>= 1;
-    }
-
-    std::cout << "Maximum value in vector: " << max_value << std::endl;
-    std::cout << "Minimum bits needed: " << bits_needed << std::endl;
-    std::cout << "Actual bits used per element: " << sizeof(vector1[0]) * 8 << std::endl;
-    std::cout << "Potential memory waste: " <<
-              (sizeof(vector1[0]) * 8 - bits_needed) * vector1.size() / 8 / (1024.0 * 1024.0) << " MB" << std::endl;
-
-    /*
-     * bsi multiplication
-     */
-    try {
-        BsiUnsigned<uint64_t> ubsi;
-        double compressionThreshold = 0.2;
-
-        std::vector<long> array1_long(vector1.begin(), vector1.end());
-        std::vector<long> array2_long(vector2.begin(), vector2.end());
-
-        BsiVector<uint64_t>* bsi1 = ubsi.buildBsiVector(array1_long, compressionThreshold);
-        BsiVector<uint64_t>* bsi2 = ubsi.buildBsiVector(array2_long, compressionThreshold);
-
-        std::cout << "Memory used to store bsi1 attribute: \t" << bsi1->getSizeInMemory()/(pow(2, 20)) << std::endl;
-        std::cout << "Memory used to store bsi2 attribute: \t" << bsi2->getSizeInMemory()/(pow(2, 20)) << std::endl;
-
-
-
-        if (!bsi1 || !bsi2) {
-            std::cerr << "Failed to create BSI structures" << std::endl;
-            delete bsi1;
-            delete bsi2;
-            return 1;
+        std::vector<long> A(N), B(N);
+        for (std::size_t i = 0; i < N; ++i) {
+            A[i] = std::rand() % cfg.rangeMax;
+            B[i] = std::rand() % cfg.rangeMax;
         }
 
-        std::cout << "Performing BSI multiplication..." << std::endl;
+        std::vector<long> R(N);
+        auto t0 = std::chrono::high_resolution_clock::now();
+        for (std::size_t i = 0; i < N; ++i)
+            R[i] = A[i] * B[i];
         auto t1 = std::chrono::high_resolution_clock::now();
-        BsiVector<uint64_t>* resultBsi = bsi1->multiplyWithBsiHorizontal(bsi2);
-        auto t2 = std::chrono::high_resolution_clock::now();
+        auto durPlain = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
 
-        if (!resultBsi) {
-            std::cerr << "Multiplication failed" << std::endl;
-            delete bsi1;
-            delete bsi2;
-            return 1;
-        }
+        long plainSum = 0;
+        for (auto v : R)
+            plainSum += v;
+        size_t eSz = sizeof(A[0]);
+        size_t usedA = A.size()*eSz, allocA = A.capacity()*eSz;
+        size_t usedB = B.size()*eSz, allocB = B.capacity()*eSz;
+        size_t usedR = R.size()*sizeof(R[0]), allocR = R.capacity()*sizeof(R[0]);
 
-        std::cout << "BSI multiplication duration: "
-                  << std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count()
-                  << " microseconds" << std::endl;
+        BsiUnsigned<uint64_t> ubsi;
+        auto tb0 = std::chrono::high_resolution_clock::now();
+        auto *bA = ubsi.buildBsiVector(A, 0.2);
+        auto *bB = ubsi.buildBsiVector(B, 0.2);
+        bA->setPartitionID(0); bA->setFirstSliceFlag(true); bA->setLastSliceFlag(true);
+        bB->setPartitionID(0); bB->setFirstSliceFlag(true); bB->setLastSliceFlag(true);
+        auto tb1 = std::chrono::high_resolution_clock::now();
+        auto durBuild = std::chrono::duration_cast<std::chrono::microseconds>(tb1 - tb0).count();
 
+        auto tm0 = std::chrono::high_resolution_clock::now();
+        auto *bR = bA->multiplyWithBsiHorizontal(bB);
+        auto tm1 = std::chrono::high_resolution_clock::now();
+        auto durBSI = std::chrono::duration_cast<std::chrono::microseconds>(tm1 - tm0).count();
 
-//        long bsiMul_sum = 0;
-//        for(size_t i = 0; i < vectorLength; i++) {
-//            long bsiValue = resultBsi->getValue(i);
-//            long expectedValue = vector1[i] * vector2[i];
-//            bsiMul_sum += bsiValue;
-//
-//            std::cout << i << ": " << vector1[i] << " * " << vector2[i]
-//                      << " = " << bsiValue << " (Expected: "
-//                      << expectedValue << ")" << std::endl;
-//        }
-//
-//        std::cout << "BSI multiplication manual sum: " << bsiMul_sum << std::endl;
-        std::cout << "BSI sumOfBsi() method result: " << resultBsi->sumOfBsi() << std::endl;
+        long bsiSum = bR->sumOfBsi();
 
-        // Clean up
-        delete bsi1;
-        delete bsi2;
-        delete resultBsi;
+        long maxA = *std::max_element(A.begin(), A.end());
+        int bitsNeeded = 0; for (auto v = maxA; v; v >>= 1) ++bitsNeeded;
 
-    } catch (const std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return 1;
-    } catch (...) {
-        std::cerr << "Unknown exception occurred" << std::endl;
-        return 1;
+        std::cout << "Plain mul sum=" << plainSum
+                  << " | time=" << durPlain << " µs\n"
+                  << "  A mem used/alloc=" << std::fixed<<std::setprecision(2)
+                  << MB(usedA) << "/" << MB(allocA) << " MB\n"
+                  << "  B mem used/alloc=" << MB(usedB) << "/" << MB(allocB) << " MB\n"
+                  << "  R mem used/alloc=" << MB(usedR) << "/" << MB(allocR) << " MB\n";
+
+        std::cout << "BSI mul | build=" << durBuild << " µs"
+                  << " | mul=" << durBSI << " µs"
+                  << " | sum=" << bsiSum << "\n"
+                  << "  BSI A mem=" << MB(bA->getSizeInMemory()) << " MB"
+                  << " | BSI B mem=" << MB(bB->getSizeInMemory()) << " MB"
+                  << " | BSI R mem=" << MB(bR->getSizeInMemory()) << " MB\n";
+
+        std::cout << "Expected bits=" << cfg.expectedBits
+                  << " | bitsNeeded=" << bitsNeeded
+                  << " | slices A=" << bA->getNumberOfSlices()
+                  << " | slices B=" << bB->getNumberOfSlices()
+                  << " | slices R=" << bR->getNumberOfSlices() << "\n";
+
+        if (plainSum != bsiSum)
+            std::cerr << "[WARN] mismatch plain vs BSI mul\n";
+
+        delete bA; delete bB; delete bR;
     }
 
     return 0;
