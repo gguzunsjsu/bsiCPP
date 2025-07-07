@@ -465,7 +465,9 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         min = std::min(min, nums[count]);
     }
 
-    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
+    long maxVal = std::max(std::abs(min), std::abs(max));
+    int slices = 0;
+    while (maxVal) { maxVal >>= 1; ++slices; }
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+1);
@@ -591,7 +593,9 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         min = std::min(min,  nums_long[it]);
     }
 
-    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
+    long maxVal = std::max(std::abs(min), std::abs(max));
+    int slices = 0;
+    while (maxVal) { maxVal >>= 1; ++slices; }
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+1);
