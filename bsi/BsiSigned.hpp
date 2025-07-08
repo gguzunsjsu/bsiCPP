@@ -1058,6 +1058,7 @@ BsiVector<uword>* BsiSigned<uword>::negate(){
     res->is_signed = true;
     res->twosComplement = false;
     res->setNumberOfRows(this->getNumberOfRows());
+    res->numSlices = this->getNumberOfSlices();
     return res;
 };
 

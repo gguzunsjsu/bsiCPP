@@ -128,8 +128,8 @@ int main() {
     // one = {2,6,9, 10, 50};
     // two = {2,6,9, 10, 50};
 
-    one = {-333};
-    two = {31};
+    one = {1,2,3};
+    two = {31, 2, 1};
 
     // one = {38, 5, 12, 50, 18, 7, 3, 32, 42, 43, 15, 35, 39, 20, 39, 34, 46, 8, 13, 23};
     // two = {31, 12, 23, 48, 25, 16, 38, 6, 28, 9, 8, 46, 4, 6, 31, 8, 43, 11, 25, 16};
@@ -222,6 +222,7 @@ int main() {
 
     BsiVector<uint64_t>* resultBsi;
     BsiVector<uint64_t>* resultBsi2;
+    BsiVector<uint64_t>* resultBsi3;
 
 
     // multiplication:
@@ -251,6 +252,22 @@ int main() {
         std::cout << "resultBsi2 " << j << ": " << resultBsi2->getValue(j) << std::endl;
         if (resultBsi2->getValue(j) != normal_sum[j]) {
             std::cout << "resultBsi2 " << j << ": " << resultBsi2->getValue(j) << ", " << normal_sum[j] << " - Not matched!"<< std::endl;
+        }
+        else continue;
+    }
+
+    //Negate:
+    std::cout << "3: Negate = -1 * one" << std::endl;
+
+    auto t7 = std::chrono::high_resolution_clock::now();
+    resultBsi3 = one_bsi->negate();
+    auto t8 = std::chrono::high_resolution_clock::now();
+    std::cout << "bsi SUM duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t8-t7).count() << std::endl;
+
+    for (int j=0; j < vector_length; j++) {
+        std::cout << "resultBsi3 " << j << ": " << resultBsi3->getValue(j) << std::endl;
+        if (resultBsi3->getValue(j) != -1 * one[j]) {
+            std::cout << "resultBsi3 " << j << ": " << resultBsi3->getValue(j) << ", " << -1 * one[j] << " - Not matched!"<< std::endl;
         }
         else continue;
     }
