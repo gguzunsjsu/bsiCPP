@@ -587,19 +587,19 @@ void BsiSigned<uword>::addSliceWithOffset(HybridBitmap<uword> slice, int sliceOf
  */
 
 template <class uword>
-BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
+BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const {
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
     BsiVector<uword> *res = new BsiSigned();
     res->twosComplement=true;
     res->setPartitionID(a->getPartitionID());
-//    if(!this->twosComplement)
-//        this->signMagnitudeToTwos(this->numSlices+1);
-//    
+    //    if(!this->twosComplement)
+    //        this->signMagnitudeToTwos(this->numSlices+1);
+    //
     int i = 0, s = a->numSlices, p = this->numSlices, aIndex=0, thisIndex=0;
     int minOffset = std::min(a->offset, this->offset);
     res->offset = minOffset;
-    
+
     if(a->offset>this->offset){
         for(int j=0;j<a->offset-minOffset; j++){
             if(j<this->numSlices)
@@ -625,7 +625,7 @@ BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
     s=s-aIndex;
     p=p-thisIndex;
     int minSP = std::min(s, p);
-    
+
     if(minSP<=0){ // one of the BSI attributes is exausted
         for(int j=thisIndex; j<this->numSlices; j++){
             res->bsi[res->numSlices]=this->bsi[j];
@@ -653,56 +653,54 @@ BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
         res->sign = &res->bsi[res->numSlices - 1];
         return res;
     }else {
-        res->bsi[res->numSlices] = a->bsi[aIndex].logicalxor(this->bsi[thisIndex]);
-        HybridBitmap<uword> C = a->bsi[aIndex].logicaland(this->bsi[thisIndex]);
+        res->bsi.push_back(a->bsi[aIndex].Xor(this->bsi[thisIndex]));
+        HybridBitmap<uword> C = a->bsi[aIndex].And(this->bsi[thisIndex]);
         res->numSlices++;
         thisIndex++;
         aIndex++;
-        
+
         for(i=1; i<minSP; i++){
             //res.bsi[i] = this.bsi[i].xor(a.bsi[i].xor(C));
-            res->bsi[res->numSlices] = this->XOR(a->bsi[aIndex], this->bsi[thisIndex], C);
+            res->bsi.push_back(this->XOR(a->bsi[aIndex], this->bsi[thisIndex], C));
             //res.bsi[i] = this.bsi[i].xor(this.bsi[i], a.bsi[i], C);
-            C= this->maj(a->bsi[aIndex], this->bsi[thisIndex], C);
+            C = (this->bsi[thisIndex].And(a->bsi[aIndex])).Or(C.And(a->bsi[aIndex])).Or(this->bsi[thisIndex].And(C));
             res->numSlices++;
             thisIndex++;
             aIndex++;
         }
-        
         if(s>p){
             for(i=p; i<s;i++){
-                res->bsi[res->numSlices] = this->bsi[thisIndex].Xor(C);
-                C=this->bsi[thisIndex].logicaland(C);
+                res->bsi.push_back(a->bsi[aIndex].Xor(C));
+                C=a->bsi[aIndex].And(C);
                 res->numSlices++;
-                thisIndex++;
+                aIndex++;
             }
         }else{
             for(i=s; i<p;i++){
-                if(this->lastSlice){
-                    res->bsi[res->numSlices] = this->XOR(a->bsi[aIndex], this->sign, C);
-                    C = this->maj(a->bsi[aIndex], this->sign, C);
+                if(this->lastSlice){ //
+                    res->bsi.push_back(a->XOR(this->bsi[thisIndex], a->sign, C));
+                    C = ((this->bsi[thisIndex].And(a->sign)).Or(C.And(a->sign))).Or(this->bsi[thisIndex].And(C));
                     res->numSlices++;
-                    aIndex++;}
+                    thisIndex++;}
                 else{
-                    res->bsi[res->numSlices] = a->bsi[aIndex].Xor(C);
-                    C = a->bsi[aIndex].logicaland(C);
+                    res->bsi.push_back(this->bsi[thisIndex].Xor(C));
+                    C = this->bsi[thisIndex].And(C);
                     res->numSlices++;
-                    aIndex++;}
+                    thisIndex++;}
             }
         }
         if(!this->lastSlice && C.numberOfOnes()>0){
-            res->bsi[res->numSlices]= C;
+            res->bsi.push_back(C);
             res->numSlices++;
         }
-        
+
         res->lastSlice=this->lastSlice;
         res->firstSlice=this->firstSlice|a->firstSlice;
-        res->existenceBitmap = a->existenceBitmap.logicalor(this->existenceBitmap);
+        res->existenceBitmap = a->existenceBitmap.Or(this->existenceBitmap);
         res->sign = &res->bsi[res->numSlices - 1];
         return res;
     }
-};
-
+}
 /*
  * SUMsigned was designed for performing sum with sign bits, which is replaced with SUMsignToMagnitude
  */

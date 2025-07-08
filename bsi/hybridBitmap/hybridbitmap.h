@@ -2688,6 +2688,9 @@ size_t HybridBitmap<uword>::logicalorcount(const HybridBitmap &a) const {
     return answer;
 }
 
+/*
+ *This functions assumes that the inputs are compressed bitmaps.
+ */
 template <class uword>
 void HybridBitmap<uword>::logicalxor(const HybridBitmap &a,
                                      HybridBitmap &container) const {
@@ -3578,7 +3581,7 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
     container.density= (density+a.density)-(density*a.density);
     //    container.sizeinbits=this.sizeinbits;
     if (density==0 || a.density==0) { //if one of the bitmaps is all zeros
-        if (a.density==0) {
+        if (density==0) {
             container = a;
         }else {
             container = *this;
