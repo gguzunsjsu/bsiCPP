@@ -2610,17 +2610,6 @@ void BsiUnsigned<uword>::reset(){
 
 };
 
-// template <class uword>
-// BsiVector<uword>* BsiUnsigned<uword>::negate(){
-//     BsiVector<uword>* res = new BsiUnsigned<uword>();
-//     res->bsi = this->bsi;
-//     res->sign = new HybridBitmap<uword>(this->getNumberOfRows(),true);
-//     res->is_signed = true;
-//     res->twosComplement = false;
-//     res->setNumberOfRows(this->getNumberOfRows());
-//     res->numSlices = this->getNumberOfSlices();
-//     return res;
-// };
 
 template <class uword>
 BsiSigned<uword>* BsiUnsigned<uword>::negate() {
