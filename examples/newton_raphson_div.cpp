@@ -128,8 +128,8 @@ int main() {
     // one = {2,6,9, 10, 50};
     // two = {2,6,9, 10, 50};
 
-    one = {-1};
-    two = {31};
+    one = {1, 51, 0};
+    two = {31, 43, 43};
 
     // one = {38, 5, 12, 50, 18, 7, 3, 32, 42, 43, 15, 35, 39, 20, 39, 34, 46, 8, 13, 23};
     // two = {31, 12, 23, 48, 25, 16, 38, 6, 28, 9, 8, 46, 4, 6, 31, 8, 43, 11, 25, 16};
@@ -226,19 +226,19 @@ int main() {
 
 
     // multiplication:
-    // std::cout << "1: Multiplication = one x two" << std::endl;
-    // auto t41 = std::chrono::high_resolution_clock::now();
-    // resultBsi = one_bsi->multiplication(two_bsi);
-    // auto t4 = std::chrono::high_resolution_clock::now();
-    // std::cout << "bsi multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4-t41).count() << std::endl;
-    //
-    // for (int j=0; j < vector_length; j++) {
-    //     std::cout << "resultBsi " << j << ": " << resultBsi->getValue(j) << std::endl;
-    //     if (resultBsi->getValue(j) != normal_mul[j]) {
-    //         std::cout << "resultBsi " << j << ": " << resultBsi->getValue(j) << " - Not matched!"<< std::endl;
-    //     }
-    //     else continue;
-    // }
+    std::cout << "1: Multiplication = one x two" << std::endl;
+    auto t41 = std::chrono::high_resolution_clock::now();
+    resultBsi = one_bsi->multiplyBSI(two_bsi);
+    auto t4 = std::chrono::high_resolution_clock::now();
+    std::cout << "bsi multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4-t41).count() << std::endl;
+
+    for (int j=0; j < vector_length; j++) {
+        std::cout << "resultBsi " << j << ": " << resultBsi->getValue(j) << std::endl;
+        if (resultBsi->getValue(j) != normal_mul[j]) {
+            std::cout << "resultBsi " << j << ": " << resultBsi->getValue(j) << " - Not matched!"<< std::endl;
+        }
+        else continue;
+    }
 
     // SUM:
     std::cout << "2: SUM = one + two" << std::endl;
