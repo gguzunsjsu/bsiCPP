@@ -1432,87 +1432,6 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyWithBSI(BsiUnsigned &unbsi) const{
 //
 //=======
 
-
-// template <class uword>
-// BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const{
-//     BsiUnsigned<uword>* res = nullptr;
-//     HybridBitmap<uword> C, S, FS, DS;
-//     int k = 0;
-//     res = new BsiUnsigned<uword>();
-//     res->offset = k;
-//     for (int i = 0; i < this->numSlices; i++) {
-//         res->bsi.push_back(unbsi->bsi[0].And(this->bsi[i]));
-//     }
-//     res->numSlices = this->numSlices;
-//
-//     k = 1;
-//     for (int it=1; it<unbsi->numSlices; it++) {
-//         /* Move the slices of res k positions */
-// //        HybridBitmap<uword> A, B;
-// //        A = res->bsi[k];
-// //        B = this->bsi[0];
-//         S=res->bsi[k];
-//         S.XorInPlace(this->bsi[0]);
-//         C = res->bsi[k].And(this->bsi[0]);
-//         FS = unbsi->bsi[it].And(S);
-//         //res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-// //        res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-//                 //res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
-//         res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
-//
-//         for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
-// //            B = this->bsi[i];
-//             if ((i + k) < res->numSlices){
-// //                A = res->bsi[i + k];
-//                 S=res->bsi[i + k];
-//                 S.XorInPlace(this->bsi[i]);
-//                 S.XorInPlace(C);
-// //                C = res->bsi[i + k].maj(this->bsi[i], C);
-// //                C.majInPlace(res->bsi[i + k],this->bsi[i]);
-// //                C = A.And(B).Or(B.And(C)).Or(A.And(C));
-//                 C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
-//
-//             } else {
-//                 S=this->bsi[i];
-//                 S.XorInPlace(C);
-//                 C.AndInPlace(this->bsi[i]);
-// //                C = this->bsi[i].And(C);
-//                 res->numSlices++;
-//                 FS = unbsi->bsi[it].And(S);
-//                 res->bsi.push_back(FS);
-//             }
-//             FS = unbsi->bsi[it].And(S);
-// //            res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
-// //            res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
-// //            res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-//             //res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
-//             res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
-//
-//         }
-//         for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
-//             S = res->bsi[i];
-//             S.XorInPlace(C);
-//             C.AndInPlace(res->bsi[i]);
-// //            C = res->bsi[i].And(C);
-//             FS = unbsi->bsi[it].And(S);
-// //            res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-// //            res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
-// //            res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-//             res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
-//         }
-//         if (C.numberOfOnes() > 0) {
-//             res->bsi.push_back(unbsi->bsi[it].And(C)); // Carry bit
-//             res->numSlices++;
-//         }
-//         k++;
-//     }
-//
-//     res->existenceBitmap = this->existenceBitmap;
-//     res->rows = this->rows;
-//     res->index = this->index;
-//     return res;
-// };
-
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI( BsiVector<uword>* unbsi) const {
     int nA = this->numSlices;
@@ -1555,6 +1474,8 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI( BsiVector<uword>* unbsi) cons
 
     return res;
 };
+
+
 /*
 This method was written to try out the dot product operation
 Dot product would basically be multiplication of two vectors

@@ -2230,80 +2230,75 @@ long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) 
     return res;
     }
 
-
 template <class uword>
-BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
-    BsiVector<uword>* res = nullptr;
-    HybridBitmap<uword> C, S, FS, DS;
-    int k = 0;
-    res = new BsiSigned<uword>();
-    res->offset = k;
-    for (int i = 0; i < this->numSlices; i++) {
-        res->bsi.push_back(a->bsi[0].And(this->bsi[i]));
+BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword>* unbsi) const {
+
+    int nA = this->numSlices;
+    int nB = unbsi->numSlices;
+    int n = std::max(nA, nB);
+    int nRes = 2 * n; // For two's complement, extend to 2n
+
+    // unbsi->bsi.push_back(0);
+    // unbsi->numSlices++;// positive sign - unbsi is unsigned only.
+
+    BsiSigned<uword> aExt = *this;
+    BsiUnsigned<uword> bExt = *static_cast<const BsiUnsigned<uword>*>(unbsi);
+
+
+    HybridBitmap<uword> aSign = aExt.bsi[nA - 1];
+    for (int i = nA; i < nRes; ++i) {
+        aExt.bsi.push_back(aSign);
+        // aExt.numSlices++;
     }
-    res->numSlices = this->numSlices;
-    k = 1;
-    for (int it=1; it<a->numSlices; it++) {
-        /* Move the slices of res k positions */
-        S=res->bsi[k];
-        //S = S.Xor(this->bsi[0]);
-        S.XorInPlace(this->bsi[0]);
-        C = res->bsi[k].And(this->bsi[0]);
-        FS = a->bsi[it].And(S);
-        //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
-        res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
-        
-        for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
-            if ((i + k) < res->numSlices){
-                //A = res->bsi[i + k];
-                S = res->bsi[i + k];
-                //S = S.Xor(this->bsi[i]);
-                //S = S.Xor(C);
-                S.XorInPlace(this->bsi[i]);
-                S.XorInPlace(C);
-                //C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
-                C.majInPlace(res->bsi[i + k],this->bsi[i]);
-                
-            } else {
-                S=this->bsi[i];
-                //S = S.Xor(C);
-                //C = C.And(this->bsi[i]);
-                S.XorInPlace(C);
-                C.AndInPlace(this->bsi[i]);
-                res->numSlices++;
-                FS = a->bsi[it].And(S);
-                res->bsi.push_back(FS);
-            }
-            FS = a->bsi[it].And(S);
-            //res->bsi[i + k] = res->bsi[i + k].andNot(a->bsi[it]).Or(a->bsi[it].And(FS)); // shifting operation
-            res->bsi[i+k].selectMultiplicationInPlace(a->bsi[it],FS);
-        }
-        for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
-            S = res->bsi[i];
-            //S = S.Xor(C);
-            //C = C.And(res->bsi[i]);
-            S.XorInPlace(C);
-            C.AndInPlace(res->bsi[i]);
-            FS = a->bsi[it].And(S);
-            //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
-            res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
-        }
-        if (C.numberOfOnes() > 0) {
-            res->bsi.push_back(a->bsi[it].And(C)); // Carry bit
-            res->numSlices++;
-        }
-        k++;
+    aExt.numSlices = nRes;
+
+    HybridBitmap<uword> bSign = bExt.bsi[nB - 1];
+    for (int i = nB; i < nRes; ++i) {
+        bExt.bsi.push_back(bSign);
+        // bExt.numSlices++;
     }
-    
-    
+    bExt.numSlices = nRes;
+
+    BsiVector<uword>* res = new BsiSigned<uword>();
+    res->offset = 0;
+    res->bsi.resize(nRes, HybridBitmap<uword>());
+    res->numSlices = nRes;
+
+    for (int k = 0; k < nRes; ++k) {
+        HybridBitmap<uword> carry;
+
+        for (int i = 0; i < nRes; ++i) {
+            HybridBitmap<uword> prod = aExt.bsi[i].And(bExt.bsi[k]);
+
+            HybridBitmap<uword> sum = res->bsi[i + k].Xor(prod).Xor(carry);
+            HybridBitmap<uword> newCarry = (res->bsi[i + k].And(prod))
+                                         .Or(res->bsi[i + k].And(carry))
+                                         .Or(prod.And(carry));
+
+            res->bsi[i + k] = sum;
+            carry = newCarry;
+        }
+
+        int pos = nRes / 2 + k;
+        while (carry.numberOfOnes() > 0 && pos < nRes) {
+            HybridBitmap<uword> sum = res->bsi[pos].Xor(carry);
+            HybridBitmap<uword> newCarry = res->bsi[pos].And(carry);
+            res->bsi[pos] = sum;
+            carry = newCarry;
+            ++pos;
+        }
+    }
+
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;
-    res->sign = this->sign.Xor(a->sign);
+    res->sign = this->sign.Xor(unbsi->sign);
     res->is_signed = true;
-    res->twosComplement = false;
+    res->twosComplement = true;
     return res;
+
 };
+
 
 /*
  * sum perform sum at word level

@@ -513,13 +513,13 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 
     }else {
         //int slices = std::__bit_width(max);
-        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices);
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+1);
 
 
         //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+1,numberOfElements);
 
-        for(int i=0; i<slices; i++){
+        for(int i=0; i<slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
