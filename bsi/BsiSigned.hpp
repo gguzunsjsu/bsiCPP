@@ -2238,9 +2238,6 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword>* unbsi) const {
     int n = std::max(nA, nB);
     int nRes = 2 * n; // For two's complement, extend to 2n
 
-    // unbsi->bsi.push_back(0);
-    // unbsi->numSlices++;// positive sign - unbsi is unsigned only.
-
     BsiSigned<uword> aExt = *this;
     BsiUnsigned<uword> bExt = *static_cast<const BsiUnsigned<uword>*>(unbsi);
 
@@ -2268,6 +2265,8 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword>* unbsi) const {
         HybridBitmap<uword> carry;
 
         for (int i = 0; i < nRes; ++i) {
+            if (i + k >= nRes) break;
+
             HybridBitmap<uword> prod = aExt.bsi[i].And(bExt.bsi[k]);
 
             HybridBitmap<uword> sum = res->bsi[i + k].Xor(prod).Xor(carry);
@@ -2279,8 +2278,8 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword>* unbsi) const {
             carry = newCarry;
         }
 
-        int pos = nRes / 2 + k;
-        while (carry.numberOfOnes() > 0 && pos < nRes) {
+        int pos = nRes;
+        while (carry.numberOfOnes() > 0 && pos < res->bsi.size()) {
             HybridBitmap<uword> sum = res->bsi[pos].Xor(carry);
             HybridBitmap<uword> newCarry = res->bsi[pos].And(carry);
             res->bsi[pos] = sum;
