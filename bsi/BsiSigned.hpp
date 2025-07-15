@@ -701,6 +701,7 @@ BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const {
         return res;
     }
 }
+
 /*
  * SUMsigned was designed for performing sum with sign bits, which is replaced with SUMsignToMagnitude
  */
