@@ -2308,6 +2308,7 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword>* unbsi) const {
     res->sign = this->sign.Xor(unbsi->sign);
     res->is_signed = true;
     res->twosComplement = true;
+    res->decimals = this->decimals + unbsi->decimals;
     return res;
 
 };

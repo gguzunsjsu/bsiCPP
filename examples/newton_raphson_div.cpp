@@ -127,9 +127,9 @@ int main() {
 
     // one = {2,6,9, 10, 50};
     // two = {2,6,9, 10, 50};
-
-    one = {1, 51, 0};
-    two = {31, 43, 43};
+    std::vector<double> one_dec = {-0.3};
+    one = {-10};
+    two = {1};
 
     // one = {38, 5, 12, 50, 18, 7, 3, 32, 42, 43, 15, 35, 39, 20, 39, 34, 46, 8, 13, 23};
     // two = {31, 12, 23, 48, 25, 16, 38, 6, 28, 9, 8, 46, 4, 6, 31, 8, 43, 11, 25, 16};
@@ -159,6 +159,9 @@ int main() {
     std::vector<long> normal_sum(vector_length);
     std::vector<long> normal_mul(vector_length);
     std::vector<long> normal_mulc(vector_length);
+
+    std::vector<double> normal_mul_d(vector_length);
+
 
     auto t0 = std::chrono::high_resolution_clock::now();
 
@@ -191,7 +194,7 @@ int main() {
     }
     auto tmc2 = std::chrono::high_resolution_clock::now();
 
-    std::cout << "normal multiply with const, duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(tmc2-tmc).count() << std::endl;
+    std::cout << "normal multiply, duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(tmc2-tmc).count() << std::endl;
 
 
     // Normal mulitply with constant:
@@ -204,8 +207,18 @@ int main() {
     std::cout << "normal multiply with const, duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(tmul2-tmul1).count() << std::endl;
 
 
+    //Decimals:
+    // Decimal: Normal mulitplication:
+    auto tmc_d = std::chrono::high_resolution_clock::now();
+    for(int i = 0; i < vector_length; i++) {
+        normal_mul_d[i] = one_dec[i] * two[i];
+    }
+    auto tmc2_d = std::chrono::high_resolution_clock::now();
+
+    std::cout << "decimal: normal multiply, duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(tmc2_d-tmc_d).count() << std::endl;
 
     // BSI operations:
+    // BsiUnsigned<uint64_t> unbsi;
     BsiSigned<uint64_t> ubsi;
 
 
@@ -220,9 +233,18 @@ int main() {
     two_bsi->setLastSliceFlag(true);
     two_bsi->setPartitionID(0);
 
+    BsiVector<uint64_t>* one_dec_bsi = ubsi.buildBsiVector(one_dec, 2 ,0.2);
+    one_dec_bsi->setFirstSliceFlag(true);
+    one_dec_bsi->setLastSliceFlag(true);
+    one_dec_bsi->setPartitionID(0);
+
     BsiVector<uint64_t>* resultBsi;
     BsiVector<uint64_t>* resultBsi2;
     BsiVector<uint64_t>* resultBsi3;
+
+    BsiVector<uint64_t>* resultBsi_d;
+
+    std::cout << "0. Decimal value: " << one_dec_bsi->getValue_with_decimal(0) << std::endl;
 
 
     // multiplication:
@@ -236,6 +258,21 @@ int main() {
         std::cout << "resultBsi " << j << ": " << resultBsi->getValue(j) << std::endl;
         if (resultBsi->getValue(j) != normal_mul[j]) {
             std::cout << "resultBsi " << j << ": " << resultBsi->getValue(j) << " - Not matched!"<< std::endl;
+        }
+        else continue;
+    }
+
+    // decimal multiplication:
+    std::cout << "1.5: Decimal Multiplication = random_vec x two" << std::endl;
+    auto t41_b = std::chrono::high_resolution_clock::now();
+    resultBsi_d = one_dec_bsi->multiplyBSI(two_bsi);
+    auto t4_b = std::chrono::high_resolution_clock::now();
+    std::cout << "bsi multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4_b-t41_b).count() << std::endl;
+
+    for (int j=0; j < vector_length; j++) {
+        std::cout << "resultBsi_d " << j << ": " << resultBsi_d->getValue_with_decimal(j) << std::endl;
+        if (resultBsi_d->getValue_with_decimal(j) != normal_mul_d[j]) {
+            std::cout << "resultBsi_d " << j << ": " << resultBsi_d->getValue_with_decimal(j) << ", " << normal_mul_d[j] << " - Not matched!"<< std::endl;
         }
         else continue;
     }

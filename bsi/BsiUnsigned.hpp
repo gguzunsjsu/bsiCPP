@@ -1483,6 +1483,7 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI( BsiVector<uword>* unbsi) cons
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;
+    res->decimals = this->decimals + unbsi->decimals;
 
     return res;
 };
