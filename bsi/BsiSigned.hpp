@@ -30,6 +30,7 @@ public:
     BsiVector<uword>* SUM(long a)const override;
     BsiVector<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
+    double getValue_with_decimal(int pos) const;
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -400,7 +401,19 @@ long BsiSigned<uword>::getValue(int pos) const{
         return sum*sign;
     }
 };
+template <class uword>
+double BsiSigned<uword>::getValue_with_decimal(int pos) const{
 
+    double result;
+    long sum = getValue(pos);
+    if (this->decimals != 0) {
+        result = static_cast<double>(sum) / std::pow(10.0, this->decimals);
+    } else {
+        result = static_cast<double>(sum);
+    }
+
+    return result;
+};
 /*
  * Provides values between range in position bitmap: - not implemented yet
  */

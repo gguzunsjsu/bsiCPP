@@ -98,6 +98,7 @@ public:
     virtual int compareTo(BsiVector<uword> *a, int index)=0;
 
     virtual long getValue(int pos)const=0;
+    virtual double getValue_with_decimal(int pos) const = 0;
 
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
     virtual BsiVector<uword>* multiplyByConstantNew(int number)const=0;
@@ -635,6 +636,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         res->existenceBitmap.addStreamOfEmptyWords(true,wholeWords);
         res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
         res->existenceBitmap.density = 1;
+        res->decimals = decimalPlaces;
         return res;
 
     }else {
@@ -690,6 +692,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         //res->twosComplement = false;
         res->rows = numberOfElements;
         //res->is_signed = true;
+        res->decimals = decimalPlaces;
         return res;
     }
 };

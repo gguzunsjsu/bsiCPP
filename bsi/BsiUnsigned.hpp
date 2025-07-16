@@ -34,6 +34,9 @@ public:
     BsiVector<uword>* SUM(long a)const override;
     BsiVector<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
+
+    double getValue_with_decimal(int pos) const;
+
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -527,6 +530,15 @@ long BsiUnsigned<uword>::getValue(int pos) const {
         sum += 1l<<(this->offset + i);
     }
     return sum;
+};
+
+template <class uword>
+double BsiUnsigned<uword>::getValue_with_decimal(int pos) const {
+    long sum = getValue(pos);
+    if (this->decimals != 0)
+        return static_cast<double>(sum) / std::pow(10, this->decimals);
+    else
+        return static_cast<double>(sum);
 };
 
 template <class uword>
