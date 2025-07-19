@@ -1,11 +1,6 @@
 //
-// Created by parth on 7/7/25.
-//
-
-//
 // Created by parth on 6/26/25.
 //
-
 
 #include <iostream>
 #include <cstdint>
@@ -26,91 +21,6 @@
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
 
 
-// int getDecimalPlaces(float num) {
-//     std::ostringstream oss;
-//     oss << std::fixed << std::setprecision(50) << num; // High precision
-//     std::string s = oss.str();
-//
-//     size_t decimalPos = s.find('.');
-//     if (decimalPos == std::string::npos) {
-//         return 0; // No decimal point
-//     }
-//
-//     // Remove trailing zeros for a more "human-readable" count
-//     s.erase(s.find_last_not_of('0') + 1, std::string::npos);
-//
-//     return s.length() - decimalPos - 1;
-// }
-//
-// // Function to get vector of decimal exponents
-// std::vector<int> getDec_vector(const std::vector<float> &a) {
-//     std::vector<int> res;
-//     for (float val : a) {
-//         res.push_back(getDecimalPlaces(val));
-//     }
-//     return res;
-// }
-double roundToPrecision(double value, int precision) {
-    double factor = std::pow(10.0, precision);
-    return std::round(value * factor) / factor;
-}
-int getDecimalPlaces(double num) {
-    num = roundToPrecision(num, 10); // limit to 10 decimals
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(10) << num;
-    std::string s = oss.str();
-
-    size_t decimalPos = s.find('.');
-    if (decimalPos == std::string::npos) return 0;
-
-    s.erase(s.find_last_not_of('0') + 1);
-    return s.length() - decimalPos - 1;
-}
-
-// int getDecimalPlaces(float num) {
-//     std::ostringstream oss;
-//     oss << std::fixed << std::setprecision(50) << num; // Use high precision
-//     std::string s = oss.str();
-//
-//     size_t decimalPos = s.find('.');
-//     if (decimalPos == std::string::npos) {
-//         return 0; // No decimal point
-//     }
-//
-//     // Remove trailing zeros for a more "human-readable" count
-//     s.erase(s.find_last_not_of('0') + 1, std::string::npos);
-//
-//     return s.length() - decimalPos - 1;
-// }
-
-std::vector<int> getDec_vector(std::vector<double> &a) {
-    std::vector<int> res;
-    for (size_t i = 0; i < a.size(); i++) {
-        res.push_back(getDecimalPlaces(a[i]));
-    }
-    return res;
-}
-
-
-// typedef union {
-//     float f;
-//     struct {
-//         unsigned int mantisa : 23;
-//         unsigned int exponent : 8;
-//         unsigned int sign : 1;
-//     } parts;
-// } float_cast;
-
-void getSignificandExponent(double value, double& significand, int& exponent) {
-    if (value == 0.0) {
-        significand = 0.0;
-        exponent = 0;
-        return;
-    }
-
-    exponent = static_cast<int>(std::floor(std::log10(std::abs(value)))) + 1;
-    significand = value / std::pow(10.0, exponent);
-}
 
 int main() {
     std::random_device rd;
@@ -118,18 +28,20 @@ int main() {
 
     int one_range = 5000;
     int two_range = 5000;
+
     std::vector<long> one;
     std::vector<long> two;
-
+    std::vector<double> one_dec;
     int constant = 22; //constant to multiply
 
     int random_vec_size = 100;
 
+    one_dec = {-0.32};
+    one = {20};
+    two = {4};
+
     // one = {2,6,9, 10, 50};
     // two = {2,6,9, 10, 50};
-    std::vector<double> one_dec = {-0.3};
-    one = {-10};
-    two = {1};
 
     // one = {38, 5, 12, 50, 18, 7, 3, 32, 42, 43, 15, 35, 39, 20, 39, 34, 46, 8, 13, 23};
     // two = {31, 12, 23, 48, 25, 16, 38, 6, 28, 9, 8, 46, 4, 6, 31, 8, 43, 11, 25, 16};
@@ -161,6 +73,7 @@ int main() {
     std::vector<long> normal_mulc(vector_length);
 
     std::vector<double> normal_mul_d(vector_length);
+    std::vector<double> normal_sum_d(vector_length);
 
 
     auto t0 = std::chrono::high_resolution_clock::now();
@@ -217,6 +130,16 @@ int main() {
 
     std::cout << "decimal: normal multiply, duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(tmc2_d-tmc_d).count() << std::endl;
 
+    // Decimal normal sum:
+    auto t2_d = std::chrono::high_resolution_clock::now();
+    for(int i = 0; i < vector_length; i++) {
+        normal_sum_d[i] = one_dec[i] + two[i];
+    }
+    auto t3_d = std::chrono::high_resolution_clock::now();
+
+    std::cout << "decimal normal sum duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t3_d-t2_d).count() << std::endl;
+
+
     // BSI operations:
     // BsiUnsigned<uint64_t> unbsi;
     BsiSigned<uint64_t> ubsi;
@@ -243,6 +166,7 @@ int main() {
     BsiVector<uint64_t>* resultBsi3;
 
     BsiVector<uint64_t>* resultBsi_d;
+    BsiVector<uint64_t>* resultBsi2_d;
 
     std::cout << "0. Decimal value: " << one_dec_bsi->getValue_with_decimal(0) << std::endl;
 
@@ -263,7 +187,7 @@ int main() {
     }
 
     // decimal multiplication:
-    std::cout << "1.5: Decimal Multiplication = random_vec x two" << std::endl;
+    std::cout << "1.5: Decimal Multiplication = one_dec x two" << std::endl;
     auto t41_b = std::chrono::high_resolution_clock::now();
     resultBsi_d = one_dec_bsi->multiplyBSI(two_bsi);
     auto t4_b = std::chrono::high_resolution_clock::now();
@@ -289,6 +213,21 @@ int main() {
         std::cout << "resultBsi2 " << j << ": " << resultBsi2->getValue(j) << std::endl;
         if (resultBsi2->getValue(j) != normal_sum[j]) {
             std::cout << "resultBsi2 " << j << ": " << resultBsi2->getValue(j) << ", " << normal_sum[j] << " - Not matched!"<< std::endl;
+        }
+        else continue;
+    }
+
+    // Decimal SUM:
+    std::cout << "2.5: Decimal SUM = one_dec + two" << std::endl;
+    auto t5_d = std::chrono::high_resolution_clock::now();
+    resultBsi2_d = one_dec_bsi->SUM(two_bsi);
+    auto t6_d = std::chrono::high_resolution_clock::now();
+    std::cout << "bsi SUM duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t6_d-t5_d).count() << std::endl;
+
+    for (int j=0; j < vector_length; j++) {
+        std::cout << "resultBsi2_d " << j << ": "<< resultBsi2_d->getValue_with_decimal(j) << std::endl;
+        if (resultBsi2_d->getValue_with_decimal(j) != normal_sum_d[j]) {
+            std::cout << "resultBsi2_d " << j << ": " << resultBsi2_d->getValue_with_decimal(j) << ", " << normal_sum_d[j] << " - Not matched!"<< std::endl;
         }
         else continue;
     }

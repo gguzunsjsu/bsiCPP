@@ -30,7 +30,7 @@ public:
     
     HybridBitmap<uword> topKMax(int k) override;
     HybridBitmap<uword> topKMin(int k) override;
-    BsiVector<uword>* SUM(BsiVector<uword>* a) override;
+    BsiVector<uword>* SUM(BsiVector<uword>* a) const override;
     BsiVector<uword>* SUM(long a)const override;
     BsiVector<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
@@ -41,7 +41,7 @@ public:
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
     BsiUnsigned<uword>* absScale(double range) override;
-    BsiSigned<uword>* negate() override;
+    BsiVector<uword>* negate() override;
     BsiVector<uword>* multiplyByConstant(int number)const override;
     BsiVector<uword>* multiplyByConstantNew(int number) const override;
     long dotProduct(BsiVector<uword>* unbsi) const override;
@@ -259,7 +259,7 @@ HybridBitmap<uword> BsiUnsigned<uword>::topKMin(int k){
 };
 
 template <class uword>
-BsiVector<uword>* BsiUnsigned<uword>::SUM(BsiVector<uword>* a){
+BsiVector<uword>* BsiUnsigned<uword>::SUM(BsiVector<uword>* a) const{
 //    HybridBitmap<uword> zeroBitmap;
 //    zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
 //    BsiVector<uword>* res = new BsiUnsigned<uword>(std::max(this->numSlices+this->offset, a->numSlices+a->offset)+1);
@@ -652,6 +652,53 @@ BsiVector<uword>* BsiUnsigned<uword>::sum_Horizontal(const BsiVector<uword> *a) 
 
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
+    if (a->decimals != this->decimals) {
+        if (a->decimals > this->decimals) {
+            long value = std::pow(10, a->decimals - this->decimals);
+            int n = this->getNumberOfRows();
+            std::vector<long> v(n, value);
+
+            BsiUnsigned<uint64_t> ubsi;
+
+            BsiVector<uword>* v_bsi = ubsi.buildBsiVector(v, 0.2);
+            v_bsi->setFirstSliceFlag(true);
+            v_bsi->setLastSliceFlag(true);
+            v_bsi->setPartitionID(0);
+
+            // BsiUnsigned<uword>* this_scaled = static_cast<BsiUnsigned<uword>*>(this->multiplyBSI(v_bsi));
+
+            BsiVector<uword>* this_scaled = this->multiplyBSI(v_bsi);
+            int a_decimals = a->decimals;
+            this_scaled->setDecimals(a->decimals);
+
+            BsiVector<uword>* res = this_scaled->SUM(a);
+            return res;
+
+        } else if (a->decimals < this->decimals) {
+
+            long value = std::pow(10, this->decimals - a->decimals);
+            int n = this->getNumberOfRows();
+            std::vector<long> v(n, value);
+
+            BsiUnsigned<uword> ubsi;
+
+            BsiVector<uword>* v_bsi = ubsi.buildBsiVector(v, 0.2);
+            v_bsi->setFirstSliceFlag(true);
+            v_bsi->setLastSliceFlag(true);
+            v_bsi->setPartitionID(0);
+            // v_bsi->
+
+            // BsiUnsigned<uword>* a_scaled = static_cast<BsiUnsigned<uword>*>(a->multiplyBSI(v_bsi));
+
+            BsiVector<uword>* a_scaled = a->multiplyBSI(v_bsi);
+            int this_decimals = this->decimals;
+            a_scaled->setDecimals(this->decimals);
+
+            BsiVector<uword>* res = this->SUM(a_scaled);
+            return res;
+        }
+    }
+
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
     BsiVector<uword>* res = new BsiUnsigned<uword>(std::max(this->numSlices + this->offset, a->numSlices + a->offset) + 1);
@@ -701,6 +748,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
             res->bsi[res->numSlices]=this->bsi[j];
             res->numSlices++;
         }
+        res->decimals = std::max(this->decimals, a->decimals);
         return res;
     }else {
         
@@ -740,6 +788,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
             res->bsi.push_back( C );
             res->numSlices++;
         }
+        res->decimals = std::max(this->decimals, a->decimals);
         return res;
     }
 };
@@ -1445,48 +1494,129 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyWithBSI(BsiUnsigned &unbsi) const{
 //=======
 
 template <class uword>
-BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI( BsiVector<uword>* unbsi) const {
-    int nA = this->numSlices;
-    int nB = unbsi->numSlices;
-    int nRes = nA + nB;
+BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const{
+    BsiUnsigned<uword>* res = nullptr;
+    HybridBitmap<uword> C, S, FS, DS;
+    int k = 0;
+    res = new BsiUnsigned<uword>();
+    res->offset = k;
+    for (int i = 0; i < this->numSlices; i++) {
+        res->bsi.push_back(unbsi->bsi[0].And(this->bsi[i]));
+    }
+    res->numSlices = this->numSlices;
 
-    BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
-    res->offset = 0;
-    res->bsi.resize(nRes, HybridBitmap<uword>());
-    res->numSlices = nRes;
+    k = 1;
+    for (int it=1; it<unbsi->numSlices; it++) {
+        /* Move the slices of res k positions */
+//        HybridBitmap<uword> A, B;
+//        A = res->bsi[k];
+//        B = this->bsi[0];
+        S=res->bsi[k];
+        S = S.Xor(this->bsi[0]);
+        C = res->bsi[k].And(this->bsi[0]);
+        FS = unbsi->bsi[it].And(S);
+        //res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+//        res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+                //res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
+        res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
 
-    for (int k = 0; k < nB; ++k) {
-        HybridBitmap<uword> carry;
+        for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
+//            B = this->bsi[i];
+            if ((i + k) < res->numSlices){
+//                A = res->bsi[i + k];
+                S=res->bsi[i + k];
+                S = S.Xor(this->bsi[i]);
+                S = S.Xor(C);
+//                C = res->bsi[i + k].maj(this->bsi[i], C);
+//                C.majInPlace(res->bsi[i + k],this->bsi[i]);
+//                C = A.And(B).Or(B.And(C)).Or(A.And(C));
+                C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
 
-        for (int i = 0; i < nA; ++i) {
-            HybridBitmap<uword> prod = this->bsi[i].And(unbsi->bsi[k]);
+            } else {
+                S=this->bsi[i];
+                S = S.Xor(C);
+                C = C.And(this->bsi[i]);
+//                C = this->bsi[i].And(C);
+                res->numSlices++;
+                FS = unbsi->bsi[it].And(S);
+                res->bsi.push_back(FS);
+            }
+            FS = unbsi->bsi[it].And(S);
+//            res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
+//            res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
+//            res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            //res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
+            res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
 
-            HybridBitmap<uword> sum = res->bsi[i + k].Xor(prod).Xor(carry);
-            HybridBitmap<uword> newCarry = (res->bsi[i + k].And(prod))
-                                         .Or(res->bsi[i + k].And(carry))
-                                         .Or(prod.And(carry));
-
-            res->bsi[i + k] = sum;
-            carry = newCarry;
         }
-
-        int pos = nA + k;
-        while (carry.numberOfOnes()>0 && pos < nRes) {
-            HybridBitmap<uword> sum = res->bsi[pos].Xor(carry);
-            HybridBitmap<uword> newCarry = res->bsi[pos].And(carry);
-            res->bsi[pos] = sum;
-            carry = newCarry;
-            ++pos;
+        for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
+            S = res->bsi[i];
+            S = S.Xor(C);
+            C = C.And(res->bsi[i]);
+//            C = res->bsi[i].And(C);
+            FS = unbsi->bsi[it].And(S);
+//            res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+//            res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
+//            res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
         }
+        if (C.numberOfOnes() > 0) {
+            res->bsi.push_back(unbsi->bsi[it].And(C)); // Carry bit
+            res->numSlices++;
+        }
+        k++;
     }
 
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;
     res->decimals = this->decimals + unbsi->decimals;
-
     return res;
 };
+
+// template <class uword>
+// BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI( BsiVector<uword>* unbsi) const {
+//     int nA = this->numSlices;
+//     int nB = unbsi->numSlices;
+//     int nRes = nA + nB;
+//
+//     BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+//     res->offset = 0;
+//     res->bsi.resize(nRes, HybridBitmap<uword>());
+//     res->numSlices = nRes;
+//
+//     for (int k = 0; k < nB; ++k) {
+//         HybridBitmap<uword> carry;
+//
+//         for (int i = 0; i < nA; ++i) {
+//             HybridBitmap<uword> prod = this->bsi[i].And(unbsi->bsi[k]);
+//
+//             HybridBitmap<uword> sum = res->bsi[i + k].Xor(prod).Xor(carry);
+//             HybridBitmap<uword> newCarry = (res->bsi[i + k].And(prod))
+//                                          .Or(res->bsi[i + k].And(carry))
+//                                          .Or(prod.And(carry));
+//
+//             res->bsi[i + k] = sum;
+//             carry = newCarry;
+//         }
+//
+//         int pos = nA + k;
+//         while (carry.numberOfOnes()>0 && pos < nRes) {
+//             HybridBitmap<uword> sum = res->bsi[pos].Xor(carry);
+//             HybridBitmap<uword> newCarry = res->bsi[pos].And(carry);
+//             res->bsi[pos] = sum;
+//             carry = newCarry;
+//             ++pos;
+//         }
+//     }
+//
+//     res->existenceBitmap = this->existenceBitmap;
+//     res->rows = this->rows;
+//     res->index = this->index;
+//     res->decimals = this->decimals + unbsi->decimals;
+//
+//     return res;
+// };
 
 
 /*
@@ -2589,7 +2719,7 @@ void BsiUnsigned<uword>::reset(){
 
 
 template <class uword>
-BsiSigned<uword>* BsiUnsigned<uword>::negate() {
+BsiVector<uword>* BsiUnsigned<uword>::negate() {
     HybridBitmap<uword> onesBitmap;
     onesBitmap.setSizeInBits(this->bsi[0].sizeInBits(), true);
     onesBitmap.density = 1;
