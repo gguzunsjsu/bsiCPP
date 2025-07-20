@@ -364,11 +364,12 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) {
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     
-    uword abs_a = std::abs(a);
-    int intSize =  BsiAttribute<uword>::sliceLengthFinder(abs_a);
+//    uword abs_a = std::abs(a);
+    int intSize =  std::min(BsiAttribute<uword>::sliceLengthFinder(a),32); // change this to 64 when supporting long long
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.addStreamOfEmptyWords(false,this->existenceBitmap.bufferSize());
     BsiAttribute<uword>* res=new BsiSigned<uword>(std::max((int)this->size, intSize)+1);
+    res->twosComplement=true;
     
     HybridBitmap<uword> C;
     //int minSP = std::min(this->size, intSize); was not used
@@ -411,18 +412,22 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
     }
     if(this->lastSlice && C.numberOfOnes()>0 ){
         if(a>0){
-            res->addSlice(this->sign.andNot(C));
+            res->bsi[res->size] = this->sign.andNot(C);
+//            res->addSlice(this->sign.andNot(C));
         }else{
-            res->addSlice(this->XOR(C,allOnes,this->sign));
+            res->bsi[res->size] = this->XOR(C,allOnes,this->sign);
+//            res->addSlice(this->XOR(C,allOnes,this->sign));
         }
     }else{
-        res->addSlice(C);
+        res->bsi[res->size] = C;
+//        res->addSlice(C);
     }
+    res->size++;
     res->sign = res->bsi[res->size-1];
     res->firstSlice=this->firstSlice;
     res->lastSlice=this->lastSlice;
     res->existenceBitmap = this->existenceBitmap;
-    res->twosComplement=false;
+    res->twosComplement=true;
     res->rows = this->rows;
     return res;
 };
@@ -463,12 +468,11 @@ long BsiSigned<uword>::getValue(int i) const{
         bool sign = this->bsi[this->size-1].get(i);
         long sum=0;
         HybridBitmap<uword> B_i;
-        for (int j = 0; j < this->size-1; i++) {
+        for (int j = 0; j < this->size-1; j++) {
             B_i = this->bsi[j];
             if(B_i.get(i)^sign)
-                sum =sum|( 1<<(this->offset + i));
+                sum =sum|( 1<<(this->offset + j));
         }
-        
         return (sum+((sign)?1:0))*((sign)?-1:1);
     }else{
         long sign = (this->sign.get(i))?-1:1;
