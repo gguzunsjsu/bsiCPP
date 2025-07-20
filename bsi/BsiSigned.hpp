@@ -2247,75 +2247,121 @@ long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) 
 
 template <class uword>
 BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
+
+    int nA = this->numSlices;
+    int nB = a->numSlices;
+    int n = std::max(nA, nB);
+    int nRes = 2*n; // For two's complement, extend to 2n
+
+    BsiSigned<uword> aExt = *this;
+    BsiUnsigned<uword> bExt = *static_cast<const BsiUnsigned<uword>*>(a);
+
+    // HybridBitmap<uword> aSign = aExt.bsi[nA - 1];
+    // for (int i = nA; i < 2*nA; ++i) {
+    //     aExt.bsi.push_back(aSign);
+    //     // aExt.numSlices++;
+    // }
+    // aExt.numSlices = 2*nA;
+    //
+    // HybridBitmap<uword> bSign = bExt.bsi[nB - 1];
+    // for (int i = nB; i < 2*nB; ++i) {
+    //     bExt.bsi.push_back(bSign);
+    //     // bExt.numSlices++;
+    // }
+    // bExt.numSlices = 2*nB;
+    HybridBitmap<uword> aSign = aExt.bsi[nA - 1];
+    for (int i = nA; i < nRes; ++i) {
+        aExt.bsi.push_back(aSign);
+        // aExt.numSlices++;
+    }
+    aExt.numSlices = nRes;
+
+    HybridBitmap<uword> bSign = bExt.bsi[nB - 1];
+    for (int i = nB; i < nRes; ++i) {
+        bExt.bsi.push_back(bSign);
+        // bExt.numSlices++;
+    }
+    bExt.numSlices = nRes;
+
     BsiVector<uword>* res = nullptr;
     HybridBitmap<uword> C, S, FS, DS;
     int k = 0;
     res = new BsiSigned<uword>();
     res->offset = k;
-    for (int i = 0; i < this->numSlices; i++) {
-        res->bsi.push_back(a->bsi[0].And(this->bsi[i]));
-    }
-    res->numSlices = this->numSlices;
-    k = 1;
-    for (int it=1; it<a->numSlices; it++) {
-        /* Move the slices of res k positions */
-        S=res->bsi[k];
-        //S = S.Xor(this->bsi[0]);
-        S = S.Xor(this->bsi[0]);
-        C = res->bsi[k].And(this->bsi[0]);
-        FS = a->bsi[it].And(S);
-        // res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
-        res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
+    // res->bsi.resize(nRes, HybridBitmap<uword>());
+    // res->numSlices = nRes;
 
-        for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
+    for (int i = 0; i < aExt.numSlices; i++) {
+        res->bsi.push_back(bExt.bsi[0].And(aExt.bsi[i]));
+    }
+    res->numSlices = aExt.numSlices;
+    k = 1;
+    for (int it=1; it < bExt.numSlices; it++) {
+        /* Move the slices of res k positions */
+        S = res->bsi[k];
+        //S = S.Xor(this->bsi[0]);
+        S = S.Xor(aExt.bsi[0]);
+        C = res->bsi[k].And(aExt.bsi[0]);
+        FS = bExt.bsi[it].And(S);
+        // res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+        res->bsi[k].selectMultiplicationInPlace(bExt.bsi[it],FS);
+
+        for (int i = 1; i < aExt.numSlices; i++) {// Add the slices of this to the current res
             if ((i + k) < res->numSlices){
                 //A = res->bsi[i + k];
                 S = res->bsi[i + k];
                 //S = S.Xor(this->bsi[i]);
                 //S = S.Xor(C);
-                S = S.Xor(this->bsi[i]);
+                S = S.Xor(aExt.bsi[i]);
                 S = S.Xor(C);
                 // C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
-                C = C.maj(res->bsi[i + k],this->bsi[i]);
+                C = C.maj(res->bsi[i + k],aExt.bsi[i]);
 
             } else {
-                S=this->bsi[i];
+                S=aExt.bsi[i];
                 //S = S.Xor(C);
                 //C = C.And(this->bsi[i]);
                 S = S.Xor(C);
-                C = C.And(this->bsi[i]);
+                C = C.And(aExt.bsi[i]);
                 res->numSlices++;
-                FS = a->bsi[it].And(S);
+                FS = bExt.bsi[it].And(S);
                 res->bsi.push_back(FS);
             }
-            FS = a->bsi[it].And(S);
+            FS = bExt.bsi[it].And(S);
             // res->bsi[i + k] = res->bsi[i + k].andNot(a->bsi[it]).Or(a->bsi[it].And(FS)); // shifting operation
-            res->bsi[i+k].selectMultiplicationInPlace(a->bsi[it],FS);
+            res->bsi[i+k].selectMultiplicationInPlace(bExt.bsi[it],FS);
         }
-        for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
+        for (int i = aExt.numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
             S = res->bsi[i];
             //S = S.Xor(C);
             //C = C.And(res->bsi[i]);
             S = S.Xor(C);
             C = C.And(res->bsi[i]);
-            FS = a->bsi[it].And(S);
+            FS = bExt.bsi[it].And(S);
             // res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
-            res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
+            res->bsi[k].selectMultiplicationInPlace(bExt.bsi[it],FS);
         }
         if (C.numberOfOnes() > 0) {
-            res->bsi.push_back(a->bsi[it].And(C)); // Carry bit
+            res->bsi.push_back(bExt.bsi[it].And(C)); // Carry bit
             res->numSlices++;
-            k++;
         }
+        k++;
     }
-    res->existenceBitmap = this->existenceBitmap;
-    res->rows = this->rows;
-    res->index = this->index;
+    int total_slices = res->numSlices;
+    for (int i = nA+nB; i < total_slices; i++) {
+        res->bsi.pop_back();
+        res->numSlices--;
+    }
+
+
+    res->existenceBitmap = aExt.existenceBitmap;
+    res->rows = aExt.rows;
+    res->index = aExt.index;
     res->sign = this->sign.Xor(a->sign);
     res->is_signed = true;
-    res->twosComplement = false;
-    // res->twosComplement = true;
-    res->decimals = this->decimals + a->decimals;
+    // res->twosComplement = false;
+    res->twosComplement = true;
+    res->decimals = aExt.decimals + bExt.decimals;
     return res;
 };
 
