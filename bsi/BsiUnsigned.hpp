@@ -2703,7 +2703,7 @@ BsiVector<uword>* BsiUnsigned<uword>::negate() {
     res->firstSlice = this->firstSlice;
     res->lastSlice = this->lastSlice;
     res->setTwosFlag(true);
-
+    res->decimals = this->decimals;
     return res;
 }
 

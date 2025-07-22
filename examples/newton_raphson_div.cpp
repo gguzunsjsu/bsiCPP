@@ -167,6 +167,7 @@ int main() {
 
     BsiVector<uint64_t>* resultBsi_d;
     BsiVector<uint64_t>* resultBsi2_d;
+    BsiVector<uint64_t>* resultBsi3_d;
 
     std::cout << "0. Decimal value: " << one_dec_bsi->getValue_with_decimal(0) << std::endl;
 
@@ -191,7 +192,7 @@ int main() {
     auto t41_b = std::chrono::high_resolution_clock::now();
     resultBsi_d = one_dec_bsi->multiplyBSI(two_bsi);
     auto t4_b = std::chrono::high_resolution_clock::now();
-    std::cout << "bsi multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4_b-t41_b).count() << std::endl;
+    std::cout << "bsi decimal multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4_b-t41_b).count() << std::endl;
 
     for (int j=0; j < vector_length; j++) {
         std::cout << "resultBsi_d " << j << ": " << resultBsi_d->getValue_with_decimal(j) << std::endl;
@@ -222,7 +223,7 @@ int main() {
     auto t5_d = std::chrono::high_resolution_clock::now();
     resultBsi2_d = one_dec_bsi->SUM(two_bsi);
     auto t6_d = std::chrono::high_resolution_clock::now();
-    std::cout << "bsi SUM duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t6_d-t5_d).count() << std::endl;
+    std::cout << "bsi decimal SUM duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t6_d-t5_d).count() << std::endl;
 
     for (int j=0; j < vector_length; j++) {
         std::cout << "resultBsi2_d " << j << ": "<< resultBsi2_d->getValue_with_decimal(j) << std::endl;
@@ -238,12 +239,28 @@ int main() {
     auto t7 = std::chrono::high_resolution_clock::now();
     resultBsi3 = one_bsi->negate();
     auto t8 = std::chrono::high_resolution_clock::now();
-    std::cout << "bsi SUM duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t8-t7).count() << std::endl;
+    std::cout << "bsi negate duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t8-t7).count() << std::endl;
 
     for (int j=0; j < vector_length; j++) {
         std::cout << "resultBsi3 " << j << ": " << resultBsi3->getValue(j) << std::endl;
         if (resultBsi3->getValue(j) != -1 * one[j]) {
             std::cout << "resultBsi3 " << j << ": " << resultBsi3->getValue(j) << ", " << -1 * one[j] << " - Not matched!"<< std::endl;
+        }
+        else continue;
+    }
+
+    //Decimal Negate:
+    std::cout << "3.5: Decimal Negate = -1 * one_dec" << std::endl;
+
+    auto t7_d = std::chrono::high_resolution_clock::now();
+    resultBsi3_d = one_dec_bsi->negate();
+    auto t8_d = std::chrono::high_resolution_clock::now();
+    std::cout << "bsi decimal negate duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t8_d-t7_d).count() << std::endl;
+
+    for (int j=0; j < vector_length; j++) {
+        std::cout << "resultBsi3_d " << j << ": " << resultBsi3_d->getValue_with_decimal(j) << std::endl;
+        if (resultBsi3_d->getValue_with_decimal(j) != -1 * one[j]) {
+            std::cout << "resultBsi3_d " << j << ": " << resultBsi3_d->getValue_with_decimal(j) << ", " << -1 * one_dec[j] << " - Not matched!"<< std::endl;
         }
         else continue;
     }
