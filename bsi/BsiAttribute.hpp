@@ -156,7 +156,7 @@ public:
     BsiAttribute<uword>* maskAssign(BsiAttribute<uword>* other,const HybridBitmap<uword> &mask);
     BsiAttribute<uword>* shift(int k) const;
 
-    BsiAttribute* signMagnToTwos(int bits);
+    BsiAttribute* signMagnToTwos(int bits)const;
     BsiAttribute* TwosToSignMagnitue();    
     void signMagnitudeToTwos(int bits);
 
@@ -1093,7 +1093,7 @@ void BsiAttribute<uword>::signMagnitudeToTwos(int bits){
 
 
 template <class uword>
-BsiAttribute<uword>* BsiAttribute<uword>::signMagnToTwos(int bit_limit){
+BsiAttribute<uword>* BsiAttribute<uword>::signMagnToTwos(int bit_limit)const{
     BsiAttribute* res = new BsiSigned<uword>();
     res->twosComplement=true;
     int i=0;
