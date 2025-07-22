@@ -1443,6 +1443,7 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyWithBSI(BsiUnsigned &unbsi) const{
     res->index = this->index;
     return res;
 };
+
 //<<<<<<< HEAD
 //template <class uword>
 //BsiUnsigned<uword>* BsiUnsigned<uword>::twosComplement() const{
@@ -1573,51 +1574,6 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
     res->decimals = this->decimals + unbsi->decimals;
     return res;
 };
-
-// template <class uword>
-// BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI( BsiVector<uword>* unbsi) const {
-//     int nA = this->numSlices;
-//     int nB = unbsi->numSlices;
-//     int nRes = nA + nB;
-//
-//     BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
-//     res->offset = 0;
-//     res->bsi.resize(nRes, HybridBitmap<uword>());
-//     res->numSlices = nRes;
-//
-//     for (int k = 0; k < nB; ++k) {
-//         HybridBitmap<uword> carry;
-//
-//         for (int i = 0; i < nA; ++i) {
-//             HybridBitmap<uword> prod = this->bsi[i].And(unbsi->bsi[k]);
-//
-//             HybridBitmap<uword> sum = res->bsi[i + k].Xor(prod).Xor(carry);
-//             HybridBitmap<uword> newCarry = (res->bsi[i + k].And(prod))
-//                                          .Or(res->bsi[i + k].And(carry))
-//                                          .Or(prod.And(carry));
-//
-//             res->bsi[i + k] = sum;
-//             carry = newCarry;
-//         }
-//
-//         int pos = nA + k;
-//         while (carry.numberOfOnes()>0 && pos < nRes) {
-//             HybridBitmap<uword> sum = res->bsi[pos].Xor(carry);
-//             HybridBitmap<uword> newCarry = res->bsi[pos].And(carry);
-//             res->bsi[pos] = sum;
-//             carry = newCarry;
-//             ++pos;
-//         }
-//     }
-//
-//     res->existenceBitmap = this->existenceBitmap;
-//     res->rows = this->rows;
-//     res->index = this->index;
-//     res->decimals = this->decimals + unbsi->decimals;
-//
-//     return res;
-// };
-
 
 /*
 This method was written to try out the dot product operation

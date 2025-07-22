@@ -36,9 +36,9 @@ int main() {
 
     int random_vec_size = 100;
 
-    one_dec = {-0.32};
-    one = {-22};
-    two = {4};
+    one_dec = {-0.3,0.42};
+    one = {-300,10};
+    two = {30, 40};
 
     // one = {2,6,9, 10, 50};
     // two = {2,6,9, 10, 50};
