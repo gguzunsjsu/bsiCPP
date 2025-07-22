@@ -363,14 +363,15 @@ BsiAttribute<uword>* BsiSigned<uword>::SUM(BsiAttribute<uword>* a) {
 
 template <class uword>
 BsiAttribute<uword>* BsiSigned<uword>::SUM(long a)const{
-    
+    if (!this->twosComplement) {
+        return this->signMagnToTwos(32)->SUM(a);
+    }
 //    uword abs_a = std::abs(a);
     int intSize =  std::min(BsiAttribute<uword>::sliceLengthFinder(a),32); // change this to 64 when supporting long long
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.addStreamOfEmptyWords(false,this->existenceBitmap.bufferSize());
     BsiAttribute<uword>* res=new BsiSigned<uword>(std::max((int)this->size, intSize)+1);
-    res->twosComplement=true;
-    
+
     HybridBitmap<uword> C;
     //int minSP = std::min(this->size, intSize); was not used
     HybridBitmap<uword> allOnes;
