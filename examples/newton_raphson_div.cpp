@@ -36,9 +36,9 @@ int main() {
 
     int random_vec_size = 100;
 
-    one_dec = {-0.3,0.42};
-    one = {-300,10};
-    two = {30, 40};
+    one_dec = {0.31};
+    one = {4};
+    two = {-1};
 
     // one = {2,6,9, 10, 50};
     // two = {2,6,9, 10, 50};
@@ -175,7 +175,7 @@ int main() {
     // multiplication:
     std::cout << "1: Multiplication = one x two" << std::endl;
     auto t41 = std::chrono::high_resolution_clock::now();
-    resultBsi = one_bsi->multiplyBSI(two_bsi);
+    resultBsi = one_bsi->multiply_bsi(two_bsi);
     auto t4 = std::chrono::high_resolution_clock::now();
     std::cout << "bsi multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4-t41).count() << std::endl;
 
@@ -190,7 +190,7 @@ int main() {
     // decimal multiplication:
     std::cout << "1.5: Decimal Multiplication = one_dec x two" << std::endl;
     auto t41_b = std::chrono::high_resolution_clock::now();
-    resultBsi_d = one_dec_bsi->multiplyBSI(two_bsi);
+    resultBsi_d = one_dec_bsi->multiply_bsi(two_bsi);
     auto t4_b = std::chrono::high_resolution_clock::now();
     std::cout << "bsi decimal multiplication duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t4_b-t41_b).count() << std::endl;
 

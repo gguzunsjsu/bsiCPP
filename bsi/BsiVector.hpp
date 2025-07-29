@@ -87,7 +87,7 @@ public:
     virtual HybridBitmap<uword> topKMin(int k)=0;
 
     virtual BsiVector* SUM(BsiVector* a) const =0;
-    virtual BsiVector* SUMsigned(BsiVector* a)=0;
+    virtual BsiVector* SUMsigned(BsiVector* a)const =0;
     virtual BsiVector* SUM(long a)const=0;
     virtual BsiVector<uword>* sum_Horizontal(const BsiVector<uword> *a) const=0;
 
@@ -107,6 +107,7 @@ public:
     virtual BsiVector<uword>* multiplication(BsiVector<uword> *a)const=0;
     virtual BsiVector<uword>* multiplication_array(BsiVector<uword> *a)const=0;
     virtual BsiVector<uword>* multiplyBSI(BsiVector<uword> *a) const=0;
+    virtual BsiVector<uword>* multiply_bsi(BsiVector<uword> *a) const=0;
     virtual BsiVector<uword>*  multiplyWithBsiHorizontal(const BsiVector<uword> *unbsi, int precision) const=0;
     virtual BsiVector<uword>*  multiplyWithBsiHorizontal(const BsiVector<uword> *unbsi) const=0;
     virtual BsiVector<uword>* multiplication_Horizontal(const BsiVector<uword> *a) const=0;
