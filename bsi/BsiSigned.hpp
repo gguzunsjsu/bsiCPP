@@ -772,10 +772,56 @@ BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const {
 
 template <class uword>
 BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a) const{
-    if (a->decimals != this->decimals) {
-        if (a->decimals > this->decimals) {
-            long value = std::pow(10, a->decimals - this->decimals);
-            int n = this->getNumberOfRows();
+    // if (a->decimals != this->decimals) {
+    //     if (a->decimals > this->decimals) {
+    //         long value = std::pow(10, a->decimals - this->decimals);
+    //         int n = this->getNumberOfRows();
+    //         std::vector<long> v(n, value);
+    //
+    //         BsiUnsigned<uint64_t> ubsi;
+    //
+    //         BsiVector<uword>* v_bsi = ubsi.buildBsiVector(v, 0.2);
+    //         v_bsi->setFirstSliceFlag(true);
+    //         v_bsi->setLastSliceFlag(true);
+    //         v_bsi->setPartitionID(0);
+    //
+    //         BsiVector<uword>* this_scaled = this->multiply_bsi(v_bsi);
+    //         this_scaled->is_signed = true;
+    //         this_scaled->setDecimals(a->decimals);
+    //
+    //         BsiVector<uword>* res = this_scaled->SUM(a);
+    //         return res;
+    //
+    //     } else if (a->decimals < this->decimals) {
+    //
+    //         long value = std::pow(10, this->decimals - a->decimals);
+    //         int n = this->getNumberOfRows();
+    //         std::vector<long> v(n, value);
+    //
+    //         BsiUnsigned<uword> ubsi;
+    //
+    //         BsiVector<uword>* v_bsi = NULL;
+    //         v_bsi = ubsi.buildBsiVector(v, 0.2);
+    //         v_bsi->is_signed = false;
+    //         v_bsi->setFirstSliceFlag(true);
+    //         v_bsi->setLastSliceFlag(true);
+    //         v_bsi->setPartitionID(0);
+    //
+    //         BsiVector<uword>* a_scaled = NULL;
+    //
+    //
+    //         a_scaled = a->multiply_bsi(v_bsi);
+    //         a_scaled->is_signed = true;
+    //         a_scaled->setDecimals(this->decimals);
+    //
+    //         BsiVector<uword>* res = this->SUM(a_scaled);
+    //         return res;
+    //     }
+    // }
+    if (this->decimals != a->decimals) {
+        if (this->decimals > a->decimals) {
+            long value = std::pow(10, this->decimals - a->decimals);
+            int n = a->getNumberOfRows();
             std::vector<long> v(n, value);
 
             BsiUnsigned<uint64_t> ubsi;
@@ -785,42 +831,42 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a) const{
             v_bsi->setLastSliceFlag(true);
             v_bsi->setPartitionID(0);
 
-            BsiVector<uword>* this_scaled = this->multiply_bsi(v_bsi);
-            this_scaled->is_signed = true;
-            this_scaled->setDecimals(a->decimals);
+            BsiVector<uword>* a_scaled = a->multiply_bsi(v_bsi);
+            a_scaled->is_signed = true;
+            a_scaled->setDecimals(this->decimals);
 
-            BsiVector<uword>* res = this_scaled->SUM(a);
+            BsiVector<uword>* res = this->SUM(a_scaled);
             return res;
 
-        } else if (a->decimals < this->decimals) {
+        } else if (this->decimals < a->decimals) {
 
-            long value = std::pow(10, this->decimals - a->decimals);
-            int n = this->getNumberOfRows();
+            long value = std::pow(10, a->decimals - this->decimals);
+            int n = a->getNumberOfRows();
             std::vector<long> v(n, value);
 
             BsiUnsigned<uword> ubsi;
 
             BsiVector<uword>* v_bsi = NULL;
             v_bsi = ubsi.buildBsiVector(v, 0.2);
-            // v_bsi->is_signed = false;
+            v_bsi->is_signed = false;
             v_bsi->setFirstSliceFlag(true);
             v_bsi->setLastSliceFlag(true);
             v_bsi->setPartitionID(0);
 
-            BsiVector<uword>* a_scaled = NULL;
+            BsiVector<uword>* this_scaled = NULL;
 
 
-            a_scaled = a->multiply_bsi(v_bsi);
-            a_scaled->is_signed = true;
-            a_scaled->setDecimals(this->decimals);
+            this_scaled = this->multiply_bsi(v_bsi);
+            this_scaled->is_signed = false;
+            this_scaled->setDecimals(a->decimals);
 
-            BsiVector<uword>* res = this->SUM(a_scaled);
+            BsiVector<uword>* res = a->SUM(this_scaled);
             return res;
         }
     }
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
-    BsiVector<uword>* res = new BsiSigned();
+    BsiVector<uword>* res = new BsiSigned<uword>(std::max(this->numSlices + this->offset, a->numSlices + a->offset) + 1);
     res->twosComplement=true;
     res->setPartitionID(a->getPartitionID());
 
@@ -928,10 +974,12 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a) const{
                     C = ((a->bsi[aIndex].And(this->sign)).Or(C.And(this->sign))).Or(a->bsi[aIndex].And(C));
                     res->numSlices++;
                     aIndex++;}
-                res->bsi.push_back(a->bsi[aIndex].Xor(C));
-                C=a->bsi[aIndex].And(C);
-                res->numSlices++;
-                aIndex++;
+                else {
+                    res->bsi.push_back(a->bsi[aIndex].Xor(C));
+                    C=a->bsi[aIndex].And(C);
+                    res->numSlices++;
+                    aIndex++;
+                }
             }
         }else{
             for(i=s; i<p;i++){
