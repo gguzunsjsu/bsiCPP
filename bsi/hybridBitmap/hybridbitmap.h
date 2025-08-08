@@ -3751,9 +3751,17 @@ void HybridBitmap<uword>::orVerbatimCompress(const HybridBitmap &a, HybridBitmap
     container.density= (density+a.density)-(density*a.density);
     container.buffer.reserve(bufferSize());
 
-    for (int i = 0; i < buffer.size(); i++) {
+    int i = 0;
+    for (; i < buffer.size() && i < a.bufferSize(); i++) {
         container.addWord(buffer[i] | a.buffer[i]);
+    }
 
+    for (; i < buffer.size(); i++) {
+        container.addWord(buffer[i]);
+    }
+
+    for (; i < a.buffer.size(); i++) {
+        container.addWord(a.buffer[i]);
     }
 }
 
@@ -3943,7 +3951,7 @@ void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, HybridBitmap &conta
     container.density = density * a.density;
     container.verbatim = true;
     container.buffer.resize(bufferSize());  // Use resize() instead of reserve()
-    for (int i = 0; i < buffer.size(); i++) {
+    for (int i = 0; i < buffer.size() && i < a.bufferSize(); i++) {
         container.buffer[i] = (buffer[i] & a.buffer[i]);
     }
     container.sizeinbits = sizeinbits;
@@ -4045,12 +4053,26 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
             }
             lastrlw += rlw.getNumberOfLiteralWords() + 1;
             if(lastrlw >= bufferSize()){
-//                while (i < a.bufferSize()) {
-//                    container.buffer.push_back(a.buffer[i++]);
-//                }
+                while (i < a.bufferSize()) {
+                    container.buffer.push_back(a.buffer[i++]);
+                }
                 break;
             }
             rlw = (a.buffer[lastrlw]);
+        }
+        while (lastrlw < a.bufferSize()) {
+            rlw = a.buffer[lastrlw];
+            if (rlw.getRunningBit()) { // fill of ones
+                container.addStreamOfEmptyWords(true, rlw.getRunningLength());
+
+            } else {
+                container.addStreamOfEmptyWords(false, rlw.getRunningLength());
+            }
+
+            for (j = 0; j < rlw.getNumberOfLiteralWords(); j++) {
+                container.add(a.buffer[lastrlw + j + 1]);
+            }
+            lastrlw += rlw.getNumberOfLiteralWords() + 1;
         }
     }
     container.sizeinbits = std::max(sizeinbits, a.sizeinbits);
@@ -4574,13 +4596,29 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
             }
             lastrlw +=rlw.getNumberOfLiteralWords()+1;
             if(lastrlw >= bufferSize()){
-//                while (i < a.bufferSize()) {
-//                    container.buffer.push_back(a.buffer[i++]);
-//                }
+                while (i < a.bufferSize()) {
+                    container.buffer.push_back(a.buffer[i++]);
+                }
                 break;
             }
             rlw = (buffer[lastrlw]);
             //this.rlw.position += this.rlw.getNumberOfLiteralWords() + 1;
+        }
+        while (lastrlw < a.bufferSize()) {
+            rlw = a.buffer[lastrlw];
+            runLength=static_cast<int>(rlw.getRunningLength());
+            if (runLength > 0) {
+                if (rlw.getRunningBit()) { // fill of ones
+                    container.buffer.push_back((1 << (runLength + 1)) - 1);
+                } else {
+                    container.buffer.push_back(0);
+                }
+            }
+            for (j=0; j<rlw.getNumberOfLiteralWords(); j++) {
+                container.buffer.push_back(a.buffer[lastrlw+j+1]);
+            }
+
+            lastrlw +=rlw.getNumberOfLiteralWords()+1;
         }
     }
     //container.actualsizeinwords=i;
@@ -4918,12 +4956,25 @@ void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &cont
             }
             lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
             if(lastrlwa >= a.bufferSize()){
-//                while (i < bufferSize()) {
-//                    container.buffer.push_back(~buffer[i++]);
-//                }
+                while (i < bufferSize()) {
+                    container.buffer.push_back(~buffer[i++]);
+                }
                 break;
             }
             rlwa = (a.buffer[lastrlwa]);
+        }
+        while (lastrlwa < a.bufferSize()) {
+            rlwa = (a.buffer[lastrlwa]);
+            runLength=(int) rlwa.getRunningLength();
+            if (rlwa.getRunningBit()) { // fill of ones
+                container.fastaddStreamOfEmptyWords(false,runLength);
+            } else {
+                container.fastaddStreamOfEmptyWords(true,runLength);
+            }
+            for( j=0; j<rlwa.getNumberOfLiteralWords(); j++){
+                container.buffer.push_back(~a.buffer[lastrlwa+j+1]);
+            }
+            lastrlwa +=rlwa.getNumberOfLiteralWords()+1;
         }
     } else { // a is verbatim
         container.buffer.reserve(a.bufferSize());
@@ -4965,13 +5016,9 @@ void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &cont
             rlw = buffer[lastrlw];
             runLength=(int) rlw.getRunningLength();
             if (rlw.getRunningBit()) { // fill of ones
-                for (j = 0; j < runLength; j++) {
-                    container.buffer.push_back(0);
-                }
+                container.fastaddStreamOfEmptyWords(false,runLength);
             } else {
-                for (j = 0; j < runLength; j++) {
-                    container.buffer.push_back(~0);
-                }
+                container.fastaddStreamOfEmptyWords(true,runLength);
             }
 
             for( j=0; j<rlw.getNumberOfLiteralWords(); j++){
