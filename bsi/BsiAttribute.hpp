@@ -1094,18 +1094,29 @@ void BsiAttribute<uword>::signMagnitudeToTwos(int bits){
 
 template <class uword>
 BsiAttribute<uword>* BsiAttribute<uword>::signMagnToTwos(int bit_limit)const{
-    BsiAttribute* res = new BsiSigned<uword>();
+    BsiAttribute* res = new BsiSigned<uword>(bit_limit);
     res->twosComplement=true;
     int i=0;
     for(i=0; i<getNumberOfSlices(); i++){
         res->bsi[i]=bsi[i].Xor(sign);
+        res->size++;
     }
     while(i<bit_limit){
-        res->addSlice(sign);
-        i++;}
+        res->bsi[i] = sign;
+        i++;
+        res->size++;
+    }
     if(firstSlice){
         res->addOneSliceSameOffset(sign);
     }
+    res->existenceBitmap = this->existenceBitmap;
+    res->sign = sign;
+    res->rows = rows;
+    res->offset = offset;
+    res->decimals = decimals;
+    res->is_signed = is_signed;
+    res->firstSlice = firstSlice;
+    res->lastSlice = lastSlice;
     return res;
 };
 
