@@ -1221,7 +1221,7 @@ BsiAttribute<uword>* BsiSigned<uword>::multiplyByConstant(int number) const {
         isNegative = true;
         number = 0-number;
     }else if(number == 0){
-        res = new BsiSigned<uword>();
+        res = new BsiSigned<uword>(0);
         HybridBitmap<uword> zeroBitmap;
         zeroBitmap.reset();
         zeroBitmap.verbatim = true;
