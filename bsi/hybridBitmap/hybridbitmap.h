@@ -4058,10 +4058,10 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
                 }
                 break;
             }
-            rlw = (a.buffer[lastrlw]);
+            rlw = buffer[lastrlw];
         }
-        while (lastrlw < a.bufferSize()) {
-            rlw = a.buffer[lastrlw];
+        while (lastrlw < bufferSize()) {
+            rlw = buffer[lastrlw];
             if (rlw.getRunningBit()) { // fill of ones
                 container.addStreamOfEmptyWords(true, rlw.getRunningLength());
 
@@ -4070,7 +4070,7 @@ void HybridBitmap<uword>::orHybridCompress(const HybridBitmap &a, HybridBitmap &
             }
 
             for (j = 0; j < rlw.getNumberOfLiteralWords(); j++) {
-                container.add(a.buffer[lastrlw + j + 1]);
+                container.add(buffer[lastrlw + j + 1]);
             }
             lastrlw += rlw.getNumberOfLiteralWords() + 1;
         }
@@ -4604,8 +4604,8 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
             rlw = (buffer[lastrlw]);
             //this.rlw.position += this.rlw.getNumberOfLiteralWords() + 1;
         }
-        while (lastrlw < a.bufferSize()) {
-            rlw = a.buffer[lastrlw];
+        while (lastrlw < bufferSize()) {
+            rlw = buffer[lastrlw];
             runLength=static_cast<int>(rlw.getRunningLength());
             if (runLength > 0) {
                 if (rlw.getRunningBit()) { // fill of ones
@@ -4615,7 +4615,7 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
                 }
             }
             for (j=0; j<rlw.getNumberOfLiteralWords(); j++) {
-                container.buffer.push_back(a.buffer[lastrlw+j+1]);
+                container.buffer.push_back(buffer[lastrlw+j+1]);
             }
 
             lastrlw +=rlw.getNumberOfLiteralWords()+1;
@@ -4842,12 +4842,22 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
             }
             lastrlw +=rlw.getNumberOfLiteralWords()+1;
             if(lastrlw >= bufferSize()){
-//                while (i < a.bufferSize()) {
-//                    container.buffer.push_back(a.buffer[i++]);
-//                }
+                while (i < a.bufferSize()) {
+                    container.buffer.push_back(a.buffer[i++]);
+                }
                 break;
             }
             rlw = (buffer[lastrlw]);
+        }
+        while (lastrlw < bufferSize()) {
+            rlw = buffer[lastrlw];
+            runLength=static_cast<int>(rlw.getRunningLength());
+            container.fastaddStreamOfEmptyWords(rlw.getRunningBit(),runLength);
+            for (j=0; j<rlw.getNumberOfLiteralWords(); j++) {
+                container.buffer.push_back(buffer[lastrlw+j+1]);
+            }
+
+            lastrlw +=rlw.getNumberOfLiteralWords()+1;
         }
     }
     // container.actualsizeinwords=i;
