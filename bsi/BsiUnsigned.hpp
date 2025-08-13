@@ -647,9 +647,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
     res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
     res->setNumberOfRows(this->getNumberOfRows());
     int i = 0, s = a->numSlices, p = this->numSlices;
-    
-    
-    
+
     int minOffset = std::min(a->offset, this->offset);
     res->offset = minOffset;
     
@@ -690,8 +688,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
             res->numSlices++;
         }
         return res;
-    }else {
-        
+    } else {
         res->bsi.push_back(this->bsi[thisIndex].Xor(a->bsi[aIndex]));
         HybridBitmap<uword> C = this->bsi[thisIndex].And(a->bsi[aIndex]);
         res->numSlices++;
