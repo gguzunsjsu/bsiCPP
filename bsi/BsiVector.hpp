@@ -468,9 +468,9 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
     int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
 
     if (min < 0) {
-        BsiVector<uword>* res = new BsiSigned<uword>(slices+1);
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+1,numberOfElements);
-        for(int i=0; i<=slices; i++){
+        BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+2,numberOfElements);
+        for(int i=0; i<=slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
@@ -513,13 +513,13 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 
     }else {
         //int slices = std::__bit_width(max);
-        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices);
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+2);
 
 
         //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+2,numberOfElements);
 
-        for(int i=0; i<slices; i++){
+        for(int i=0; i<slices+2; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
@@ -561,9 +561,9 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
         res->existenceBitmap.density = 1;
         res->firstSlice=true;
-        //res->twosComplement = false;
+        res->twosComplement = false;
         res->rows = numberOfElements;
-        //res->is_signed = true;
+        res->is_signed = false;
         return res;
     }
 };

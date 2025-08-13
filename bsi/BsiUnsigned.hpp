@@ -659,18 +659,18 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
     if(this->offset>a->offset){
         for(int j=0;j<this->offset-minOffset; j++){
             if(j<a->numSlices)
-                res->bsi[res->numSlices]=a->bsi[aIndex];
+                res->bsi.push_back(a->bsi[aIndex]);
             else
-                res->bsi[res->numSlices]=zeroBitmap;
+                res->bsi.push_back(zeroBitmap);
             aIndex++;
             res->numSlices++;
         }
     }else if(a->offset>this->offset){
         for(int j=0;j<a->offset-minOffset;j++){
             if(j<this->numSlices)
-                res->bsi[res->numSlices]=this->bsi[thisIndex];
+                res->bsi.push_back(this->bsi[thisIndex]);
             else
-                res->bsi[res->numSlices]=zeroBitmap;
+                res->bsi.push_back(zeroBitmap);
             res->numSlices++;
             thisIndex++;
         }
@@ -682,11 +682,11 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
     
     if(minSP<=0){ // one of the BSI attributes is exausted
         for(int j=aIndex; j<a->numSlices; j++){
-            res->bsi[res->numSlices]=a->bsi[j];
+            res->bsi.push_back(a->bsi[j]);
             res->numSlices++;
         }
         for(int j=thisIndex; j<this->numSlices; j++){
-            res->bsi[res->numSlices]=this->bsi[j];
+            res->bsi.push_back(this->bsi[j]);
             res->numSlices++;
         }
         return res;
@@ -710,14 +710,14 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
         
         if(s>p){
             for(i=p; i<s;i++){
-                res->bsi[res->numSlices] = a->bsi[aIndex].Xor(C);
+                res->bsi.push_back(a->bsi[aIndex].Xor(C));
                 C=a->bsi[aIndex].And(C);
                 res->numSlices++;
                 aIndex++;
             }
         }else{
             for(i=s; i<p;i++){
-                res->bsi[res->numSlices] = this->bsi[thisIndex].Xor(C);
+                res->bsi.push_back(this->bsi[thisIndex].Xor(C));
                 C = this->bsi[thisIndex].And(C);
                 res->numSlices++;
                 thisIndex++;
