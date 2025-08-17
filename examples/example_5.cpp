@@ -48,15 +48,63 @@ private:
 
 template<typename T>
 void SUM_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
-                       const std::vector<long>& normal_sum, int vector_length, const std::string& label = "") {
-    std::cout << "\n[BSI " << label << " sum test]\n";
+                       const std::vector<long>& normal_sum, int vector_length, const std::string& label = "", bool debug = true, bool decimal = false) {
+    std::cout << "\nBSI Sum: " << label << " \n";
     auto t_sum = std::chrono::high_resolution_clock::now();
     BsiVector<T>* bsi_sum = bsi_one->SUM(bsi_two);
     auto t_sum2 = std::chrono::high_resolution_clock::now();
-    std::cout << "BSI sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2 - t_sum).count() << "us\n";
+    if (debug) std::cout << "BSI sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2 - t_sum).count() << "us\n";
+    int count = 0;
     for (int i = 0; i < vector_length; ++i)
-        if (bsi_sum->getValue(i) != normal_sum[i])
-            std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue(i) << " vs Normal=" << normal_sum[i] << "\n";
+        if (bsi_sum->getValue(i) != normal_sum[i]) {
+            if (debug) {
+                std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue(i) << " vs Normal=" << normal_sum[i] << "\n";
+            }
+            else count += 1;
+        }
+    if (count == 0) std::cout << "PASS !!\n";
+    if (!debug && count != 0) std::cout << "FAIL\n";
+}
+
+template<typename T>
+void negate_test(BsiVector<T>* bsi_one, const std::vector<long>& normal_neg, int vector_length, const std::string& label = "", bool debug = true) {
+    std::cout << "\nBSI negate: "  << label << " \n";
+    auto t_neg = std::chrono::high_resolution_clock::now();
+    BsiVector<uint64_t>* bsi_neg = bsi_one->negate();
+    auto t_neg2 = std::chrono::high_resolution_clock::now();
+    if (debug) std::cout << "BSI negation time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_neg2 - t_neg).count() << "us\n";
+    int count = 0;
+    for (int i = 0; i < vector_length; ++i)
+        if (bsi_neg->getValue(i) != normal_neg[i]) {
+            if (debug) {
+                std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
+            }
+            else count += 1;
+        }
+
+    if (count == 0) std::cout << "PASS !!\n";
+    if (!debug && count != 0) std::cout << "FAIL\n";
+}
+
+template<typename T>
+void multiply_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two, const std::vector<long>& normal_mul, int vector_length, const std::string& label = "", bool debug = true) {
+    std::cout << "\nBSI multiply: "  << label << " \n";
+    auto t_mul = std::chrono::high_resolution_clock::now();
+    BsiVector<uint64_t>* bsi_mul = bsi_one->multiply_bsi(bsi_two);
+    auto t_mul2 = std::chrono::high_resolution_clock::now();
+    if (debug) std::cout << "BSI multiplication time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_mul2 - t_mul).count() << "us\n";
+    int count = 0;
+    for (int i = 0; i < vector_length; ++i) {
+        long val = bsi_mul->getValue(i);
+        if (val != normal_mul[i]) {
+            if (debug) {
+                std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_mul->getValue(i) << " vs Normal=" << normal_mul[i] << "\n";
+            }
+            else count += 1;
+        }
+    }
+    if (count == 0) std::cout << "PASS !!\n";
+    if (!debug && count != 0) std::cout << "FAIL\n";
 }
 
 int main() {
@@ -65,6 +113,7 @@ int main() {
     int range = 10000;
     int vector_length = 100; // keep small for verbose checks (set higher for performance tests)
     double alpha = 4.0;
+    bool debug = false;
 
     std::vector<long> one(vector_length), two(vector_length), one_signed(vector_length), two_signed(vector_length);
     std::vector<double> one_dec(vector_length), two_dec(vector_length);
@@ -93,11 +142,13 @@ int main() {
 
     // Plain arithmetic results
     for (int i = 0; i < vector_length; ++i) {
+
         normal_sum[i] = one[i] + two[i];
         normal_mul[i] = one[i] * two[i];
         normal_mulc[i] = one[i] * constant;
         normal_neg[i] = -one[i];
         normal_div[i] = (two[i] != 0) ? (double)one[i] / two[i] : 0;
+
         normal_sum_d[i] = one_dec[i] + two[i];
         normal_mul_d[i] = one_dec[i] * two[i];
         normal_neg_d[i] = -one_dec[i];
@@ -106,8 +157,10 @@ int main() {
         signed_sum[i] = one_signed[i] + two_signed[i];
         signed_mul[i] = one_signed[i] * two_signed[i];
         signed_neg[i] = -one_signed[i];
+
         mixed_sum_signed_plus_unsigned[i] = one_signed[i] + two[i];
-        mixed_sum_unsigned_plus_signed[i] = one[i] * two_signed[i];
+        mixed_sum_unsigned_plus_signed[i] = one[i] + two_signed[i];
+
         mixed_mul_signed_unsigned[i] = one_signed[i] * two[i];
         mixed_mul_unsigned_signed[i] = one[i] * two_signed[i];
     }
@@ -145,105 +198,18 @@ int main() {
     auto t_bsi_build2 = std::chrono::high_resolution_clock::now();
     std::cout << "Time to build BSI vectors: " << std::chrono::duration_cast<std::chrono::microseconds>(t_bsi_build2 - t_bsi_build).count() << "us\n";
 
-
-
     // ==== Multiplication ====
-    // std::cout << "\n[BSI int multiply test]\n";
-    // auto t_mul = std::chrono::high_resolution_clock::now();
-    // BsiVector<uint64_t>* bsi_mul = bsi_one->multiply_bsi(bsi_two);
-    // auto t_mul2 = std::chrono::high_resolution_clock::now();
-    // std::cout << "BSI multiplication time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_mul2 - t_mul).count() << "us\n";
-    // for (int i = 0; i < vector_length; ++i) {
-    //     long val = bsi_mul->getValue(i);
-    //     if (val != normal_mul[i])
-    //         std::cout << "Mismatch mul [" << i << "]: BSI=" << val << " vs Normal=" << normal_mul[i] << "\n";
-    // }
-    //
-    // std::cout << "\n[BSI decimal multiply test]\n";
-    // auto t_mul_d = std::chrono::high_resolution_clock::now();
-    // BsiVector<uint64_t>* bsi_mul_d = bsi_one_dec->multiply_bsi(bsi_two);
-    // auto t_mul2_d = std::chrono::high_resolution_clock::now();
-    // std::cout << "BSI decimal multiplication time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_mul2_d - t_mul_d).count() << "us\n";
-    // for (int i = 0; i < vector_length; ++i) {
-    //     double val = bsi_mul_d->getValue_with_decimal(i);
-    //     if (val != normal_mul_d[i])
-    //         std::cout << std::setprecision(10) << "Mismatch mul_d [" << i << "]: BSI=" << val << " vs Normal=" << normal_mul_d[i] << "\n";
-    // }
+    multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
 
     // ==== Sum ====
-    std::cout << "\n[BSI int sum test]\n";
-    auto t_sum = std::chrono::high_resolution_clock::now();
-    BsiVector<uint64_t>* bsi_sum = bsi_one->SUM(bsi_two);
-    auto t_sum2 = std::chrono::high_resolution_clock::now();
-    std::cout << "BSI sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2 - t_sum).count() << "us\n";
-    for (int i = 0; i < vector_length; ++i)
-        if (bsi_sum->getValue(i) != normal_sum[i])
-            std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue(i) << " vs Normal=" << normal_sum[i] << "\n";
-    // SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "int sum: unsigned + unsigned");
-
-    std::cout << "\n[BSI mixed sum test: signed + unsigned]\n";
-    auto t_mix_sum_su_start = std::chrono::high_resolution_clock::now();
-    BsiVector<uint64_t>* bsi_mixed_sum_signed_plus_unsigned = bsi_one_signed->SUM(bsi_two);
-    auto t_mix_sum_su_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Simulated BSI mixed signed+unsigned sum time: " <<
-        std::chrono::duration_cast<std::chrono::microseconds>(t_mix_sum_su_end - t_mix_sum_su_start).count() << "us\n";
-
-    for (int i = 0; i < vector_length; ++i) {
-        if (bsi_mixed_sum_signed_plus_unsigned->getValue(i) != mixed_sum_signed_plus_unsigned[i])
-            std::cout << "Mismatch mixed signed+unsigned sum [" << i << "]: BSI(sim)=" << bsi_mixed_sum_signed_plus_unsigned->getValue(i) << " vs Normal=" << mixed_sum_signed_plus_unsigned[i] << "\n";
-    }
-
-    std::cout << "\n[BSI mixed sum test: unsigned + signed]\n";
-    auto t_mix_sum_us_start = std::chrono::high_resolution_clock::now();
-    BsiVector<uint64_t>* bsi_mixed_sum_unsigned_plus_signed = bsi_one->SUM(bsi_two_signed);
-    auto t_mix_sum_us_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Simulated BSI mixed unsigned+signed sum time: " <<
-        std::chrono::duration_cast<std::chrono::microseconds>(t_mix_sum_us_end - t_mix_sum_us_start).count() << "us\n";
-
-    for (int i = 0; i < vector_length; ++i) {
-        if (bsi_mixed_sum_unsigned_plus_signed->getValue(i) != mixed_sum_unsigned_plus_signed[i])
-            std::cout << "Mismatch mixed unsigned+signed sum [" << i << "]: BSI(sim)=" << bsi_mixed_sum_unsigned_plus_signed->getValue(i)
-                      << " vs Normal=" << mixed_sum_unsigned_plus_signed[i] << "\n";
-    }
-
-    std::cout << "\n[BSI signed int sum test]\n";
-    auto t_sum_signed = std::chrono::high_resolution_clock::now();
-    BsiVector<uint64_t>* bsi_sum_signed = bsi_one_signed->SUM(bsi_two_signed);
-    auto t_sum_signed2 = std::chrono::high_resolution_clock::now();
-    std::cout << "BSI signed sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum_signed2 - t_sum_signed).count() << "us\n";
-
-    for (int i = 0; i < vector_length; ++i)
-        if (bsi_sum_signed->getValue(i) != signed_sum[i])
-            std::cout << "Mismatch signed sum [" << i << "]: BSI=" << bsi_sum_signed->getValue(i) << " vs Normal=" << signed_sum[i] << "\n";
-
-    // std::cout << "\n[BSI decimal sum test]\n";
-    // auto t_sum_d = std::chrono::high_resolution_clock::now();
-    // BsiVector<uint64_t>* bsi_sum_d = bsi_one_dec->SUM(bsi_two);
-    // auto t_sum2_d = std::chrono::high_resolution_clock::now();
-    // std::cout << "BSI decimal sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2_d - t_sum_d).count() << "us\n";
-    // for (int i = 0; i < vector_length; ++i)
-    //     if (bsi_sum_d->getValue_with_decimal(i) != normal_sum_d[i])
-    //         std::cout << std::setprecision(10) << "Mismatch sum_d [" << i << "]: BSI=" << bsi_sum_d->getValue_with_decimal(i) << " vs Normal=" << normal_sum_d[i] << "\n";
+    SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
+    SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
+    SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
+    SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
 
     // ==== Negation ====
-    std::cout << "\n[BSI int negation test]\n";
-    auto t_neg = std::chrono::high_resolution_clock::now();
-    BsiVector<uint64_t>* bsi_neg = bsi_one->negate();
-    auto t_neg2 = std::chrono::high_resolution_clock::now();
-    std::cout << "BSI negation time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_neg2 - t_neg).count() << "us\n";
-    for (int i = 0; i < vector_length; ++i)
-        if (bsi_neg->getValue(i) != normal_neg[i])
-            std::cout << "Mismatch neg [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
-
-    // std::cout << "\n[BSI decimal negation test]\n";
-    // auto t_neg_d = std::chrono::high_resolution_clock::now();
-    // BsiVector<uint64_t>* bsi_neg_d = bsi_one_dec->negate();
-    // auto t_neg2_d = std::chrono::high_resolution_clock::now();
-    // std::cout << "BSI decimal negation time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_neg2_d - t_neg_d).count() << "us\n";
-    // for (int i = 0; i < vector_length; ++i)
-    //     if (bsi_neg_d->getValue_with_decimal(i) != normal_neg_d[i])
-    //         std::cout << std::setprecision(10) << "Mismatch neg_d [" << i << "]: BSI=" << bsi_neg_d->getValue_with_decimal(i) << " vs Normal=" << normal_neg_d[i] << "\n";
-
+    negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
+    negate_test(bsi_one_signed, normal_neg, vector_length, "signed", debug);
 
     return 0;
 }

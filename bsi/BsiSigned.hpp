@@ -67,6 +67,8 @@ public:
     BsiVector<uword>* multiplication_Horizontal(const BsiVector<uword> *a) const;
     BsiVector<uword>* multiplication_array(BsiVector<uword> *a)const override;
     BsiVector<uword>* multiplyBSI(BsiVector<uword> *unbsi)const override;
+    BsiVector<uword>* multiplyBSI_Signed(BsiVector<uword> *unbsi)const ;
+    BsiVector<uword>* multiply_bsi(BsiVector<uword> *unbsi)const override;
     long dotProduct(BsiVector<uword>* unbsi) const override;
     long long int dot(BsiVector<uword>* unbsi) const override;
     long long int dot_withoutCompression(BsiVector<uword>* unbsi) const override;
@@ -2213,6 +2215,11 @@ long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) 
     return res;
     }
 
+template <class uword>
+BsiVector<uword>* BsiSigned<uword>::multiply_bsi(BsiVector<uword> *unbsi) const {
+    if (!unbsi->is_signed) return this->multiplyBSI(unbsi);
+    // return this->multiplyBSI_Signed(unbsi);
+};
 
 template <class uword>
 BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
@@ -2279,6 +2286,80 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
     }
     
     
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    res->sign = this->sign.Xor(a->sign);
+    res->is_signed = true;
+    res->twosComplement = false;
+    return res;
+};
+
+template <class uword>
+BsiVector<uword>* BsiSigned<uword>::multiplyBSI_Signed(BsiVector<uword> *a) const{
+    BsiVector<uword>* res = nullptr;
+    HybridBitmap<uword> C, S, FS, DS;
+    int k = 0;
+    res = new BsiSigned<uword>();
+    res->offset = k;
+    for (int i = 0; i < this->numSlices; i++) {
+        res->bsi.push_back(a->bsi[0].And(this->bsi[i]));
+    }
+    res->numSlices = this->numSlices;
+    k = 1;
+    for (int it=1; it<a->numSlices; it++) {
+        /* Move the slices of res k positions */
+        S=res->bsi[k];
+        //S = S.Xor(this->bsi[0]);
+        S.XorInPlace(this->bsi[0]);
+        C = res->bsi[k].And(this->bsi[0]);
+        FS = a->bsi[it].And(S);
+        //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+        res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
+
+        for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
+            if ((i + k) < res->numSlices){
+                //A = res->bsi[i + k];
+                S = res->bsi[i + k];
+                //S = S.Xor(this->bsi[i]);
+                //S = S.Xor(C);
+                S.XorInPlace(this->bsi[i]);
+                S.XorInPlace(C);
+                //C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
+                C.majInPlace(res->bsi[i + k],this->bsi[i]);
+
+            } else {
+                S=this->bsi[i];
+                //S = S.Xor(C);
+                //C = C.And(this->bsi[i]);
+                S.XorInPlace(C);
+                C.AndInPlace(this->bsi[i]);
+                res->numSlices++;
+                FS = a->bsi[it].And(S);
+                res->bsi.push_back(FS);
+            }
+            FS = a->bsi[it].And(S);
+            //res->bsi[i + k] = res->bsi[i + k].andNot(a->bsi[it]).Or(a->bsi[it].And(FS)); // shifting operation
+            res->bsi[i+k].selectMultiplicationInPlace(a->bsi[it],FS);
+        }
+        for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
+            S = res->bsi[i];
+            //S = S.Xor(C);
+            //C = C.And(res->bsi[i]);
+            S.XorInPlace(C);
+            C.AndInPlace(res->bsi[i]);
+            FS = a->bsi[it].And(S);
+            //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+            res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
+        }
+        if (C.numberOfOnes() > 0) {
+            res->bsi.push_back(a->bsi[it].And(C)); // Carry bit
+            res->numSlices++;
+        }
+        k++;
+    }
+
+
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;

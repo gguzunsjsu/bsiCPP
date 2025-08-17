@@ -104,6 +104,7 @@ public:
     virtual BsiVector<uword>* multiplyByConstant(int number)const=0;
     virtual BsiVector<uword>* multiplication(BsiVector<uword> *a)const=0;
     virtual BsiVector<uword>* multiplication_array(BsiVector<uword> *a)const=0;
+    virtual BsiVector<uword>* multiply_bsi(BsiVector<uword> *a) const=0;
     virtual BsiVector<uword>* multiplyBSI(BsiVector<uword> *a) const=0;
     virtual BsiVector<uword>*  multiplyWithBsiHorizontal(const BsiVector<uword> *unbsi, int precision) const=0;
     virtual BsiVector<uword>*  multiplyWithBsiHorizontal(const BsiVector<uword> *unbsi) const=0;
