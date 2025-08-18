@@ -202,14 +202,14 @@ int main() {
     // multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
 
     // ==== Sum ====
-    // SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
-    // SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
+    SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
+    SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
     SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
-    // SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
+    SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
 
     // ==== Negation ====
-    // negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
-    // negate_test(bsi_one_signed, normal_neg, vector_length, "signed", debug);
+    negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
+    negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
 
     return 0;
 }
