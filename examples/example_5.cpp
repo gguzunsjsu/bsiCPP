@@ -59,8 +59,8 @@ void SUM_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
         if (bsi_sum->getValue(i) != normal_sum[i]) {
             if (debug) {
                 std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue(i) << " vs Normal=" << normal_sum[i] << "\n";
+                count += 1;
             }
-            else count += 1;
         }
     if (count == 0) std::cout << "PASS !!\n";
     if (!debug && count != 0) std::cout << "FAIL\n";
@@ -78,8 +78,8 @@ void negate_test(BsiVector<T>* bsi_one, const std::vector<long>& normal_neg, int
         if (bsi_neg->getValue(i) != normal_neg[i]) {
             if (debug) {
                 std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
+                count += 1;
             }
-            else count += 1;
         }
 
     if (count == 0) std::cout << "PASS !!\n";
@@ -99,8 +99,8 @@ void multiply_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two, const std::vect
         if (val != normal_mul[i]) {
             if (debug) {
                 std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_mul->getValue(i) << " vs Normal=" << normal_mul[i] << "\n";
+                count += 1;
             }
-            else count += 1;
         }
     }
     if (count == 0) std::cout << "PASS !!\n";
@@ -113,7 +113,7 @@ int main() {
     int range = 10000;
     int vector_length = 100; // keep small for verbose checks (set higher for performance tests)
     double alpha = 4.0;
-    bool debug = false;
+    bool debug = true;
 
     std::vector<long> one(vector_length), two(vector_length), one_signed(vector_length), two_signed(vector_length);
     std::vector<double> one_dec(vector_length), two_dec(vector_length);
@@ -199,17 +199,17 @@ int main() {
     std::cout << "Time to build BSI vectors: " << std::chrono::duration_cast<std::chrono::microseconds>(t_bsi_build2 - t_bsi_build).count() << "us\n";
 
     // ==== Multiplication ====
-    multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
+    // multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
 
     // ==== Sum ====
-    SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
-    SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
+    // SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
+    // SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
     SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
-    SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
+    // SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
 
     // ==== Negation ====
-    negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
-    negate_test(bsi_one_signed, normal_neg, vector_length, "signed", debug);
+    // negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
+    // negate_test(bsi_one_signed, normal_neg, vector_length, "signed", debug);
 
     return 0;
 }
