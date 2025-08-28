@@ -124,8 +124,8 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
     int range = 10000;
-    int vector_length = 100; // keep small for verbose checks (set higher for performance tests)
-    double alpha = 4.0;
+    int vector_length = 1; // keep small for verbose checks (set higher for performance tests)
+    double alpha = 1.0;
     bool debug = true;
 
     std::vector<long> one(vector_length), two(vector_length), one_signed(vector_length), two_signed(vector_length);

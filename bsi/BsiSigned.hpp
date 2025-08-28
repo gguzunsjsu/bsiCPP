@@ -871,6 +871,7 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a){
             res->bsi.push_back(C);
             res->numSlices++;
         }
+
         res->sign = res->bsi[res->numSlices - 1];//this->sign;
         res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
         res->lastSlice=a->lastSlice;
