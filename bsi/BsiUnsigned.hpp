@@ -34,6 +34,9 @@ public:
     BsiVector<uword>* SUM(long a)const override;
     BsiVector<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
+
+    double getValue_with_decimal(int pos) const;
+
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -533,6 +536,15 @@ long BsiUnsigned<uword>::getValue(int pos) const {
 };
 
 template <class uword>
+double BsiUnsigned<uword>::getValue_with_decimal(int pos) const {
+    long sum = getValue(pos);
+    if (this->decimals != 0)
+        return static_cast<double>(sum) / std::pow(10, this->decimals);
+    else
+        return static_cast<double>(sum);
+};
+
+template <class uword>
 HybridBitmap<uword> BsiUnsigned<uword>::rangeBetween(long lowerBound, long upperBound){
     HybridBitmap<uword> B_gt;
     HybridBitmap<uword> B_lt;
@@ -690,6 +702,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
             res->bsi.push_back(this->bsi[j]);
             res->numSlices++;
         }
+        res->setDecimals(this->decimals);
         return res;
     } else {
         res->bsi.push_back(this->bsi[thisIndex].Xor(a->bsi[aIndex]));
@@ -728,6 +741,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
             res->bsi.push_back( C );
             res->numSlices++;
         }
+        res->setDecimals(this->decimals);
         return res;
     }
 };
@@ -806,6 +820,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMsigned(BsiVector<uword>* a){
         res->lastSlice=a->lastSlice;
         res->firstSlice=this->firstSlice|a->firstSlice;
         res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
+        res->setDecimals(this->decimals);
         return res;
     }
     else {
@@ -865,6 +880,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMsigned(BsiVector<uword>* a){
         res->firstSlice=this->firstSlice|a->firstSlice;
         res->sign = &res->bsi[res->numSlices - 1];
         res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
+        res->setDecimals(this->decimals);
         return res;
     }
 };
@@ -1446,7 +1462,7 @@ BsiVector<uword>* BsiUnsigned<uword>::multiply_bsi(BsiVector<uword> *unbsi) cons
 };
 
 template <class uword>
-BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const{
+BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const {
     BsiUnsigned<uword>* res = nullptr;
     HybridBitmap<uword> C, S, FS, DS;
     int k = 0;
@@ -1460,44 +1476,44 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
     k = 1;
     for (int it=1; it<unbsi->numSlices; it++) {
         /* Move the slices of res k positions */
-//        HybridBitmap<uword> A, B;
-//        A = res->bsi[k];
-//        B = this->bsi[0];
+        // HybridBitmap<uword> A, B;
+        // A = res->bsi[k];
+        // B = this->bsi[0];
         S=res->bsi[k];
         S.XorInPlace(this->bsi[0]);
         C = res->bsi[k].And(this->bsi[0]);
         FS = unbsi->bsi[it].And(S);
-        //res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-//        res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-                //res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
+        // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+        // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+        // res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
         res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
 
         for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
-//            B = this->bsi[i];
+            // B = this->bsi[i];
             if ((i + k) < res->numSlices){
-//                A = res->bsi[i + k];
+                // A = res->bsi[i + k];
                 S=res->bsi[i + k];
                 S.XorInPlace(this->bsi[i]);
                 S.XorInPlace(C);
-//                C = res->bsi[i + k].maj(this->bsi[i], C);
-//                C.majInPlace(res->bsi[i + k],this->bsi[i]);
-//                C = A.And(B).Or(B.And(C)).Or(A.And(C));
+                // C = res->bsi[i + k].maj(this->bsi[i], C);
+                // C.majInPlace(res->bsi[i + k],this->bsi[i]);
+                // C = A.And(B).Or(B.And(C)).Or(A.And(C));
                 C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
 
             } else {
                 S=this->bsi[i];
                 S.XorInPlace(C);
                 C.AndInPlace(this->bsi[i]);
-//                C = this->bsi[i].And(C);
+                //                C = this->bsi[i].And(C);
                 res->numSlices++;
                 FS = unbsi->bsi[it].And(S);
                 res->bsi.push_back(FS);
             }
             FS = unbsi->bsi[it].And(S);
-//            res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
-//            res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
-//            res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-            //res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
+            // res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
+            // res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
+            // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
             res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
 
         }
@@ -1505,11 +1521,11 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
             S = res->bsi[i];
             S.XorInPlace(C);
             C.AndInPlace(res->bsi[i]);
-//            C = res->bsi[i].And(C);
+            // C = res->bsi[i].And(C);
             FS = unbsi->bsi[it].And(S);
-//            res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-//            res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
-//            res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+            // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
+            // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
         }
         if (C.numberOfOnes() > 0) {
@@ -1540,44 +1556,44 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI_Signed(BsiVector<uword> *unbsi
     k = 1;
     for (int it=1; it<unbsi->numSlices; it++) {
         /* Move the slices of res k positions */
-//        HybridBitmap<uword> A, B;
-//        A = res->bsi[k];
-//        B = this->bsi[0];
+        // HybridBitmap<uword> A, B;
+        // A = res->bsi[k];
+        // B = this->bsi[0];
         S=res->bsi[k];
         S.XorInPlace(this->bsi[0]);
         C = res->bsi[k].And(this->bsi[0]);
         FS = unbsi->bsi[it].And(S);
-        //res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-//        res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-                //res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
+        // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+        // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+        // res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
         res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
 
         for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
-//            B = this->bsi[i];
+            // B = this->bsi[i];
             if ((i + k) < res->numSlices){
-//                A = res->bsi[i + k];
+                // A = res->bsi[i + k];
                 S=res->bsi[i + k];
                 S.XorInPlace(this->bsi[i]);
                 S.XorInPlace(C);
-//                C = res->bsi[i + k].maj(this->bsi[i], C);
-//                C.majInPlace(res->bsi[i + k],this->bsi[i]);
-//                C = A.And(B).Or(B.And(C)).Or(A.And(C));
+                // C = res->bsi[i + k].maj(this->bsi[i], C);
+                // C.majInPlace(res->bsi[i + k],this->bsi[i]);
+                // C = A.And(B).Or(B.And(C)).Or(A.And(C));
                 C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
 
             } else {
                 S=this->bsi[i];
                 S.XorInPlace(C);
                 C.AndInPlace(this->bsi[i]);
-//                C = this->bsi[i].And(C);
+                // C = this->bsi[i].And(C);
                 res->numSlices++;
                 FS = unbsi->bsi[it].And(S);
                 res->bsi.push_back(FS);
             }
             FS = unbsi->bsi[it].And(S);
-//            res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
-//            res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
-//            res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-            //res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
+            // res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
+            // res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
+            // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
             res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
 
         }
@@ -1585,11 +1601,11 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI_Signed(BsiVector<uword> *unbsi
             S = res->bsi[i];
             S.XorInPlace(C);
             C.AndInPlace(res->bsi[i]);
-//            C = res->bsi[i].And(C);
+            // C = res->bsi[i].And(C);
             FS = unbsi->bsi[it].And(S);
-//            res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-//            res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
-//            res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+            // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+            // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
+            // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
         }
         if (C.numberOfOnes() > 0) {
