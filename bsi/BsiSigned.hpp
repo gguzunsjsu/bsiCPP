@@ -30,6 +30,9 @@ public:
     BsiVector<uword>* SUM(long a)const override;
     BsiVector<uword>* convertToTwos(int bits) override;
     long getValue(int pos) const override;
+
+    double getValue_with_decimal(int pos) const;
+
     HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound) override;
     BsiUnsigned<uword>* abs() override;
     BsiUnsigned<uword>* abs(int resultSlices,const HybridBitmap<uword> &EB) override;
@@ -67,6 +70,8 @@ public:
     BsiVector<uword>* multiplication_Horizontal(const BsiVector<uword> *a) const;
     BsiVector<uword>* multiplication_array(BsiVector<uword> *a)const override;
     BsiVector<uword>* multiplyBSI(BsiVector<uword> *unbsi)const override;
+    BsiVector<uword>* multiplyBSI_Signed(BsiVector<uword> *unbsi)const ;
+    BsiVector<uword>* multiply_bsi(BsiVector<uword> *unbsi)const override;
     long dotProduct(BsiVector<uword>* unbsi) const override;
     long long int dot(BsiVector<uword>* unbsi) const override;
     long long int dot_withoutCompression(BsiVector<uword>* unbsi) const override;
@@ -245,14 +250,16 @@ long BsiSigned<uword>::sumOfBsi() const{
 template <class uword>
 BsiVector<uword>* BsiSigned<uword>::SUM(BsiVector<uword>* a) {
     //return sum_Horizontal(a);
-    if (a->is_signed and a->twosComplement){
-        return this->SUMtwosComplement(a);
-    }else if(a->is_signed){
-        return this->SUMsignToMagnitude(a);
-    }
-    else{
-        return this->SUMunsigned(a);
-    }
+    // if (a->is_signed and a->twosComplement){
+    //     return this->SUMtwosComplement(a);
+    // }else if(a->is_signed){
+    //     return this->SUMsignToMagnitude(a);
+    // }
+    // else{
+    //     return this->SUMunsigned(a);
+    // }
+    if(a->is_signed) return this->SUMsigned(a);
+    return this->SUMunsigned(a);
 };
 
 
@@ -399,6 +406,20 @@ long BsiSigned<uword>::getValue(int pos) const{
         }
         return sum*sign;
     }
+};
+
+template <class uword>
+double BsiSigned<uword>::getValue_with_decimal(int pos) const{
+
+    double result;
+    long sum = getValue(pos);
+    if (this->decimals != 0) {
+        result = static_cast<double>(sum) / std::pow(10.0, this->decimals);
+    } else {
+        result = static_cast<double>(sum);
+    }
+
+    return result;
 };
 
 /*
@@ -651,6 +672,7 @@ BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
         res->firstSlice=this->firstSlice|a->firstSlice;
         res->existenceBitmap = a->existenceBitmap.Or(this->existenceBitmap);
         res->sign = res->bsi[res->numSlices - 1];
+        res->setDecimals(this->decimals);
         return res;
     }else {
         res->bsi.push_back(a->bsi[aIndex].Xor(this->bsi[thisIndex]));
@@ -700,6 +722,7 @@ BsiVector<uword>* BsiSigned<uword>::SUMunsigned(BsiVector<uword>* a)const{
         res->firstSlice=this->firstSlice|a->firstSlice;
         res->existenceBitmap = a->existenceBitmap.Or(this->existenceBitmap);
         res->sign = res->bsi[res->numSlices - 1];
+        res->setDecimals(this->decimals);
         return res;
     }
 };
@@ -713,14 +736,14 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a){
     
     HybridBitmap<uword> zeroBitmap;
     zeroBitmap.setSizeInBits(this->bsi[0].sizeInBits());
-    BsiVector<uword>* res = new BsiSigned();
+    BsiVector<uword>* res = new BsiSigned<uword>(std::max(this->numSlices + this->offset, a->numSlices + a->offset) + 1);
     res->twosComplement=true;
     res->setPartitionID(a->getPartitionID());
     
-    if (!a->twosComplement)
-        a->signMagnitudeToTwos(a->numSlices + 1); //plus one for the sign
-    if (!this->twosComplement)
-        this->signMagnitudeToTwos(this->numSlices + 1); //plus one for the sign
+    // if (!a->twosComplement)
+    //     a->signMagnitudeToTwos(a->numSlices + 1); //plus one for the sign
+    // if (!this->twosComplement)
+    //     this->signMagnitudeToTwos(this->numSlices + 1); //plus one for the sign
     
     int i = 0, s = a->numSlices, p = this->numSlices, aIndex=0, thisIndex=0;
     int minOffset = std::min(a->offset, this->offset);
@@ -729,22 +752,22 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a){
     if(this->offset>a->offset){
         for(int j=0;j<this->offset-minOffset; j++){
             if(j<a->numSlices)
-                res->bsi[res->numSlices]=a->bsi[aIndex];
+                res->bsi.push_back(a->bsi[aIndex]);
             else if(a->lastSlice)
-                res->bsi[res->numSlices]=a->sign; //sign extend if contains the sign slice
+                res->bsi.push_back(a->sign); //sign extend if contains the sign slice
             else
-                res->bsi[res->numSlices]=zeroBitmap;
+                res->bsi.push_back(zeroBitmap);
             aIndex++;
             res->numSlices++;
         }
     }else if(a->offset>this->offset){
         for(int j=0;j<a->offset-minOffset;j++){
             if(j<this->numSlices)
-                res->bsi[res->numSlices]=this->bsi[thisIndex];
+                res->bsi.push_back(this->bsi[thisIndex]);
             else if(this->lastSlice)
-                res->bsi[res->numSlices]=this->sign;
+                res->bsi.push_back(this->sign);
             else
-                res->bsi[res->numSlices]=zeroBitmap;
+                res->bsi.push_back(zeroBitmap);
             res->numSlices++;
             thisIndex++;
         }
@@ -759,51 +782,54 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a){
         for(int j=aIndex; j<a->numSlices; j++){
             if(this->lastSlice){ // operate with the sign slice if contains the last slice
                 if(j==aIndex){
-                    res->bsi[res->numSlices]=a->bsi[j].logicalxor(this->sign);
-                    CC=a->bsi[j].logicaland(this->sign);
+                    res->bsi.push_back(a->bsi[j].Xor(this->sign));
+                    CC=a->bsi[j].And(this->sign);
                     res->lastSlice=true;
                 }else{
-                    res->bsi[res->numSlices]=this->XOR(a->bsi[j], this->sign, CC);
+                    res->bsi.push_back(this->XOR(a->bsi[j], this->sign, CC));
                     CC=this->maj(a->bsi[j],this->sign,CC);
                 }
                 res->numSlices++;
             }else{
-                res->bsi[res->numSlices]=a->bsi[j];
+                res->bsi.push_back(a->bsi[j]);
                 res->numSlices++;}
         }
         //CC = NULL;
         for(int j=thisIndex; j<this->numSlices; j++){
             if(a->lastSlice){ // operate with the sign slice if contains the last slice
                 if(j==thisIndex){
-                    res->bsi[res->numSlices]=this->bsi[j].Xor(a->sign);
-                    CC=this->bsi[j].logicaland(a->sign);
+                    res->bsi.push_back(this->bsi[j].Xor(a->sign));
+                    CC=this->bsi[j].And(a->sign);
                     res->lastSlice=true;
                 }else{
-                    res->bsi[res->numSlices]=this->XOR(this->bsi[j], a->sign, CC);
+                    res->bsi.push_back(this->XOR(this->bsi[j], a->sign, CC));
                     CC=this->maj(this->bsi[j],a->sign,CC);
                 }
                 res->numSlices++;
             }else{
-                res->bsi[res->numSlices]=this->bsi[j];
+                res->bsi.push_back(this->bsi[j]);
                 res->numSlices++;}
         }
         
         res->lastSlice=this->lastSlice;
         res->firstSlice=this->firstSlice|a->firstSlice;
-        res->existenceBitmap = a->existenceBitmap.logicalor(this->existenceBitmap);
-        res->sign = &res->bsi[res->numSlices - 1];
+        res->existenceBitmap = a->existenceBitmap.Or(this->existenceBitmap);
+        res->sign = res->bsi[res->numSlices - 1];
+        res->setDecimals(this->decimals);
+        if (res->sign.density!=0) res->is_signed = true;
+        else res->is_signed = false;
         return res;
     }else {
         
-        res->bsi[res->numSlices] = this->bsi[thisIndex].logicalxor(a->bsi[aIndex]);
-        HybridBitmap<uword> C = this->bsi[thisIndex].logicaland(a->bsi[aIndex]);
+        res->bsi.push_back(this->bsi[thisIndex].Xor(a->bsi[aIndex]));
+        HybridBitmap<uword> C = this->bsi[thisIndex].And(a->bsi[aIndex]);
         res->numSlices++;
         thisIndex++;
         aIndex++;
         
         for(i=1; i<minSP; i++){
             //res.bsi[i] = this.bsi[i].xor(a.bsi[i].xor(C));
-            res->bsi[res->numSlices] = this->XOR(this->bsi[thisIndex], a->bsi[aIndex], C);
+            res->bsi.push_back(this->XOR(this->bsi[thisIndex], a->bsi[aIndex], C));
             //res.bsi[i] = this.bsi[i].xor(this.bsi[i], a.bsi[i], C);
             C= this->maj(this->bsi[thisIndex], a->bsi[aIndex], C);
             res->numSlices++;
@@ -814,39 +840,46 @@ BsiVector<uword>* BsiSigned<uword>::SUMsigned(BsiVector<uword>* a){
         if(s>p){
             for(i=p; i<s;i++){
                 if(this->lastSlice){
-                    res->bsi[res->numSlices] = this->XOR(a->bsi[aIndex], this->sign, C);
+                    res->bsi.push_back(this->XOR(a->bsi[aIndex], this->sign, C));
                     C = this->maj(a->bsi[aIndex], this->sign, C);
                     res->numSlices++;
                     aIndex++;}
-                res->bsi[res->numSlices] = a->bsi[aIndex].logicalxor(C);
-                C=a->bsi[aIndex].logicaland(C);
-                res->numSlices++;
-                aIndex++;
+                else {
+                    res->bsi.push_back(a->bsi[aIndex].Xor(C));
+                    C=a->bsi[aIndex].And(C);
+                    res->numSlices++;
+                    aIndex++;
+                }
             }
         }else{
             for(i=s; i<p;i++){
                 if(a->lastSlice){
-                    res->bsi[res->numSlices] = this->XOR(this->bsi[thisIndex], a->sign, C);
-                    C = this->maj(this->bsi[thisIndex], a->sign, C);
+                    res->bsi.push_back(this->XOR(this->bsi[thisIndex], a->sign, C));
+                    // C = this->maj(this->bsi[thisIndex], a->sign, C);
+                    C = ((this->bsi[thisIndex].And(a->sign)).Or(C.And(a->sign))).Or(this->bsi[thisIndex].And(C));
                     res->numSlices++;
                     thisIndex++;}
                 else{
-                    res->bsi[res->numSlices] = this->bsi[thisIndex].Xor(C);
-                    C = this->bsi[thisIndex].logicaland(C);
+                    res->bsi.push_back(this->bsi[thisIndex].Xor(C));
+                    C = this->bsi[thisIndex].And(C);
                     res->numSlices++;
                     thisIndex++;}
             }
         }
         
         if(!this->lastSlice&&!a->lastSlice && C.numberOfOnes()>0){
-            res->bsi[res->numSlices]= C;
+            res->bsi.push_back(C);
             res->numSlices++;
         }
-        res->sign = this->sign;
-        res->existenceBitmap = this->existenceBitmap.logicalor(a->existenceBitmap);
+
+        res->sign = res->bsi[res->numSlices - 1];//this->sign;
+        res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
         res->lastSlice=a->lastSlice;
         res->firstSlice=this->firstSlice|a->firstSlice;
         res->setNumberOfRows(this->getNumberOfRows());
+        res->setDecimals(this->decimals);
+        if (res->sign.density!=0) res->is_signed = true;
+        else res->is_signed = false;
         return res;
     }
 };
@@ -2213,9 +2246,14 @@ long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) 
     return res;
     }
 
+template <class uword>
+BsiVector<uword>* BsiSigned<uword>::multiply_bsi(BsiVector<uword> *unbsi) const {
+    if (!unbsi->is_signed) return this->multiplyBSI(unbsi);
+    return this->multiplyBSI_Signed(unbsi);
+};
 
 template <class uword>
-BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
+BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const {
     BsiVector<uword>* res = nullptr;
     HybridBitmap<uword> C, S, FS, DS;
     int k = 0;
@@ -2235,7 +2273,7 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
         FS = a->bsi[it].And(S);
         //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
         res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
-        
+
         for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
             if ((i + k) < res->numSlices){
                 //A = res->bsi[i + k];
@@ -2246,7 +2284,7 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
                 S.XorInPlace(C);
                 //C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
                 C.majInPlace(res->bsi[i + k],this->bsi[i]);
-                
+
             } else {
                 S=this->bsi[i];
                 //S = S.Xor(C);
@@ -2277,8 +2315,80 @@ BsiVector<uword>* BsiSigned<uword>::multiplyBSI(BsiVector<uword> *a) const{
         }
         k++;
     }
-    
-    
+
+
+    res->existenceBitmap = this->existenceBitmap;
+    res->rows = this->rows;
+    res->index = this->index;
+    res->sign = this->sign.Xor(a->sign);
+    res->is_signed = true;
+    res->twosComplement = false;
+    return res;
+};
+
+template <class uword>
+BsiVector<uword>* BsiSigned<uword>::multiplyBSI_Signed(BsiVector<uword> *a) const {
+    BsiVector<uword>* res = nullptr;
+    HybridBitmap<uword> C, S, FS, DS;
+    int k = 0;
+    res = new BsiSigned<uword>();
+    res->offset = k;
+    for (int i = 0; i < this->numSlices; i++) {
+        res->bsi.push_back(a->bsi[0].And(this->bsi[i]));
+    }
+    res->numSlices = this->numSlices;
+    k = 1;
+    for (int it=1; it<a->numSlices; it++) {
+        /* Move the slices of res k positions */
+        S=res->bsi[k];
+        //S = S.Xor(this->bsi[0]);
+        S.XorInPlace(this->bsi[0]);
+        C = res->bsi[k].And(this->bsi[0]);
+        FS = a->bsi[it].And(S);
+        //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+        res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
+
+        for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
+            if ((i + k) < res->numSlices){
+                //A = res->bsi[i + k];
+                S = res->bsi[i + k];
+                //S = S.Xor(this->bsi[i]);
+                //S = S.Xor(C);
+                S.XorInPlace(this->bsi[i]);
+                S.XorInPlace(C);
+                //C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
+                C.majInPlace(res->bsi[i + k],this->bsi[i]);
+
+            } else {
+                S=this->bsi[i];
+                //S = S.Xor(C);
+                //C = C.And(this->bsi[i]);
+                S.XorInPlace(C);
+                C.AndInPlace(this->bsi[i]);
+                res->numSlices++;
+                FS = a->bsi[it].And(S);
+                res->bsi.push_back(FS);
+            }
+            FS = a->bsi[it].And(S);
+            //res->bsi[i + k] = res->bsi[i + k].andNot(a->bsi[it]).Or(a->bsi[it].And(FS)); // shifting operation
+            res->bsi[i+k].selectMultiplicationInPlace(a->bsi[it],FS);
+        }
+        for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
+            S = res->bsi[i];
+            //S = S.Xor(C);
+            //C = C.And(res->bsi[i]);
+            S.XorInPlace(C);
+            C.AndInPlace(res->bsi[i]);
+            FS = a->bsi[it].And(S);
+            //res->bsi[k] = a->bsi[it].Not().And(res->bsi[k]).Or(a->bsi[it].And(FS)); // shifting operation
+            res->bsi[k].selectMultiplicationInPlace(a->bsi[it],FS);
+        }
+        if (C.numberOfOnes() > 0) {
+            res->bsi.push_back(a->bsi[it].And(C)); // Carry bit
+            res->numSlices++;
+        }
+        k++;
+    }
     res->existenceBitmap = this->existenceBitmap;
     res->rows = this->rows;
     res->index = this->index;
