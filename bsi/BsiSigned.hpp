@@ -1086,16 +1086,52 @@ void  BsiSigned<uword>::twosToSignMagnitude(BsiVector<uword>* a) const{
 /*
  *  negate the sign bit
  */
+// template <class uword>
+// BsiVector<uword>* BsiSigned<uword>::negate(){
+//     BsiVector<uword>* res = new BsiSigned<uword>();
+//     res->bsi = this->bsi;
+//     res->sign = this->sign.Not();
+//     res->is_signed = true;
+//     res->twosComplement = false;
+//     res->setNumberOfRows(this->getNumberOfRows());
+//     return res;
+// };
+
 template <class uword>
-BsiVector<uword>* BsiSigned<uword>::negate(){
-    BsiVector<uword>* res = new BsiSigned<uword>();
-    res->bsi = this->bsi;
-    res->sign = this->sign.Not();
-    res->is_signed = true;
-    res->twosComplement = false;
+BsiVector<uword>* BsiSigned<uword>::negate() {
+    HybridBitmap<uword> onesBitmap;
+    onesBitmap.setSizeInBits(this->bsi[0].sizeInBits(), true);
+    onesBitmap.setSizeInBits(this->bsi[0].sizeInBits());
+    onesBitmap.density = 1;
+
+    int signSliceSize = this->firstSlice ? 2 : 1;
+
+    BsiSigned<uword>* res = new BsiSigned<uword>(this->getNumberOfSlices() + signSliceSize);
+
+    // Step 4: Invert all bit slices
+    for (int i = 0; i < this->getNumberOfSlices(); ++i) {
+        res->bsi.push_back(this->bsi[i].Not());  // Bitwise NOT
+        res->numSlices++;
+    }
+
+    res->addSlice(this->bsi[this->getNumberOfSlices()-1].Not());
+
+    if (this->firstSlice) {
+        res->addOneSliceNoSignExt(onesBitmap);
+    }
+
+    res->existenceBitmap = this->existenceBitmap;
+    res->setPartitionID(this->getPartitionID());
+    res->sign = res->bsi[res->numSlices - 1];
     res->setNumberOfRows(this->getNumberOfRows());
+    if (res->sign.density != 0) res->is_signed = true;
+    else res->is_signed = false;
+    res->firstSlice = this->firstSlice;
+    res->lastSlice = this->lastSlice;
+    res->setTwosFlag(true);
+    res->decimals = this->decimals;
     return res;
-};
+}
 
 
 /**

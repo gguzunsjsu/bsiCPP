@@ -66,8 +66,8 @@ void SUM_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
 
 template<typename T>
 void SUM_test_dec(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
-                       const std::vector<double>& normal_sum, int vector_length, const std::string& label = "", bool debug = true, bool decimal = false) {
-    double epsilon = 1e-9;
+                       const std::vector<double>& normal_sum, int vector_length, const std::string& label = "", bool debug = true, bool decimal = false, double epsilon = 1e-9) {
+    // double epsilon = 1e-9;
     std::cout << "\nBSI Decimal Sum: " << label << " \n";
     auto t_sum = std::chrono::high_resolution_clock::now();
     BsiVector<T>* bsi_sum = bsi_one->SUM(bsi_two);
@@ -102,6 +102,24 @@ void negate_test(BsiVector<T>* bsi_one, const std::vector<long>& normal_neg, int
 }
 
 template<typename T>
+void negate_test_dec(BsiVector<T>* bsi_one, const std::vector<double>& normal_neg, int vector_length, const std::string& label = "", bool debug = true, double epsilon = 1e-9) {
+    std::cout << "\nBSI Decimal negate: "  << label << " \n";
+    auto t_neg = std::chrono::high_resolution_clock::now();
+    BsiVector<uint64_t>* bsi_neg = bsi_one->negate();
+    auto t_neg2 = std::chrono::high_resolution_clock::now();
+    if (debug) std::cout << "BSI negation time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_neg2 - t_neg).count() << "us\n";
+    int count = 0;
+    for (int i = 0; i < vector_length; ++i)
+        if ((std::fabs(bsi_neg->getValue_with_decimal(i) - normal_neg[i]) > epsilon) && debug) {
+            std::cout << "Mismatch negate [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
+            count += 1;
+        }
+
+    if (count == 0) std::cout << "PASS !!\n";
+    if (!debug && count != 0) std::cout << "FAIL\n";
+}
+
+template<typename T>
 void multiply_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two, const std::vector<long>& normal_mul, int vector_length, const std::string& label = "", bool debug = true) {
     std::cout << "\nBSI multiply: "  << label << " \n";
     auto t_mul = std::chrono::high_resolution_clock::now();
@@ -124,9 +142,10 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
     int range = 10000;
-    int vector_length = 1; // keep small for verbose checks (set higher for performance tests)
+    int vector_length = 100; // keep small for verbose checks (set higher for performance tests)
     double alpha = 1.0;
     bool debug = true;
+    double epsilon = 1e-9;
 
     std::vector<long> one(vector_length), two(vector_length), one_signed(vector_length), two_signed(vector_length);
     std::vector<double> one_dec(vector_length), two_dec(vector_length), one_dec_signed(vector_length), two_dec_signed(vector_length);
@@ -157,7 +176,7 @@ int main() {
                         signed_sum(vector_length), signed_mul(vector_length), signed_neg(vector_length),
                         mixed_sum_signed_plus_unsigned(vector_length), mixed_sum_unsigned_plus_signed(vector_length),
                         mixed_mul_signed_unsigned(vector_length), mixed_mul_unsigned_signed(vector_length);
-    std::vector<double> normal_sum_d(vector_length), normal_mul_d(vector_length), normal_neg_d(vector_length), signed_sum_d(vector_length),
+    std::vector<double> normal_sum_d(vector_length), normal_mul_d(vector_length), normal_neg_d(vector_length), signed_neg_d(vector_length), signed_sum_d(vector_length),
                         mixed_sum_d_signed_plus_unsigned(vector_length), mixed_sum_d_unsigned_plus_signed(vector_length);
 
     // Plain arithmetic results
@@ -180,12 +199,14 @@ int main() {
         normal_neg[i] = -one[i];
         signed_neg[i] = -one_signed[i];
 
+        normal_neg_d[i] = -one_dec[i];
+        signed_neg_d[i] = -one_dec_signed[i];
+
         normal_mulc[i] = one[i] * constant;
 
         normal_div[i] = (two[i] != 0) ? (double)one[i] / two[i] : 0;
 
         normal_mul_d[i] = one_dec[i] * two[i];
-        normal_neg_d[i] = -one_dec[i];
         normal_div_d[i] = (two[i] != 0) ? one_dec[i] / two[i] : 0;
     }
 
@@ -250,15 +271,18 @@ int main() {
     // SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
     // SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
 
-    // SUM_test_dec(bsi_one_dec, bsi_two_dec, normal_sum_d, vector_length, "unsigned + unsigned", debug);
-    // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec, mixed_sum_d_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
-    // SUM_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
-    SUM_test_dec(bsi_one_dec_signed, bsi_two_dec_signed, signed_sum_d, vector_length, "signed + signed", debug);
+    // SUM_test_dec(bsi_one_dec, bsi_two_dec, normal_sum_d, vector_length, "unsigned + unsigned", debug, epsilon);
+    // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec, mixed_sum_d_signed_plus_unsigned, vector_length, "signed + unsigned", debug, epsilon);
+    // SUM_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "unsigned + signed", debug, epsilon);
+    // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec_signed, signed_sum_d, vector_length, "signed + signed", debug, epsilon);
 
 
     // ==== Negation ====
-    // negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
-    // negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
+    negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
+    negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
+
+    negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
+    negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
 
     return 0;
 }
