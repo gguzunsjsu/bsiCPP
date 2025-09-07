@@ -1458,11 +1458,12 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyWithBSI(BsiUnsigned &unbsi) const{
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::multiply_bsi(BsiVector<uword> *unbsi) const {
     if (!unbsi->is_signed) return this->multiplyBSI(unbsi);
-    // return this->multiplyBSI_Signed(unbsi);
+    return this->multiplyBSI_Signed(unbsi);
 };
 
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const {
+    std::cout << "START:" << "\n";
     BsiUnsigned<uword>* res = nullptr;
     HybridBitmap<uword> C, S, FS, DS;
     int k = 0;
@@ -1480,21 +1481,21 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
         // A = res->bsi[k];
         // B = this->bsi[0];
         S=res->bsi[k];
-        S.XorInPlace(this->bsi[0]);
+        S = S.Xor(this->bsi[0]);
         C = res->bsi[k].And(this->bsi[0]);
         FS = unbsi->bsi[it].And(S);
-        // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+        // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
         // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
         // res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
         res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
-
+        // int res_slices = res->numSlices;
         for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
             // B = this->bsi[i];
             if ((i + k) < res->numSlices){
                 // A = res->bsi[i + k];
                 S=res->bsi[i + k];
-                S.XorInPlace(this->bsi[i]);
-                S.XorInPlace(C);
+                S = S.Xor(this->bsi[i]);
+                S = S.Xor(C);
                 // C = res->bsi[i + k].maj(this->bsi[i], C);
                 // C.majInPlace(res->bsi[i + k],this->bsi[i]);
                 // C = A.And(B).Or(B.And(C)).Or(A.And(C));
@@ -1502,8 +1503,8 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
 
             } else {
                 S=this->bsi[i];
-                S.XorInPlace(C);
-                C.AndInPlace(this->bsi[i]);
+                S = S.Xor(C);
+                C = C.And(this->bsi[i]);
                 //                C = this->bsi[i].And(C);
                 res->numSlices++;
                 FS = unbsi->bsi[it].And(S);
@@ -1515,12 +1516,13 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
             // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
             res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
+            std::cout << "it: " << it <<  "  i+k:" << i+k << "\n";
 
         }
         for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
             S = res->bsi[i];
-            S.XorInPlace(C);
-            C.AndInPlace(res->bsi[i]);
+            S = S.Xor(C);
+            C = C.And(res->bsi[i]);
             // C = res->bsi[i].And(C);
             FS = unbsi->bsi[it].And(S);
             // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
@@ -1528,6 +1530,7 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
             // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
         }
+        int c = C.numberOfOnes();
         if (C.numberOfOnes() > 0) {
             res->bsi.push_back(unbsi->bsi[it].And(C)); // Carry bit
             res->numSlices++;
@@ -1536,8 +1539,11 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
     }
 
     res->existenceBitmap = this->existenceBitmap;
-    res->rows = this->rows;
+    res->setNumberOfRows(this->getNumberOfRows());
     res->index = this->index;
+    res->decimals = this->decimals + unbsi->decimals;
+    res->lastSlice=this->lastSlice;
+    res->firstSlice=unbsi->firstSlice|this->firstSlice;
     return res;
 };
 

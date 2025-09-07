@@ -3578,7 +3578,7 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
     container.density= (density+a.density)-(density*a.density);
     //    container.sizeinbits=this.sizeinbits;
     if (density==0 || a.density==0) { //if one of the bitmaps is all zeros
-        if (a.density==0) {
+        if (density==0) {
             container = a;
         }else {
             container = *this;
@@ -3650,9 +3650,9 @@ void HybridBitmap<uword>::Xor(const HybridBitmap &a, HybridBitmap &container) co
         }
     }else if (a.density==1 || density==1) {
         if (a.density==1) {
-            container = logicalnot();
+            container = Not();
         }else {
-            container = a.logicalnot();
+            container = a.Not();
         }
     }
     else if (verbatim && a.verbatim) {
