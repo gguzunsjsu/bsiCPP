@@ -185,8 +185,8 @@ public:
    * followed by how many literal words?
    */
   uword getNumberOfLiteralWords() const {
-    return static_cast<uword>(
-        mydata >> (1 + RunningLengthWord<uword>::runninglengthbits));
+    //uint32_t testrunninglengthbits = RunningLengthWord<uword>::runninglengthbits;
+    return static_cast<uword>( mydata >> (1 + RunningLengthWord<uword>::runninglengthbits));
   }
 
   /**

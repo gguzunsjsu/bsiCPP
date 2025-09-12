@@ -3204,6 +3204,7 @@ void HybridBitmap<uword>::And(const HybridBitmap &a, HybridBitmap &container) co
     ////            container.density=container.cardinality();
     ////        container.age=0;
     ////        }
+    container.sizeinbits = sizeinbits;
 
 }
 
@@ -3409,6 +3410,7 @@ void HybridBitmap<uword>::andNot(const HybridBitmap &a, HybridBitmap &container)
     //            container.density=container.cardinality();
     //        container.age=0;
     //        }
+    container.sizeinbits = sizeinbits;
 }
 
 
@@ -3568,8 +3570,7 @@ void HybridBitmap<uword>::andVerbatimCompress(const HybridBitmap &a, HybridBitma
     for (int i = 0; i < buffer.size(); i++) {
         container.addWord(buffer[i] & a.buffer[i]);
     }
-
-
+    container.sizeinbits = sizeinbits;
 }
 
 template <class uword>
@@ -3618,6 +3619,7 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
     //            container.density=container.cardinality();
     //        container.age=0;
     //        }
+    container.sizeinbits = sizeinbits;
 
 }
 
@@ -3630,8 +3632,8 @@ void HybridBitmap<uword>::orVerbatimCompress(const HybridBitmap &a, HybridBitmap
 
     for (int i = 0; i < buffer.size(); i++) {
         container.addWord(buffer[i] | a.buffer[i]);
-
     }
+    container.sizeinbits = sizeinbits;
 }
 
 template <class uword>
@@ -3669,6 +3671,7 @@ void HybridBitmap<uword>::Xor(const HybridBitmap &a, HybridBitmap &container) co
 
         }
     }
+    container.sizeinbits = sizeinbits;
     //        container.age = Math.max(this.age, a.age)+1;
     //        if(container.age>20){
     //            container.density=container.cardinality();
@@ -3777,6 +3780,7 @@ void HybridBitmap<uword>::xorNot(const HybridBitmap &a, HybridBitmap &container)
 //			container.density=container.cardinality();
 //		container.age=0;
 //		}
+    container.sizeinbits = sizeinbits;
 
 }
 template <class uword>
@@ -4361,7 +4365,8 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
     int runLength=0;
 
     if (verbatim) { // this is verbatim
-        container.buffer.reserve(bufferSize());
+        //container.buffer.reserve(bufferSize());
+        container.buffer= this->buffer;
         ConstRunningLengthWord<uword>  rlwa(a.buffer[0]);
         size_t lastrlwa = 0;
 
@@ -4390,9 +4395,20 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
             rlwa = (a.buffer[lastrlwa]);
         }
     } else { // a is verbatim
-        container.buffer.reserve(a.bufferSize());
+        //container.buffer.reserve(a.bufferSize());
+        container.buffer= a.buffer;
         ConstRunningLengthWord<uword>  rlw(buffer[0]);
         size_t lastrlw = 0;
+        int nbre_literal=0;
+        int runlen =0;
+
+        if (rlw.getNumberOfLiteralWords()>2) {
+           nbre_literal  = rlw.getNumberOfLiteralWords();
+
+        }
+        if (rlw.getRunningLength()>2) {
+         runlen  = rlw.getRunningLength();
+        }
 
         while (i < a.bufferSize()) {
             runLength=rlw.getRunningLength();
@@ -4408,8 +4424,8 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
                     i++;
                 }
             }
-
-            for( j=0; j<rlw.getNumberOfLiteralWords(); j++){
+            nbre_literal=rlw.getNumberOfLiteralWords();
+            for( j=0; j<nbre_literal; j++){
                 container.buffer.push_back(a.buffer[i] | buffer[lastrlw+j+1]);
                 i++;
             }
@@ -4539,7 +4555,8 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
 
 
     if (verbatim) { // this is verbatim
-        container.buffer.reserve(bufferSize());
+        //container.buffer.reserve(bufferSize());
+        container.buffer = this->buffer;
         size_t pos=0;
         ConstRunningLengthWord<uword> rlwa(a.buffer[0]);
         size_t lastrlwa = 0;
@@ -4574,7 +4591,8 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
 
         }
     } else { // a is verbatim
-        container.buffer.reserve(a.bufferSize());
+       // container.buffer.reserve(a.bufferSize());
+        container.buffer = a.buffer;
         size_t pos = 0;
         ConstRunningLengthWord<uword> rlw(buffer[0]);
         size_t lastrlw = 0;

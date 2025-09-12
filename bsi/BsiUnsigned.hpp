@@ -1467,7 +1467,7 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
     BsiUnsigned<uword>* res = nullptr;
     HybridBitmap<uword> C, S, FS, DS;
     int k = 0;
-    res = new BsiUnsigned<uword>();
+    res = new BsiUnsigned<uword>(); //add size for res
     res->offset = k;
     for (int i = 0; i < this->numSlices; i++) {
         res->bsi.push_back(unbsi->bsi[0].And(this->bsi[i]));
@@ -1516,7 +1516,7 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
             // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
             res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
-            std::cout << "it: " << it <<  "  i+k:" << i+k << "\n";
+          //  std::cout << "it: " << it <<  "  i+k:" << i+k << "\n";
 
         }
         for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C

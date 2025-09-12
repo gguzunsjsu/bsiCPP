@@ -260,7 +260,7 @@ int main() {
     std::cout << "Time to build BSI vectors: " << std::chrono::duration_cast<std::chrono::microseconds>(t_bsi_build2 - t_bsi_build).count() << "us\n";
 
     // ==== Multiplication ====
-    // multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
+    multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
     // multiply_test(bsi_one_signed, bsi_two, mixed_mul_signed_unsigned, vector_length, "signed * unsigned", debug);
     // multiply_test(bsi_one, bsi_two_signed, mixed_mul_unsigned_signed, vector_length, "unsigned * signed", debug);
     // multiply_test(bsi_one_signed, bsi_two_signed, signed_mul, vector_length, "signed * signed", debug);
@@ -278,11 +278,11 @@ int main() {
 
 
     // ==== Negation ====
-    negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
-    negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
-
-    negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
-    negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
+    // negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
+    // negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
+    //
+    // negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
+    // negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
 
     return 0;
 }

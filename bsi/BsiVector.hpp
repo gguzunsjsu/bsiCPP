@@ -482,7 +482,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         for(int i=0; i<=slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
-            if(compressRatio<compressThreshold && compressRatio!=0 ){
+            if(compressRatio<compressThreshold ){ // removed  && compressRatio!=0
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
                 for(int j=1; j<bitSlices[i].size()-1; j++){
@@ -531,7 +531,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         for(int i=0; i<slices+2; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
-            if(compressRatio<compressThreshold && compressRatio!=0 ){
+            if(compressRatio<compressThreshold ){ // removed && compressRatio!=0
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
                 for(int j=1; j<bitSlices[i].size()-1; j++){
