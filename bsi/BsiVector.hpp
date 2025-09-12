@@ -18,6 +18,7 @@
 #include <bitset>
 #include <algorithm>
 #include <thread>
+#include <bit>
 
 
 template <class uword = uint64_t> class BsiUnsigned;
@@ -47,7 +48,8 @@ public:
     /*
     * Member functions
     */
-        
+
+    void setDecimals(int n);
     bool isLastSlice() const;
     void setLastSliceFlag(bool flag);
     
@@ -99,11 +101,15 @@ public:
 
     virtual long getValue(int pos)const=0;
 
+    virtual double getValue_with_decimal(int pos) const = 0;
+
+
     virtual HybridBitmap<uword> rangeBetween(long lowerBound, long upperBound)=0;
     virtual BsiVector<uword>* multiplyByConstantNew(int number)const=0;
     virtual BsiVector<uword>* multiplyByConstant(int number)const=0;
     virtual BsiVector<uword>* multiplication(BsiVector<uword> *a)const=0;
     virtual BsiVector<uword>* multiplication_array(BsiVector<uword> *a)const=0;
+    virtual BsiVector<uword>* multiply_bsi(BsiVector<uword> *a) const=0;
     virtual BsiVector<uword>* multiplyBSI(BsiVector<uword> *a) const=0;
     virtual BsiVector<uword>*  multiplyWithBsiHorizontal(const BsiVector<uword> *unbsi, int precision) const=0;
     virtual BsiVector<uword>*  multiplyWithBsiHorizontal(const BsiVector<uword> *unbsi) const=0;
@@ -225,6 +231,10 @@ template <class uword>
 BsiVector<uword>::~BsiVector(){
 };
 
+template <class uword>
+void BsiVector<uword>::setDecimals(int n){
+    decimals=n;
+};
 
 template <class uword>
 bool BsiVector<uword>::isLastSlice() const{
@@ -465,12 +475,13 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         min = std::min(min, nums[count]);
     }
 
-    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
+    int slices =  std::bit_width(static_cast<unsigned long>(std::max(std::abs(min), std::abs(max))));
+    std::cout << "Slices: " << slices << std::endl;
 
     if (min < 0) {
-        BsiVector<uword>* res = new BsiSigned<uword>(slices+1);
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+1,numberOfElements);
-        for(int i=0; i<=slices; i++){
+        BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+2,numberOfElements);
+        for(int i=0; i<=slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
@@ -513,13 +524,13 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 
     }else {
         //int slices = std::__bit_width(max);
-        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices);
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+2);
 
 
         //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices,numberOfElements);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+2,numberOfElements);
 
-        for(int i=0; i<slices; i++){
+        for(int i=0; i<slices+2; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
@@ -561,9 +572,9 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
         res->existenceBitmap.density = 1;
         res->firstSlice=true;
-        //res->twosComplement = false;
+        res->twosComplement = false;
         res->rows = numberOfElements;
-        //res->is_signed = true;
+        res->is_signed = false;
         return res;
     }
 };
@@ -591,12 +602,12 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         min = std::min(min,  nums_long[it]);
     }
 
-    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
+    int slices =  std::bit_width(static_cast<unsigned long>(std::max(std::abs(min), std::abs(max))));
 
     if (min < 0) {
-        BsiVector<uword>* res = new BsiSigned<uword>(slices+1);
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums_long,slices+1,numberOfElements);
-        for(int i=0; i<=slices; i++){
+        BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums_long,slices+2,numberOfElements);
+        for(int i=0; i<=slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
@@ -635,17 +646,18 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         res->existenceBitmap.addStreamOfEmptyWords(true,wholeWords);
         res->existenceBitmap.addVerbatim(~(uword)0, numberOfElements-(wholeWords*bits)); res->lastSlice=true;
         res->existenceBitmap.density = 1;
+        res->decimals = decimalPlaces;
         return res;
 
     }else {
         //int slices = std::__bit_width(max);
-        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices);
+        BsiUnsigned<uword>* res = new BsiUnsigned<uword>(slices+2);
 
 
         //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
-        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums_long,slices,numberOfElements);
+        std::vector< std::vector< uword > > bitSlices = bringTheBits(nums_long,slices+2,numberOfElements);
 
-        for(int i=0; i<slices; i++){
+        for(int i=0; i<slices+2; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
@@ -690,6 +702,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         //res->twosComplement = false;
         res->rows = numberOfElements;
         //res->is_signed = true;
+        res->decimals = decimalPlaces;
         return res;
     }
 };
