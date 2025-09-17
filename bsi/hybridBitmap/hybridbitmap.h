@@ -4396,8 +4396,8 @@ void HybridBitmap<uword>::orHybrid(const HybridBitmap &a, HybridBitmap &containe
             rlwa = (a.buffer[lastrlwa]);
         }
     } else { // a is verbatim
-        //container.buffer.reserve(a.bufferSize());
-        container.buffer= a.buffer;
+        container.buffer.reserve(a.bufferSize());
+
         ConstRunningLengthWord<uword>  rlw(buffer[0]);
         size_t lastrlw = 0;
         int nbre_literal=0;
@@ -4592,8 +4592,7 @@ void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &contain
 
         }
     } else { // a is verbatim
-       // container.buffer.reserve(a.bufferSize());
-        container.buffer = a.buffer;
+        container.buffer.reserve(a.bufferSize());
         size_t pos = 0;
         ConstRunningLengthWord<uword> rlw(buffer[0]);
         size_t lastrlw = 0;
