@@ -430,12 +430,14 @@ public:
 
     HybridBitmap And(const HybridBitmap &a) const {
         HybridBitmap answer;
+        // answer.reset();
         And(a, answer);
         return answer;
     }
 
     HybridBitmap Or(const HybridBitmap &a) const {
         HybridBitmap answer;
+        // answer.reset();
         Or(a, answer);
         return answer;
     }
@@ -448,12 +450,14 @@ public:
     }
     HybridBitmap Xor(const HybridBitmap &a) const {
         HybridBitmap answer;
+        // answer.reset();
         Xor(a, answer);
         return answer;
     }
 
     HybridBitmap xorNot(const HybridBitmap &a) const {
         HybridBitmap answer;
+        // answer.reset();
         xorNot(a, answer);
         return answer;
     }
@@ -601,6 +605,7 @@ public:
 
     HybridBitmap Not()const {
         HybridBitmap container;
+        // container.reset();
         container = logicalnot();
         return container;
     }
@@ -680,6 +685,7 @@ public:
      */
     HybridBitmap andNot(const HybridBitmap &a) const {
         HybridBitmap answer;
+        // answer.reset();
         andNot(a, answer);
         return answer;
     }
@@ -3357,11 +3363,13 @@ void HybridBitmap<uword>::logicalandInPlace(const HybridBitmap &a ){
 
 template <class uword>
 void HybridBitmap<uword>::andNotVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const {
+    // container.reset();
     container.buffer.reserve(bufferSize());
     container.verbatim = false;
     container.density=density*(1-a.density);
     for (int i = 0; i < bufferSize(); i++) {
         container.add(buffer[i] & ~a.buffer[i]);
+        // container.buffer.push_back(buffer[i] & ~a.buffer[i]);
     }
 
 }
@@ -3380,11 +3388,9 @@ void HybridBitmap<uword>::andNot(const HybridBitmap &a, HybridBitmap &container)
                 container.setSizeInBits(sizeinbits,false);
                 container.density=0;
             }else{
-                container.reset();
                 andNotVerbatimCompress(a, container);    }
 
         }else{
-            container.reset();
             andNotVerbatim(a, container);
 
         }
@@ -3394,9 +3400,10 @@ void HybridBitmap<uword>::andNot(const HybridBitmap &a, HybridBitmap &container)
             container.verbatim=false;
             //container.addStreamOfEmptyWords(false, (this.sizeinbits>>>6));
             container.setSizeInBits(sizeinbits,false);
-        }else{
-            andNotHybridCompress(a, container);}
-
+        }else {
+            // andNotHybridCompress(a, container);
+            andNotHybrid(a, container);
+        }
     }else{
         if(density==0){
             container.verbatim=false;
@@ -4239,11 +4246,13 @@ void HybridBitmap<uword>::andHybrid(const HybridBitmap &a, HybridBitmap &contain
 
 template <class uword>
 void HybridBitmap<uword>::andNotVerbatim(const HybridBitmap &a, HybridBitmap &container)const{
-    container.buffer.resize(bufferSize());
+    container.reset();
+    // container.buffer.resize(bufferSize());
+    container.buffer.reserve(bufferSize());
     container.verbatim = true;
     container.density=density*(1-a.density);
     for (int i = 0; i < bufferSize(); i++) {
-        container.buffer[i] = (buffer[i] & (~a.buffer[i]));
+        container.buffer.push_back(buffer[i] & (~a.buffer[i]));
     }
     //container.actualsizeinwords = this.actualsizeinwords;
     //container.sizeinbits = this.actualsizeinwords <<6;
@@ -4255,6 +4264,7 @@ void HybridBitmap<uword>::andNotVerbatim(const HybridBitmap &a, HybridBitmap &co
 
 template <class uword>
 void HybridBitmap<uword>::andNotHybrid(const HybridBitmap &a, HybridBitmap &container)const {
+    container.reset();
     container.verbatim = true;
     int j = 0;
     int i = 0;
@@ -4312,7 +4322,7 @@ void HybridBitmap<uword>::andNotHybrid(const HybridBitmap &a, HybridBitmap &cont
                 //container.addStreamOfEmptyWords(false, a.rlw.getRunningLength());
                 for (int i = 0; i < a.bufferSize(); i++) {
                     container.buffer.push_back(0);
-                    i++;
+                    // i++;
                 }
                 //std::fill(container.buffer.begin()+i,container.buffer.begin()+i+runLength,0);
                 //Arrays.fill(container.buffer, i, i+runLength, 0);

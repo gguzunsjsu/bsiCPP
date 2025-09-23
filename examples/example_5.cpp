@@ -259,6 +259,15 @@ int main() {
     auto t_bsi_build2 = std::chrono::high_resolution_clock::now();
     std::cout << "Time to build BSI vectors: " << std::chrono::duration_cast<std::chrono::microseconds>(t_bsi_build2 - t_bsi_build).count() << "us\n";
 
+    HybridBitmap<uint64_t> A, B, C, D;
+    // A = bsi_one->bsi[0].And(bsi_two->bsi[14]);
+    //
+    // B = bsi_one->bsi[0].Or(bsi_two->bsi[14]);
+    //
+    // C = bsi_one->bsi[0].Xor(bsi_two->bsi[14]);
+    // D = bsi_one->bsi[0].andNot(bsi_two->bsi[14]);
+    // D = bsi_one->bsi[14].andNot(bsi_two->bsi[0]);
+
     // ==== Multiplication ====
     multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
     // multiply_test(bsi_one_signed, bsi_two, mixed_mul_signed_unsigned, vector_length, "signed * unsigned", debug);
