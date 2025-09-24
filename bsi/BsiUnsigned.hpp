@@ -1516,12 +1516,12 @@ BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const
             // res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
             // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
             // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
-            HybridBitmap<uword> A, B, C1;
-            A = unbsi->bsi[it].And(FS);
-            B = res->bsi[i + k].andNot(unbsi->bsi[it]);
-            C1 = B.Or(A);
+            // HybridBitmap<uword> A, B, C1;
+            // A = unbsi->bsi[it].And(FS);
+            // B = res->bsi[i + k].andNot(unbsi->bsi[it]);
+            // C1 = B.Or(A);
 
-            res->bsi[i + k] = C1;// res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
+            res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
           //  std::cout << "it: " << it <<  "  i+k:" << i+k << "\n";
 
         }

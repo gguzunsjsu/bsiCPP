@@ -141,7 +141,7 @@ void multiply_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two, const std::vect
 int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    int range = 10000;
+    int range = 1000;
     int vector_length = 100; // keep small for verbose checks (set higher for performance tests)
     double alpha = 1.0;
     bool debug = true;
@@ -259,17 +259,19 @@ int main() {
     auto t_bsi_build2 = std::chrono::high_resolution_clock::now();
     std::cout << "Time to build BSI vectors: " << std::chrono::duration_cast<std::chrono::microseconds>(t_bsi_build2 - t_bsi_build).count() << "us\n";
 
-    HybridBitmap<uint64_t> A, B, C, D;
-    // A = bsi_one->bsi[0].And(bsi_two->bsi[14]);
+    // HybridBitmap<uint64_t> A, B, C, D;
+    // int x = bsi_two->numSlices;
+    // A = bsi_one->bsi[0].And(bsi_two->bsi[x-1]);
     //
-    // B = bsi_one->bsi[0].Or(bsi_two->bsi[14]);
+    // B = bsi_one->bsi[0].Or(bsi_two->bsi[x-1]);
     //
-    // C = bsi_one->bsi[0].Xor(bsi_two->bsi[14]);
-    // D = bsi_one->bsi[0].andNot(bsi_two->bsi[14]);
-    // D = bsi_one->bsi[14].andNot(bsi_two->bsi[0]);
+    // C = bsi_one->bsi[0].Xor(bsi_two->bsi[x-1]);
+    //
+    // // D = bsi_one->bsi[0].andNot(bsi_two->bsi[x-1]);
+    // D = bsi_two->bsi[x-1].andNot(bsi_one->bsi[0]);
 
     // ==== Multiplication ====
-    multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
+    // multiply_test(bsi_one, bsi_two, normal_mul, vector_length, "unsigned * unsigned", debug);
     // multiply_test(bsi_one_signed, bsi_two, mixed_mul_signed_unsigned, vector_length, "signed * unsigned", debug);
     // multiply_test(bsi_one, bsi_two_signed, mixed_mul_unsigned_signed, vector_length, "unsigned * signed", debug);
     // multiply_test(bsi_one_signed, bsi_two_signed, signed_mul, vector_length, "signed * signed", debug);
@@ -279,7 +281,7 @@ int main() {
     // SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
     // SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
     // SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
-
+    //
     // SUM_test_dec(bsi_one_dec, bsi_two_dec, normal_sum_d, vector_length, "unsigned + unsigned", debug, epsilon);
     // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec, mixed_sum_d_signed_plus_unsigned, vector_length, "signed + unsigned", debug, epsilon);
     // SUM_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "unsigned + signed", debug, epsilon);
@@ -287,11 +289,11 @@ int main() {
 
 
     // ==== Negation ====
-    // negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
-    // negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
-    //
-    // negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
-    // negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
+    negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
+    negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
+
+    negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
+    negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
 
     return 0;
 }
