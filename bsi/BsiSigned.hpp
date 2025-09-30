@@ -2291,7 +2291,13 @@ long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
         };
 
         return accumulateDot([](const HybridBitmap<uword>& left, const HybridBitmap<uword>& right) {
-            return left.logicalandcount(right);
+            if (left.isVerbatim() || right.isVerbatim()) {
+                return left.And(right).numberOfOnes();
+            }
+            else {
+                return left.logicalandcount(right);
+            }
+
         });
     }
 
@@ -2372,8 +2378,8 @@ long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) 
                 res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes();
             }
             else {
-                res = res - unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signNegative).numberOfOnes() * (2 << (j + i - 1));
-                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes() * (2 << (j + i - 1));
+                res = res - unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signNegative).numberOfOnes() * (1 << (j + i ));
+                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes() * (1 << (j + i ));
             }
         }
     }

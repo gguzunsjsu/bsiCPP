@@ -13,9 +13,9 @@ namespace {
 struct Settings {
     bool sign = true;
     bool useRandom = false;
-    std::size_t length = 4;
+    std::size_t length = 2;
     double range = 1.0;
-    int decimalPoints = 2;
+    int decimalPoints = 5;
     double compressThreshold = 0.4;
     unsigned int seed = std::random_device{}();
 };
@@ -150,8 +150,8 @@ int main(int argc, char** argv){
             // vec1 = {2, -17, -7, 34, -81, -99, 23, 56, -45, 67, 89, -90, 123, -145, 167, -189};
             // vec2 = {-1, 2, -3, 4, -5, 6, -7, 8, -9, 10, -11, 12, -13, 14, -15, 16};
         } else {
-            vec1 = {2.02, 4.04, 8.08, 16.16};
-            vec2 = {1.2, 2.5, 3.6, 4.1};
+            vec1 = {-2.02, 4.04, -8.08, 16.16};
+            vec2 = {-1.2, -2.5, 3.6, 4.1};
         }
     }
 
