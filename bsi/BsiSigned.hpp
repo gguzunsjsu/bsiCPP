@@ -75,6 +75,7 @@ public:
     BsiVector<uword>* multiply_bsi(BsiVector<uword> *unbsi)const override;
     long dotProduct(BsiVector<uword>* unbsi) const override;
     long long int dot(BsiVector<uword>* unbsi) const override;
+    long long int dot_with_pruning(BsiVector<uword>* a, long long threshold) const override;
     long long int dot_withoutCompression(BsiVector<uword>* unbsi) const override;
     
     
@@ -2314,8 +2315,13 @@ long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
                 res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes() * (2 << (j + i - 1));
             }
         }
-    }
     return res;
+}
+
+template <class uword>
+long long int BsiSigned<uword>::dot_with_pruning(BsiVector<uword>* a, long long threshold) const {
+    (void)threshold;
+    return this->dot(a);
 }
 
 template <class uword>
