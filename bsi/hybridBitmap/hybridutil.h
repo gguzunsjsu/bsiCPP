@@ -201,6 +201,14 @@ inline uint32_t countOnes(uint64_t v) {
 }
 #endif
 
+
+#if defined(__GNUC__) || defined(__clang__)
+inline uint32_t countOnes(unsigned __int128 x) {
+  return __builtin_popcountll(static_cast<uint64_t>(x)) + __builtin_popcountll(static_cast<uint64_t>(x >> 64));
+}
+#endif
+
+
 inline uint32_t countOnes(uint16_t v) {
   return countOnes(static_cast<uint32_t>(v));
 }

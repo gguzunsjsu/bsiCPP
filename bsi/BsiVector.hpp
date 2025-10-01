@@ -18,6 +18,7 @@
 #include <bitset>
 #include <algorithm>
 #include <thread>
+#include <bit>
 
 
 template <class uword = uint64_t> class BsiUnsigned;
@@ -475,8 +476,8 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         min = std::min(min, nums[count]);
     }
 
-    long magnitude = std::max(std::abs(min), std::abs(max));
-    int slices = this->sliceLengthFinder(static_cast<uword>(magnitude));
+    int slices =  std::bit_width(static_cast<unsigned long>(std::max(std::abs(min), std::abs(max))));
+    std::cout << "Slices: " << slices << std::endl;
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
@@ -602,8 +603,8 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         min = std::min(min,  nums_long[it]);
     }
 
-    long magnitude = std::max(std::abs(min), std::abs(max));
-    int slices = this->sliceLengthFinder(static_cast<uword>(magnitude));
+
+    int slices =  std::bit_width(static_cast<unsigned long>(std::max(std::abs(min), std::abs(max))));
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);

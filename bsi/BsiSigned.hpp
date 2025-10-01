@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>     /* abs */
+#include <cmath>
 #include "BsiVector.hpp"
 template <class uword>
 class BsiSigned: public BsiVector<uword>{
@@ -2241,21 +2242,77 @@ long BsiSigned<uword>::dotProduct(BsiVector<uword>* unbsi) const {
  */
 template <class uword>
 long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
-    long long int res =0;
-    HybridBitmap<uword> signNegative;
-    signNegative = this->sign.Xor(unbsi->sign);
-    HybridBitmap<uword> signPositive;
-    signPositive = signNegative.Not();
-    for(int j=0; j<unbsi->numSlices; j++){
-        for (int i = 0; i < this->numSlices; i++) {
-            if(j==0 && i==0) {  //first iteration
-                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes();
-                    res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes();
+    if (this->twosComplement && unbsi->twosComplement) {
+#if defined(__SIZEOF_INT128__)
+        using wide_int = __int128;
+#else
+        using wide_int = long double;
+#endif
+        auto weightForSlice = [&](const BsiVector<uword>* vec, int idx) -> wide_int {
+            int shift = vec->offset + idx;
+#if defined(__SIZEOF_INT128__)
+            if (shift < 0) {
+                return static_cast<wide_int>(0);
+            }
+            wide_int weight = static_cast<wide_int>(1);
+            weight <<= shift;
+#else
+            long double weight = std::ldexp(1.0L, shift);
+#endif
+            if (vec->twosComplement && idx == vec->numSlices - 1) {
+                weight = -weight;
+            }
+            return weight;
+        };
+
+        auto accumulateDot = [&](auto countOnesFn) -> long long int {
+            wide_int accumulator = 0;
+            for (int j = 0; j < unbsi->numSlices; ++j) {
+                wide_int weightB = weightForSlice(unbsi, j);
+                if (weightB == 0) {
+                    continue;
+                }
+                for (int i = 0; i < this->numSlices; ++i) {
+                    wide_int weightA = weightForSlice(this, i);
+                    if (weightA == 0) {
+                        continue;
+                    }
+                    wide_int ones = static_cast<wide_int>(countOnesFn(unbsi->bsi[j], this->bsi[i]));
+                    if (ones == 0) {
+                        continue;
+                    }
+                    accumulator += weightA * weightB * ones;
+                }
+            }
+#if defined(__SIZEOF_INT128__)
+            return static_cast<long long>(accumulator);
+#else
+            return static_cast<long long>(std::llround(accumulator));
+#endif
+        };
+
+        return accumulateDot([](const HybridBitmap<uword>& left, const HybridBitmap<uword>& right) {
+            if (left.isVerbatim() || right.isVerbatim()) {
+                return left.And(right).numberOfOnes();
             }
             else {
+                return left.logicalandcount(right);
+            }
+
+        });
+    }
+
+    long long int res = 0;
+    HybridBitmap<uword> signNegative = this->sign.Xor(unbsi->sign);
+    HybridBitmap<uword> signPositive = signNegative.Not();
+    for (int j = 0; j < unbsi->numSlices; j++) {
+        for (int i = 0; i < this->numSlices; i++) {
+            if (j == 0 && i == 0) {  // first iteration
+                res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes();
+                res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes();
+            } else {
                 res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes() * (2 << (j + i - 1));
                 res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes() * (2 << (j + i - 1));
-            }
             }
         }
     return res;
@@ -2269,25 +2326,71 @@ long long int BsiSigned<uword>::dot_with_pruning(BsiVector<uword>* a, long long 
 
 template <class uword>
 long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) const {
-    long long int res =0;
-    HybridBitmap<uword> signNegative;
-    signNegative = this->sign.xorVerbatim(unbsi->sign);
-    HybridBitmap<uword> signPositive;
-    signPositive = signNegative.Not();
-    for(int j=0; j<unbsi->numSlices; j++){
-        for (int i = 0; i < this->numSlices; i++) {
-            if(j==0 && i==0) {  //first iteration
-                    res = res - unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signNegative).numberOfOnes();
-                    res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes();
+    if (this->twosComplement && unbsi->twosComplement) {
+#if defined(__SIZEOF_INT128__)
+        using wide_int = __int128;
+#else
+        using wide_int = long double;
+#endif
+        auto weightForSlice = [&](const BsiVector<uword>* vec, int idx) -> wide_int {
+            int shift = vec->offset + idx;
+#if defined(__SIZEOF_INT128__)
+            if (shift < 0) {
+                return static_cast<wide_int>(0);
             }
-            else {
-                res = res - unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signNegative).numberOfOnes() * (2 << (j + i - 1));
-                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes() * (2 << (j + i - 1));
+            wide_int weight = static_cast<wide_int>(1);
+            weight <<= shift;
+#else
+            long double weight = std::ldexp(1.0L, shift);
+#endif
+            if (vec->twosComplement && idx == vec->numSlices - 1) {
+                weight = -weight;
             }
+            return weight;
+        };
+
+        wide_int accumulator = 0;
+        for (int j = 0; j < unbsi->numSlices; ++j) {
+            wide_int weightB = weightForSlice(unbsi, j);
+            if (weightB == 0) {
+                continue;
+            }
+            for (int i = 0; i < this->numSlices; ++i) {
+                wide_int weightA = weightForSlice(this, i);
+                if (weightA == 0) {
+                    continue;
+                }
+                wide_int ones = static_cast<wide_int>(unbsi->bsi[j].andVerbatim(this->bsi[i]).numberOfOnes());
+                if (ones == 0) {
+                    continue;
+                }
+                accumulator += weightA * weightB * ones;
             }
         }
-    return res;
+#if defined(__SIZEOF_INT128__)
+        return static_cast<long long>(accumulator);
+#else
+        return static_cast<long long>(std::llround(accumulator));
+#endif
     }
+
+    long long int res = 0;
+    HybridBitmap<uword> signNegative = this->sign.xorVerbatim(unbsi->sign);
+    HybridBitmap<uword> signPositive = signNegative.Not();
+    for (int j = 0; j < unbsi->numSlices; j++) {
+        for (int i = 0; i < this->numSlices; i++) {
+            if (j == 0 && i == 0) {  //first iteration
+                res = res - unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signNegative).numberOfOnes();
+                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes();
+            }
+            else {
+                res = res - unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signNegative).numberOfOnes() * (1 << (j + i ));
+                res = res + unbsi->bsi[j].andVerbatim(this->bsi[i]).andVerbatim(signPositive).numberOfOnes() * (1 << (j + i ));
+            }
+        }
+    }
+    return res;
+}
 
 template <class uword>
 BsiVector<uword>* BsiSigned<uword>::multiply_bsi(BsiVector<uword> *unbsi) const {
