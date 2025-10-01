@@ -2245,7 +2245,6 @@ long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
     const bool rhsTwoCompLike = unbsi->twosComplement || !unbsi->is_signed;
 
     if (lhsTwoCompLike && rhsTwoCompLike) {
-        std::cout<<"Using optimized dot product for two's complement like BSI"<<std::endl;
         #if defined(__SIZEOF_INT128__)
                 using wide_int = __int128;
         #else

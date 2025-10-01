@@ -515,14 +515,6 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
             }
         }
         const size_t totalSlices = compressedSlices + verbatimSlices;
-        if (totalSlices > 0) {
-            std::cout << "Compressed slices (signed): " << compressedSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * compressedSlices / totalSlices) << "%)\n"
-                      << "Verbatim slices (signed): " << verbatimSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * verbatimSlices / totalSlices) << "%)\n";
-        }
         res->sign = res->bsi[res->numSlices - 1];
         res->lastSlice = true;
         res->firstSlice = true;
@@ -580,14 +572,6 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
             }
         }
         const size_t totalSlices = compressedSlices + verbatimSlices;
-        if (totalSlices > 0) {
-            std::cout << "Compressed slices (unsigned): " << compressedSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * compressedSlices / totalSlices) << "%)\n"
-                      << "Verbatim slices (unsigned): " << verbatimSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * verbatimSlices / totalSlices) << "%)\n";
-        }
         int wholeWords = floor(numberOfElements/(float)bits);
         res->sign.addStreamOfEmptyWords(false,wholeWords);
         res->sign.addVerbatim(0, numberOfElements-(wholeWords*bits));
@@ -667,14 +651,6 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
             }
         }
         const size_t totalSlices = compressedSlices + verbatimSlices;
-        if (totalSlices > 0) {
-            std::cout << "Compressed slices (signed decimal): " << compressedSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * compressedSlices / totalSlices) << "%)\n"
-                      << "Verbatim slices (signed decimal): " << verbatimSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * verbatimSlices / totalSlices) << "%)\n";
-        }
         res->sign = res->bsi[res->numSlices - 1];
         res->lastSlice = true;
         res->firstSlice = true;
@@ -733,14 +709,6 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
             }
         }
         const size_t totalSlices = compressedSlices + verbatimSlices;
-        if (totalSlices > 0) {
-            std::cout << "Compressed slices (unsigned decimal): " << compressedSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * compressedSlices / totalSlices) << "%)\n"
-                      << "Verbatim slices (unsigned decimal): " << verbatimSlices
-                      << " / " << totalSlices << " ("
-                      << (100.0 * verbatimSlices / totalSlices) << "%)\n";
-        }
         int wholeWords = floor(numberOfElements/(float)bits);
         res->sign.addStreamOfEmptyWords(false,wholeWords);
         res->sign.addVerbatim(0, numberOfElements-(wholeWords*bits));
