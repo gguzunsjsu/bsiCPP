@@ -355,7 +355,7 @@ int main() {
     std::cout << "Dot " << std::endl;
 
     auto t15 = std::chrono::high_resolution_clock::now();
-    dotres = one_bsi->dot(two_bsi);
+    dotres = one_bsi->dot_with_pruning(two_bsi);
     auto t16 = std::chrono::high_resolution_clock::now();
     //std::cout << "Dot: " << dotres/(double)pow(10,2*decimalPlaces) << std::endl;
     std::cout << "Dot: " << dotres << std::endl;

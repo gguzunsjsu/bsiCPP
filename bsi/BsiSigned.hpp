@@ -2301,21 +2301,23 @@ long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
 
         });
     }
-
-    long long int res = 0;
-    HybridBitmap<uword> signNegative = this->sign.Xor(unbsi->sign);
-    HybridBitmap<uword> signPositive = signNegative.Not();
-    for (int j = 0; j < unbsi->numSlices; j++) {
-        for (int i = 0; i < this->numSlices; i++) {
-            if (j == 0 && i == 0) {  // first iteration
-                res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes();
-                res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes();
-            } else {
-                res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes() * (2 << (j + i - 1));
-                res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes() * (2 << (j + i - 1));
+    else{
+        long long int res = 0;
+        HybridBitmap<uword> signNegative = this->sign.Xor(unbsi->sign);
+        HybridBitmap<uword> signPositive = signNegative.Not();
+        for (int j = 0; j < unbsi->numSlices; j++) {
+            for (int i = 0; i < this->numSlices; i++) {
+                if (j == 0 && i == 0) {  // first iteration
+                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes();
+                    res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes();
+                } else {
+                    res = res - unbsi->bsi[j].And(this->bsi[i]).And(signNegative).numberOfOnes() * (1 << (j + i ));
+                    res = res + unbsi->bsi[j].And(this->bsi[i]).And(signPositive).numberOfOnes() * (1 << (j + i ));
+                }
             }
         }
-    return res;
+        return res;
+    }
 }
 
 template <class uword>
