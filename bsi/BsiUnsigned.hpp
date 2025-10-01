@@ -46,6 +46,7 @@ public:
     BsiVector<uword>* multiplyByConstantNew(int number) const override;
     long dotProduct(BsiVector<uword>* unbsi) const override;
     long long int dot(BsiVector<uword>* unbsi) const override;
+    long long int dot_with_pruning(BsiVector<uword>* a, long long threshold) const override;
     long long int dot_withoutCompression(BsiVector<uword>* unbsi) const override;
     bool append(long value) override;
     int compareTo(BsiVector<uword> *a, int index) override;
@@ -816,7 +817,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMsigned(BsiVector<uword>* a){
         }
 
         //res.existenceBitmap = this.existenceBitmap.or(a.existenceBitmap);
-        res->sign = &res->bsi[res->numSlices - 1];
+        res->sign = res->bsi[res->numSlices - 1];
         res->lastSlice=a->lastSlice;
         res->firstSlice=this->firstSlice|a->firstSlice;
         res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
@@ -878,7 +879,7 @@ BsiVector<uword>* BsiUnsigned<uword>::SUMsigned(BsiVector<uword>* a){
 
         res->lastSlice=a->lastSlice;
         res->firstSlice=this->firstSlice|a->firstSlice;
-        res->sign = &res->bsi[res->numSlices - 1];
+        res->sign = res->bsi[res->numSlices - 1];
         res->existenceBitmap = this->existenceBitmap.Or(a->existenceBitmap);
         res->setDecimals(this->decimals);
         return res;
@@ -2681,6 +2682,51 @@ long long int BsiUnsigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi
     return res;
 };
 
+template <class uword>
+long long int BsiUnsigned<uword>::dot_with_pruning(BsiVector<uword>* a, long long threshold) const {
+    const int dbSlices = this->numSlices;
+    const int querySlices = a->numSlices;
+    const int maxDBIndex = dbSlices - 1;
+    const int maxQueryIndex = querySlices - 1;
+    const int maxDotProductSliceIndex = maxDBIndex + maxQueryIndex;
+
+    long long rows = this->getNumberOfRows();
+    long long remaining_upperbound = 0;
+    for (int sliceIndex = 0; sliceIndex <= maxDotProductSliceIndex; ++sliceIndex) {
+        long long weight;
+        if (sliceIndex == 0) {
+            weight = 1LL;
+        } else {
+            weight = 1LL << sliceIndex;
+        }
+        remaining_upperbound += rows * weight;
+    }
+
+    long long accumulated = 0;
+    for (int sliceIndex = maxDotProductSliceIndex; sliceIndex >= 0; --sliceIndex) {
+        long long weight;
+        if (sliceIndex == 0){
+            weight = 1LL;
+        } else {
+            weight = 1LL << sliceIndex;
+        }
+        remaining_upperbound -= rows * weight;
+
+        long long ones = 0;
+        const int firstSlice = std::max(0, sliceIndex - maxQueryIndex);
+        const int lastSlice = std::min(maxDBIndex, sliceIndex);
+        for (int i = firstSlice; i <= lastSlice; ++i) {
+            const int j = sliceIndex - i;
+            ones += this->bsi[i].And(a->bsi[j]).numberOfOnes();
+        }
+        accumulated += ones * weight;
+        if (accumulated + remaining_upperbound < threshold) {
+            break;
+        }
+    }
+    return accumulated;
+}
+
 //template <class uword>
 //long BsiUnsigned<uword>::dotProduct(BsiVector<uword>* unbsi) const{
 //    //long res =0;
@@ -2699,7 +2745,6 @@ long long int BsiUnsigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi
 //    }
 //    return res;
 //};
-
 
 
 

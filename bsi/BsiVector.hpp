@@ -119,6 +119,7 @@ public:
     virtual BsiVector<uword>* multiplication_Horizontal_Hybrid_other(const BsiVector<uword> *a) const=0;
     virtual long dotProduct(BsiVector<uword>* a) const = 0;
     virtual long long int dot(BsiVector<uword>* a) const = 0;
+    virtual long long int dot_with_pruning(BsiVector<uword>* a, long long threshold) const = 0;
     virtual long long int dot_withoutCompression(BsiVector<uword>* a) const = 0;
     virtual void multiplicationInPlace(BsiVector<uword> *a)=0;
 
@@ -474,7 +475,8 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
         min = std::min(min, nums[count]);
     }
 
-    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
+    long magnitude = std::max(std::abs(min), std::abs(max));
+    int slices = this->sliceLengthFinder(static_cast<uword>(magnitude));
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
@@ -600,7 +602,8 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
         min = std::min(min,  nums_long[it]);
     }
 
-    int slices =  std::__bit_width(std::max(std::abs(min), std::abs(max)));
+    long magnitude = std::max(std::abs(min), std::abs(max));
+    int slices = this->sliceLengthFinder(static_cast<uword>(magnitude));
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
