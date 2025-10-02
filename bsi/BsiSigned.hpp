@@ -2294,12 +2294,7 @@ long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
         };
 
         return accumulateDot([](const HybridBitmap<uword>& left, const HybridBitmap<uword>& right) {
-            if(left.isVerbatim() || right.isVerbatim())
-                return left.andVerbatim(right).numberOfOnes();
-            else{
-                return left.logicalandcount(right);
-            }
-            
+            return left.andCount(right);   
         });
     }
 
