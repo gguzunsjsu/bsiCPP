@@ -142,7 +142,7 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
     int range = 1000;
-    int vector_length = 100; // keep small for verbose checks (set higher for performance tests)
+    int vector_length = 1000; // keep small for verbose checks (set higher for performance tests)
     double alpha = 1.0;
     bool debug = true;
     double epsilon = 1e-9;
@@ -277,23 +277,23 @@ int main() {
     // multiply_test(bsi_one_signed, bsi_two_signed, signed_mul, vector_length, "signed * signed", debug);
 
     // ==== Sum ====
-    // SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
-    // SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
-    // SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
-    // SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
-    //
-    // SUM_test_dec(bsi_one_dec, bsi_two_dec, normal_sum_d, vector_length, "unsigned + unsigned", debug, epsilon);
-    // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec, mixed_sum_d_signed_plus_unsigned, vector_length, "signed + unsigned", debug, epsilon);
-    // SUM_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "unsigned + signed", debug, epsilon);
-    // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec_signed, signed_sum_d, vector_length, "signed + signed", debug, epsilon);
+    SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
+    SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
+    SUM_test(bsi_one, bsi_two_signed, mixed_sum_unsigned_plus_signed, vector_length, "unsigned + signed", debug);
+    SUM_test(bsi_one_signed, bsi_two_signed, signed_sum, vector_length, "signed + signed", debug);
+
+    SUM_test_dec(bsi_one_dec, bsi_two_dec, normal_sum_d, vector_length, "unsigned + unsigned", debug, epsilon);
+    SUM_test_dec(bsi_one_dec_signed, bsi_two_dec, mixed_sum_d_signed_plus_unsigned, vector_length, "signed + unsigned", debug, epsilon);
+    SUM_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "unsigned + signed", debug, epsilon);
+    SUM_test_dec(bsi_one_dec_signed, bsi_two_dec_signed, signed_sum_d, vector_length, "signed + signed", debug, epsilon);
 
 
     // ==== Negation ====
     negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
     negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
 
-    negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
-    negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
+    // negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
+    // negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
 
     return 0;
 }

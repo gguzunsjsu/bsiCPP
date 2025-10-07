@@ -787,7 +787,8 @@ HybridBitmap<uword> BsiVector<uword>::maj(const HybridBitmap<uword> &a, const Hy
         return a.maj(b, c);
     }else{
         
-        return a.logicaland(b).logicalor(b.logicaland(c)).logicalor(a.logicaland(c));
+        // return a.logicaland(b).logicalor(b.logicaland(c)).logicalor(a.logicaland(c));
+        return a.And(b).Or(b.And(c)).Or(a.And(c));
     }
 };
 
