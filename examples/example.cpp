@@ -32,7 +32,7 @@ public:
     }
 
     int operator()(std::mt19937& rng) {
-        std::uniform_real_distribution<> dist(0.0, 1.0);
+        std::uniform_real_distribution<> dist(-1.0, 1.0);
         double U = dist(rng);
 
         // Find the rank k corresponding to U
@@ -70,11 +70,11 @@ int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    int range = 10000;
+    int range = 1000;
    // int two_range = 100;
-    int vectorLength = 100000;
-    double alpha = 3.0; // Skew parameter (alpha = 1.0 is classic Zipf)
-    int decimalPlaces = 2;
+    int vectorLength = 1000000;
+    double alpha = 4.0; // Skew parameter (alpha = 1.0 is classic Zipf)
+    int decimalPlaces = 1;
 
 //    std::vector<long> one = {2,6,9, 10, 50};
 //    std::vector<long> two = {2,6,9, 10, 50};
@@ -355,7 +355,7 @@ int main() {
     std::cout << "Dot " << std::endl;
 
     auto t15 = std::chrono::high_resolution_clock::now();
-    dotres = one_bsi->dot(two_bsi);
+    dotres = one_bsi->dot_with_pruning(two_bsi);
     auto t16 = std::chrono::high_resolution_clock::now();
     //std::cout << "Dot: " << dotres/(double)pow(10,2*decimalPlaces) << std::endl;
     std::cout << "Dot: " << dotres << std::endl;
