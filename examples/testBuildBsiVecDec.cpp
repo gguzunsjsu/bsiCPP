@@ -88,7 +88,15 @@ Settings parseArguments(int argc, char** argv) {
             }
         } else if (arg == "--help") {
             printUsageAndExit(argv[0]);
-        } else {
+        } else if (arg == "--compressThreshold"){
+            std::string value = requireValue(i, "--compressThreshold");
+            try {
+                settings.compressThreshold = std::stod(value);
+            } catch (const std::exception&) {
+                std::cerr << "Invalid compressThreshold: " << value << std::endl;
+                printUsageAndExit(argv[0]);
+            }
+        }else {
             std::cerr << "Unknown argument: " << arg << std::endl;
             printUsageAndExit(argv[0]);
         }
@@ -131,12 +139,21 @@ int main(int argc, char** argv){
     bool sign = settings.sign;
     std::vector<double> vec1;
     std::vector<double> vec2;
+    std::cout << "Settings - sign: " << (settings.sign ? "true" : "false")
+              << ", useRandom: " << (settings.useRandom ? "true" : "false")
+              << ", length: " << settings.length
+              << ", range: " << settings.range
+              << ", decimalPoints: " << settings.decimalPoints
+              << ", compressThreshold: " << settings.compressThreshold
+              << ", seed: " << settings.seed << std::endl;
     if(settings.useRandom){
         std::mt19937 rng(settings.seed);
         if(sign){
+            std::cout << "Picked sign and generating signed random vector" << std::endl;
             vec1 = generateRandomVector(settings.length, -settings.range, settings.range, rng);
             vec2 = generateRandomVector(settings.length, -settings.range, settings.range, rng);
         } else {
+            std::cout << "Picked unsigned and generating unsigned random numbers" << std::endl;
             vec1 = generateRandomVector(settings.length, 0.0, settings.range, rng);
             vec2 = generateRandomVector(settings.length, 0.0, settings.range, rng);
         }
@@ -213,7 +230,7 @@ int main(int argc, char** argv){
     }
 
     //comparing results
-    if (abs(dot_res - bsi_dot_res) < 0.01){
+    if (error_percentage < 0.01){
         std::cout << "Success" << std::endl;
     } else {
         std::cout << "Failure" << std::endl;

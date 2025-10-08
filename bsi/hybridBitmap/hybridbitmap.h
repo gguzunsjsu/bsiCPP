@@ -759,6 +759,8 @@ public:
      */
     size_t logicalandcount(const HybridBitmap &a) const;
 
+    size_t andCount(const HybridBitmap &a) const;
+
     /**
      * computes the numSlices (in number of set bits) of the logical and not with
      * another compressed bitmap
@@ -2980,6 +2982,89 @@ size_t HybridBitmap<uword>::logicalandcount(const HybridBitmap &a) const {
     }
     return answer;
 }
+
+template <class uword>
+size_t HybridBitmap<uword>::andCount(const HybridBitmap &other) const {
+    if (verbatim && other.verbatim) {
+        const size_t limit = std::min(buffer.size(), other.buffer.size());
+        size_t total = 0;
+        for (size_t i = 0; i < limit; ++i) {
+            total += countOnes(static_cast<uword>(buffer[i] & other.buffer[i]));
+        }
+        return total;
+    }
+
+    if (!verbatim && !other.verbatim) {
+        return logicalandcount(other);
+    }
+
+    const HybridBitmap &compressed = verbatim ? other : *this;
+    const HybridBitmap &literal    = verbatim ? *this : other;
+
+    HybridBitmapRawIterator<uword> it = compressed.raw_iterator();
+    if (!it.hasNext()) {
+        return 0;
+    }
+    BufferedRunningLengthWord<uword> &rlw = it.next();
+
+    const uword *words = literal.buffer.data();
+    const size_t wordCount = literal.buffer.size();
+
+    size_t total = 0;
+    size_t wordIndex = 0;
+
+    while (wordIndex < wordCount) {
+        // Handle runs first
+        while (rlw.getRunningLength() > 0) {
+            const size_t chunk = std::min<size_t>(rlw.getRunningLength(), wordCount - wordIndex);
+            if (chunk == 0) {
+                return total;
+            }
+            if (rlw.getRunningBit()) {
+                const uword *p = words + wordIndex;
+                const uword *end = p + chunk;
+                for (; p != end; ++p) {
+                    total += countOnes(*p);
+                }
+            }
+            wordIndex += chunk;
+            rlw.discardFirstWordsWithReload(chunk);
+            if (rlw.size() == 0) {
+                if (!it.hasNext()) {
+                    return total;
+                }
+                rlw = it.next();
+            }
+        }
+
+        // Handle literal words
+        const size_t literals = std::min<size_t>(rlw.getNumberOfLiteralWords(), wordCount - wordIndex);
+        if (literals == 0) {
+            if (!it.hasNext()) {
+                return total;
+            }
+            rlw = it.next();
+            continue;
+        }
+
+        const uword *p = words + wordIndex;
+        for (size_t k = 0; k < literals; ++k) {
+            // Map words depending on which operand is verbatim
+            uword rightWord = verbatim ? rlw.getLiteralWordAt(k) : p[k];
+            uword leftWord  = verbatim ? p[k] : rlw.getLiteralWordAt(k);
+            total += countOnes(static_cast<uword>(leftWord & rightWord));
+        }
+        wordIndex += literals;
+        rlw.discardLiteralWordsWithReload(literals);
+        if (rlw.size() == 0 && it.hasNext()) {
+            rlw = it.next();
+        }
+    }
+
+    return total;
+}
+
+
 
 template <class uword>
 bool HybridBitmap<uword>::intersects(const HybridBitmap &a) const {

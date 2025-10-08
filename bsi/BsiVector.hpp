@@ -482,10 +482,13 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
         std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+2,numberOfElements);
+        size_t compressedSlices = 0;
+        size_t verbatimSlices = 0;
         for(int i=0; i<=slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
+                ++compressedSlices;
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
                 for(int j=1; j<bitSlices[i].size()-1; j++){
@@ -497,6 +500,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
                 bitmap.density=bitDensity;
                 res->addSlice(bitmap);
             }else {
+                ++verbatimSlices;
                 HybridBitmap<uword> bitmap(true);
                 bitmap.reset();
                 bitmap.verbatim = true;
@@ -511,6 +515,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
                 res->addSlice(bitmap);
             }
         }
+        const size_t totalSlices = compressedSlices + verbatimSlices;
         res->sign = res->bsi[res->numSlices - 1];
         res->lastSlice = true;
         res->firstSlice = true;
@@ -530,11 +535,14 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 
         //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
         std::vector< std::vector< uword > > bitSlices = bringTheBits(nums,slices+2,numberOfElements);
+        size_t compressedSlices = 0;
+        size_t verbatimSlices = 0;
 
         for(int i=0; i<slices+2; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
+                ++compressedSlices;
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
                 for(int j=1; j<bitSlices[i].size()-1; j++){
@@ -547,6 +555,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
                 res->addSlice(bitmap);
 
             }else{
+                ++verbatimSlices;
                 //build verbatim Bitmap
                 HybridBitmap<uword> bitmap(true);
                 bitmap.reset();
@@ -563,6 +572,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
 
             }
         }
+        const size_t totalSlices = compressedSlices + verbatimSlices;
         int wholeWords = floor(numberOfElements/(float)bits);
         res->sign.addStreamOfEmptyWords(false,wholeWords);
         res->sign.addVerbatim(0, numberOfElements-(wholeWords*bits));
@@ -609,10 +619,13 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
         std::vector< std::vector< uword > > bitSlices = bringTheBits(nums_long,slices+2,numberOfElements);
+        size_t compressedSlices = 0;
+        size_t verbatimSlices = 0;
         for(int i=0; i<=slices+1; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
+                ++compressedSlices;
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
                 for(int j=1; j<bitSlices[i].size()-1; j++){
@@ -624,6 +637,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
                 bitmap.density=bitDensity;
                 res->addSlice(bitmap);
             }else {
+                ++verbatimSlices;
                 HybridBitmap<uword> bitmap(true);
                 bitmap.reset();
                 bitmap.verbatim = true;
@@ -638,6 +652,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
                 res->addSlice(bitmap);
             }
         }
+        const size_t totalSlices = compressedSlices + verbatimSlices;
         res->sign = res->bsi[res->numSlices - 1];
         res->lastSlice = true;
         res->firstSlice = true;
@@ -658,11 +673,14 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
 
         //The method to put the elements in the input vector nums to the bsi property of BSIAttribute result
         std::vector< std::vector< uword > > bitSlices = bringTheBits(nums_long,slices+2,numberOfElements);
+        size_t compressedSlices = 0;
+        size_t verbatimSlices = 0;
 
         for(int i=0; i<slices+2; i++){
             double bitDensity = bitSlices[i][0]/(double)numberOfElements; // the bit density for this slice
             double compressRatio = 1-pow((1-bitDensity), (2*bits))-pow(bitDensity, (2*bits));
             if(compressRatio<compressThreshold && compressRatio!=0 ){
+                ++compressedSlices;
                 //build compressed bitmap
                 HybridBitmap<uword> bitmap;
                 for(int j=1; j<bitSlices[i].size()-1; j++){
@@ -675,6 +693,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
                 res->addSlice(bitmap);
 
             }else{
+                ++verbatimSlices;
                 //build verbatim Bitmap
                 HybridBitmap<uword> bitmap(true);
                 bitmap.reset();
@@ -691,6 +710,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<double> nums, int
 
             }
         }
+        const size_t totalSlices = compressedSlices + verbatimSlices;
         int wholeWords = floor(numberOfElements/(float)bits);
         res->sign.addStreamOfEmptyWords(false,wholeWords);
         res->sign.addVerbatim(0, numberOfElements-(wholeWords*bits));

@@ -2242,27 +2242,30 @@ long BsiSigned<uword>::dotProduct(BsiVector<uword>* unbsi) const {
  */
 template <class uword>
 long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
-    if (this->twosComplement && unbsi->twosComplement) {
-#if defined(__SIZEOF_INT128__)
-        using wide_int = __int128;
-#else
-        using wide_int = long double;
-#endif
+    const bool lhsTwoCompLike = this->twosComplement || !this->is_signed;
+    const bool rhsTwoCompLike = unbsi->twosComplement || !unbsi->is_signed;
+
+    if (lhsTwoCompLike && rhsTwoCompLike) {
+        #if defined(__SIZEOF_INT128__)
+                using wide_int = __int128;
+        #else
+                using wide_int = long double;
+        #endif
         auto weightForSlice = [&](const BsiVector<uword>* vec, int idx) -> wide_int {
             int shift = vec->offset + idx;
-#if defined(__SIZEOF_INT128__)
-            if (shift < 0) {
-                return static_cast<wide_int>(0);
-            }
-            wide_int weight = static_cast<wide_int>(1);
-            weight <<= shift;
-#else
-            long double weight = std::ldexp(1.0L, shift);
-#endif
-            if (vec->twosComplement && idx == vec->numSlices - 1) {
-                weight = -weight;
-            }
-            return weight;
+            #if defined(__SIZEOF_INT128__)
+                if (shift < 0) {
+                    return static_cast<wide_int>(0);
+                }
+                wide_int weight = static_cast<wide_int>(1);
+                weight <<= shift;
+            #else
+                long double weight = std::ldexp(1.0L, shift);
+            #endif
+                if (vec->twosComplement && idx == vec->numSlices - 1) {
+                    weight = -weight;
+                }
+                return weight;
         };
 
         auto accumulateDot = [&](auto countOnesFn) -> long long int {
@@ -2284,21 +2287,15 @@ long long int BsiSigned<uword>::dot(BsiVector<uword>* unbsi) const {
                     accumulator += weightA * weightB * ones;
                 }
             }
-#if defined(__SIZEOF_INT128__)
-            return static_cast<long long>(accumulator);
-#else
-            return static_cast<long long>(std::llround(accumulator));
-#endif
+        #if defined(__SIZEOF_INT128__)
+                    return static_cast<long long>(accumulator);
+        #else
+                    return static_cast<long long>(std::llround(accumulator));
+        #endif
         };
 
         return accumulateDot([](const HybridBitmap<uword>& left, const HybridBitmap<uword>& right) {
-            if (left.isVerbatim() || right.isVerbatim()) {
-                return left.And(right).numberOfOnes();
-            }
-            else {
-                return left.logicalandcount(right);
-            }
-
+            return left.andCount(right);   
         });
     }
     else{
@@ -2328,27 +2325,30 @@ long long int BsiSigned<uword>::dot_with_pruning(BsiVector<uword>* a, long long 
 
 template <class uword>
 long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) const {
-    if (this->twosComplement && unbsi->twosComplement) {
-#if defined(__SIZEOF_INT128__)
-        using wide_int = __int128;
-#else
-        using wide_int = long double;
-#endif
+    const bool lhsTwoCompLike = this->twosComplement || !this->is_signed;
+    const bool rhsTwoCompLike = unbsi->twosComplement || !unbsi->is_signed;
+
+    if (lhsTwoCompLike && rhsTwoCompLike) {
+        #if defined(__SIZEOF_INT128__)
+                using wide_int = __int128;
+        #else
+                using wide_int = long double;
+        #endif
         auto weightForSlice = [&](const BsiVector<uword>* vec, int idx) -> wide_int {
             int shift = vec->offset + idx;
-#if defined(__SIZEOF_INT128__)
-            if (shift < 0) {
-                return static_cast<wide_int>(0);
-            }
-            wide_int weight = static_cast<wide_int>(1);
-            weight <<= shift;
-#else
-            long double weight = std::ldexp(1.0L, shift);
-#endif
-            if (vec->twosComplement && idx == vec->numSlices - 1) {
-                weight = -weight;
-            }
-            return weight;
+            #if defined(__SIZEOF_INT128__)
+                if (shift < 0) {
+                    return static_cast<wide_int>(0);
+                }
+                wide_int weight = static_cast<wide_int>(1);
+                weight <<= shift;
+            #else
+                long double weight = std::ldexp(1.0L, shift);
+            #endif
+                if (vec->twosComplement && idx == vec->numSlices - 1) {
+                    weight = -weight;
+                }
+                return weight;
         };
 
         wide_int accumulator = 0;
@@ -2369,11 +2369,11 @@ long long int BsiSigned<uword>::dot_withoutCompression(BsiVector<uword>* unbsi) 
                 accumulator += weightA * weightB * ones;
             }
         }
-#if defined(__SIZEOF_INT128__)
-        return static_cast<long long>(accumulator);
-#else
-        return static_cast<long long>(std::llround(accumulator));
-#endif
+        #if defined(__SIZEOF_INT128__)
+                return static_cast<long long>(accumulator);
+        #else
+                return static_cast<long long>(std::llround(accumulator));
+        #endif
     }
 
     long long int res = 0;
