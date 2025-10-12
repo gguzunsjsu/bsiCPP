@@ -3,61 +3,75 @@
 //
 
 
+//#include <avxintrin.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <chrono>
 #include <random>
-#include <omp.h>
+// #include <omp.h>
 
 #include "../bsi/BsiUnsigned.hpp"
 #include "../bsi/BsiSigned.hpp"
-#include "../bsi/BsiAttribute.hpp"
+#include "../bsi/BsiVector.hpp"
 #include "../bsi/hybridBitmap/hybridbitmap.h"
 #include "../bsi/hybridBitmap/UnitTestsOfHybridBitmap.hpp"
+typedef __int128 int128_t;
+typedef unsigned __int128 uint128_t;
+
+
+int getRandomInt(int min, int max) {
+    std::random_device rd; // Obtain a random seed from the OS
+    std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> distrib(min, max); // Define the range
+
+    return distrib(gen); // Generate and return the random integer
+}
 
 
 int main(){
-    BsiUnsigned<uint64_t> ubsi;
-    BsiUnsigned<uint64_t> ubsi_1;
-    BsiAttribute<uint64_t> *bsi_1;
-    BsiAttribute<uint64_t> *bsi_2;
-    BsiAttribute<uint64_t> *bsi_3;
-    BsiAttribute<uint64_t> *bsi_result;
+    BsiUnsigned<uint128_t> ubsi;
+    BsiUnsigned<uint128_t> ubsi_1;
+    BsiVector<uint128_t> *bsi_1;
+    BsiVector<uint128_t> *bsi_2;
+    BsiVector<uint128_t> *bsi_3;
+    BsiVector<uint128_t> *bsi_result;
 
     BsiSigned<uint64_t> *bsi_s = new BsiSigned<uint64_t>();
-    HybridBitmap<uint64_t> hybridBitmap;
+    HybridBitmap<uint128_t> hybridBitmap;
     //ifstream fin1,fin2;
     //ofstream fout1;
     //fin1.open("/Users/adityapatel/multiplicationTestData1.txt");
     //fin2.open("/Users/adityapatel/multiplicationTestData2.txt");
     //fout1.open("/Users/adityapatel/multiplicationTestResult1.txt");
 
-    vector<uint64_t> result_arr;
-    vector<long> array1;
-    vector<long> array2;
-    vector<long> result;
+    vector<uint128_t> result_arr;
     vector<double> v1;
     vector<double> v2;
     vector<double> vres;
     string line_str;
-    int range1 = 50;
-    int range2 = 50;
+    int range1 = 127;
+    int range2 = 127;
     int vectorLen = 10000000;
+    vector<long> array1(vectorLen);
+    vector<long> array2(vectorLen);
+    vector<long> result(vectorLen);
+
 
     int arr1[5] = {84, 624, 9, 330, 240};
     int arr2[5] = {3, 6, 7, 9, 8};
     srand (time(NULL));
     for (int i=0; i<vectorLen; i++){
-        array1.push_back(std::rand()%range1);
-        array2.push_back(std::rand()%range2);
+        array1[i]=(std::rand()%range1);
+        array2[i]=(std::rand()%range2);
         v1.push_back((double(rand())/RAND_MAX));
         v2.push_back((double(rand())/RAND_MAX));
         //array1.push_back(arr1[i]);
         //array2.push_back(arr2[i]);
 
     }
+
 //
 //    while (getline(fin1, line_str)) {
 //        istringstream buffer(line_str);
@@ -79,15 +93,15 @@ int main(){
 
     std::chrono::high_resolution_clock::time_point t10 = std::chrono::high_resolution_clock::now();
 
-    bsi_1 = ubsi.buildBsiAttributeFromVector(array1, 0.2);
+    bsi_1 = ubsi.buildBsiVector(array1, 0);
     bsi_1->setPartitionID(0);
     bsi_1->setFirstSliceFlag(true);
     bsi_1->setLastSliceFlag(true);
-    bsi_2 = ubsi.buildBsiAttributeFromVector(array2, 0.2);
+    bsi_2 = ubsi.buildBsiVector(array2, 0);
     bsi_2->setPartitionID(0);
     bsi_2->setFirstSliceFlag(true);
     bsi_2->setLastSliceFlag(true);
-    // bsi_result = ubsi.buildBsiAttributeFromArray(result, result.size(), 0.2);
+    // bsi_result = ubsi.buildBsiVectorFromArray(result, result.numSlices(), 0.2);
     std::chrono::high_resolution_clock::time_point t11 = std::chrono::high_resolution_clock::now();
 
     auto durationBuilding = std::chrono::duration_cast<std::chrono::microseconds>( t11 - t10 ).count();
@@ -102,7 +116,7 @@ int main(){
     for (int  i= 0 ; i< bsi_1->getNumberOfSlices() ; i++){
         ubsi.addSlice(bsi_1->getSlice(i));
     }
-    HybridBitmap<uint64_t> existtenceBitmap = bsi_1->getExistenceBitmap();
+    HybridBitmap<uint128_t> existtenceBitmap = bsi_1->getExistenceBitmap();
     ubsi.setExistenceBitmap(bsi_1->getExistenceBitmap());
     ubsi.setNumberOfRows(bsi_1->rows);
     ubsi.setPartitionID(bsi_1->getPartitionID());
@@ -118,13 +132,15 @@ int main(){
     ubsi_1.setFirstSliceFlag(true);
     ubsi_1.setLastSliceFlag(true);
 
+    cout<<"First array position: "<<std::rand()%range2<<endl;
+
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     long sum = 0;
     long res;
     for (int i=0;i<vectorLen;i++){
         res = array1[i]*array2[i];
         //res = v1[i]*v2[i];
-        result.push_back(res);
+        result[i]=(res);
         //vres.push_back(res);
         sum= sum+res;
     }
@@ -134,8 +150,8 @@ int main(){
     auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
     cout <<"Duration multiply array: \t\t"<< duration1<<endl;
     cout<<"sum is: "<<sum<<endl;
-    cout<<"first element is: "<<result[0]<<endl;
-    cout<<"last element is: "<<result[result.size()]<<endl;
+   // cout<<"first element is: "<<result[0]<<endl;
+   // cout<<"last element is: "<<result[result.numSlices()]<<endl;
 
 
     std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
@@ -147,7 +163,7 @@ int main(){
 
     //bsi_3 = ubsi.SUMunsigned(bsi_2)->SUM(bsi_2)->SUM(bsi_2);
     //bsi_3 = ubsi.multiplyBSI(ubsi_1);
-    bsi_3 = ubsi.multiplyWithBsiHorizontal(&ubsi_1,6);
+    bsi_3 = ubsi.multiplyWithBsiHorizontal(&ubsi_1,4);
     //bsi_3->dot(&ubsi_1);
     std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
     auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>( t4 - t3 ).count();
@@ -164,7 +180,7 @@ int main(){
     //bsi_3 = ubsi.peasantMultiply(ubsi_1);
 
     //bsi_3 = ubsi.SUMunsigned(bsi_2)->SUM(bsi_2)->SUM(bsi_2);
-   // bsi_3 = ubsi.multiplyBSI(&ubsi_1);
+    bsi_3 = ubsi.multiplication(&ubsi_1);
     std::chrono::high_resolution_clock::time_point t6 = std::chrono::high_resolution_clock::now();
     auto duration3 = std::chrono::duration_cast<std::chrono::microseconds>( t6 - t5 ).count();
     cout <<"Duration bsi multiply : \t\t"<< duration3<<endl;
@@ -173,7 +189,7 @@ int main(){
 
     std::chrono::high_resolution_clock::time_point t7 = std::chrono::high_resolution_clock::now();
 
-    long dotresult = bsi_1->dot(bsi_2);
+    long dotresult = bsi_1->dot_withoutCompression(bsi_2);
     std::chrono::high_resolution_clock::time_point t8 = std::chrono::high_resolution_clock::now();
     auto duration4 = std::chrono::duration_cast<std::chrono::microseconds>( t8 - t7 ).count();
     cout <<"dotResult = \t\t"<< dotresult<<endl;
@@ -181,13 +197,13 @@ int main(){
 
 
 //
-//    for(int i=0; i< result.size(); i++){
+//    for(int i=0; i< result.numSlices(); i++){
 //        std::cout << result[i] <<" ";
 //    }
 //
 //    std::cout << endl;
 //
-//    for(int i=0; i< array2.size(); i++){
+//    for(int i=0; i< array2.numSlices(); i++){
 //        string s1 = std::to_string(bsi_3->getValue(i));
 //        std::cout << s1 <<" ";
 //    }
@@ -200,10 +216,10 @@ int main(){
 //    //std::cout<<bsi->isLastSlice();
 //    vector<vector<uint64_t>> rawData;
 //    vector<uint64_t> myvector1;
-//    vector<BsiAttribute<uint64_t>*> bsiData;
+//    vector<BsiVector<uint64_t>*> bsiData;
 //
 //
-////    bsi.push_back(ubsi.buildBsiAttributeFromArray(row, row.size(), 0.2));
+////    bsi.push_back(ubsi.buildBsiVectorFromArray(row, row.numSlices(), 0.2));
 //
 //    string temp;
 //
@@ -226,8 +242,8 @@ int main(){
 //        cerr<<"File can't be open"<<endl;
 //        return -1;
 //    }
-//    int atts = rawData[0].size();
-//    int rows = rawData.size();
+//    int atts = rawData[0].numSlices();
+//    int rows = rawData.numSlices();
 //
 //    cout<<"Total rows: "<<rows<<" Attributes: "<<atts<<endl;
 //    for(vector<uint64_t>::iterator it = rawData[0].begin(); it < rawData[0].end(); it++){
@@ -246,10 +262,10 @@ int main(){
 //                myvector1.push_back(rawData[i][j]);
 //            }
 //        }
-//        //cout<<" buffer size: "<<buffer.size()<<endl;
-//        bsiData.push_back(ubsi.buildBsiAttributeFromArray(buffer, buffer.size(), 0.2));
+//        //cout<<" buffer numSlices: "<<buffer.numSlices()<<endl;
+//        bsiData.push_back(ubsi.buildBsiVectorFromArray(buffer, buffer.numSlices(), 0.2));
 //    }
-//    for(int i=0; i< myvector1.size(); i++){
+//    for(int i=0; i< myvector1.numSlices(); i++){
 //        cout<<myvector1[i]<<" ";
 //    }
 //    cout<<endl;
@@ -269,12 +285,12 @@ int main(){
 //        myvector1.push_back(i);
 //    }
 
-//    int vectorSize = myvector.size();
-//    int vectorSize1 = myvector1.size();
-//    int vectorSize2 = myvector2.size();
-//    bsi_1 = bsi.buildBsiAttributeFromArray(myvector, vectorSize, 0.2);
-//    bsi_2 = bsi.buildBsiAttributeFromArray(myvector1, vectorSize1, 0.2);
-//    bsi_4 = bsi.buildBsiAttributeFromArray(myvector2, vectorSize2, 0.2);
+//    int vectorSize = myvector.numSlices();
+//    int vectorSize1 = myvector1.numSlices();
+//    int vectorSize2 = myvector2.numSlices();
+//    bsi_1 = bsi.buildBsiVectorFromArray(myvector, vectorSize, 0.2);
+//    bsi_2 = bsi.buildBsiVectorFromArray(myvector1, vectorSize1, 0.2);
+//    bsi_4 = bsi.buildBsiVectorFromArray(myvector2, vectorSize2, 0.2);
 //    int rows = bsi_1->getNumberOfSlices();
 //
 //

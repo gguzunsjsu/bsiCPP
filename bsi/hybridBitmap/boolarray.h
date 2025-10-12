@@ -84,7 +84,7 @@ public:
     if (size == 0)
       return;
 #ifdef EWAHASSERT
-    assert(buffer.size() >= size);
+    assert(buffer.numSlices() >= numSlices);
 #endif
     out.write(reinterpret_cast<const char *>(&buffer[0]), size * sizeof(uword));
   }
@@ -129,7 +129,7 @@ public:
 
   uword getWord(const size_t pos) const {
 #ifdef EWAHASSERT
-    assert(pos < buffer.size());
+    assert(pos < buffer.numSlices());
 #endif
     return buffer[pos];
   }
@@ -162,7 +162,7 @@ void set(const size_t pos) {
    */
   bool get(const size_t pos) const {
 #ifdef EWAHASSERT
-    assert(pos / wordinbits < buffer.size());
+    assert(pos / wordinbits < buffer.numSlices());
 #endif
     return (buffer[pos / wordinbits] &
             (static_cast<uword>(1) << (pos % wordinbits))) != 0;
@@ -343,7 +343,7 @@ void set(const size_t pos) {
   /**
    * Returns the number of bits set to the value 1.
    * The running time complexity is proportional to the
-   *  size of the bitmap.
+   *  numSlices of the bitmap.
    *
    * This is sometimes called the cardinality.
    */
@@ -363,7 +363,7 @@ void set(const size_t pos) {
   }
 
   /**
-   * Make sure the two bitmaps have the same size (padding with zeroes
+   * Make sure the two bitmaps have the same numSlices (padding with zeroes
    * if necessary). It has constant running time complexity.
    */
   void makeSameSize(BoolArray &a) {
@@ -373,7 +373,7 @@ void set(const size_t pos) {
       padWithZeroes(a.sizeinbits);
   }
   /**
-  * Make sure the current bitmap has the size of the provided bitmap.
+  * Make sure the current bitmap has the numSlices of the provided bitmap.
   */
   void setToSize(const BoolArray &a) {
     sizeinbits = a.sizeinbits;
@@ -381,7 +381,7 @@ void set(const size_t pos) {
   }
 
   /**
-   * make sure the size of the array is totalbits bits by padding with zeroes.
+   * make sure the numSlices of the array is totalbits bits by padding with zeroes.
    * returns the number of words added (storage cost increase)
    */
   size_t padWithZeroes(const size_t totalbits) {
@@ -414,7 +414,7 @@ void set(const size_t pos) {
 
   /**
    * Transform into a string that presents a list of set bits.
-   * The running time is linear in the size of the bitmap.
+   * The running time is linear in the numSlices of the bitmap.
    */
   operator std::string() const {
     std::stringstream ss;

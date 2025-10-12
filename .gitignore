@@ -15,6 +15,6 @@ CMakeFiles
 *.obj
 *.ilk
 CMakeCache.txt
+/build
 
-*.hpp
 cmake-build-debug/*

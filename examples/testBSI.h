@@ -7,12 +7,12 @@ public:
     double compressionThreshold;
     vector<long> array;
     BsiSigned<uword> signed_bsi;
-    BsiAttribute<uword>* bsi_attribute;
+    BsiVector<uword>* bsi_attribute;
     int numberOfElementsInTheArray;
     //Constructors
     testBSI<uword>();
     testBSI<uword>(int range);
-    void buildBSIAttribute();
+    void buildBsiVector();
 };
 
 #endif

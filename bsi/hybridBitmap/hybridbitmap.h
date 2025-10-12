@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
+#include <type_traits>
 
 #include "hybridutil.h"
 #include "boolarray.h"
@@ -16,6 +17,8 @@ template <class uword> class HybridBitmapSetBitForwardIterator;
 class BitmapStatistics;
 
 template <class uword> class HybridBitmapRawIterator;
+
+
 
 /**
  * This class is a compressed bitmap.
@@ -41,9 +44,11 @@ public:
 
 
 
+
+
     HybridBitmap() : buffer(1, 0), sizeinbits(0), lastRLW(0) {}
     /**
-     * @param buffersize :allocates the buffer size with all zero values
+     * @param buffersize :allocates the buffer numSlices with all zero values
      */
     HybridBitmap(size_t buffersize) : buffer(buffersize, 0), sizeinbits(buffersize* wordinbits), lastRLW(0) {
         //cout << "Constructor HybridBitmap(size_t buffersize) is called\n";
@@ -102,7 +107,7 @@ public:
         va_start(vl, n);
         std::vector<size_t>vectorOfValues(0);
         /**
-         * Since the size n is known, preallocate the vector size and finding the max_val
+         * Since the numSlices n is known, preallocate the vector numSlices and finding the max_val
          */
         size_t max_val = 0;
         for(size_t i=0; i<n; i++){
@@ -132,6 +137,7 @@ public:
          */
 //        double aaa = n;
 //        double a1 = aaa/ans.sizeinbits;
+        ans.setDensity(static_cast<double>(n)/ans.sizeInBits()); //to ensure floating point division
         ans.setDensity(static_cast<double>(n)/ans.sizeinbits); //to ensure floating point division
         return ans;
     }
@@ -144,7 +150,7 @@ public:
 
     /**
      * Query the value of bit i. This runs in time proportional to
-     * the size of the bitmap. This is not meant to be use in
+     * the numSlices of the bitmap. This is not meant to be use in
      * a performance-sensitive context.
      *
      *  (This implementation is based on zhenjl's Go version of JavaEWAH.)
@@ -159,7 +165,7 @@ public:
             return false;
         const size_t wordpos = pos / wordinbits;
         size_t WordChecked = 0;
-//        if(buffer.size() == 0){
+//        if(buffer.numSlices() == 0){
 //            return false;
 //        }
         if(verbatim){
@@ -234,7 +240,7 @@ public:
 
     /**
      * Transform into a string that presents a list of set bits.
-     * The running time is linear in the compressed size of the bitmap.
+     * The running time is linear in the compressed numSlices of the bitmap.
      */
     operator std::string() const {
         std::stringstream ss;
@@ -255,7 +261,7 @@ public:
         return out;
     }
     /**
-     * Make sure the two bitmaps have the same size (padding with zeroes
+     * Make sure the two bitmaps have the same numSlices (padding with zeroes
      * if necessary). It has constant running time complexity.
      *
      * This is useful when calling "logicalnot" functions.
@@ -392,7 +398,7 @@ public:
      *
      */
     /*
-     * Since we know the size of the container buffer, trying to avoid dynamic allocation and
+     * Since we know the numSlices of the container buffer, trying to avoid dynamic allocation and
      * use resize and [i], instead of push_back and reserve
      */
     HybridBitmap selectMultiplication(const HybridBitmap &res,const HybridBitmap &FS)const{
@@ -440,7 +446,7 @@ public:
         return answer;
     }
     HybridBitmap Xor(const HybridBitmap &a) const {
-        HybridBitmap answer = new HybridBitmap(this);
+        HybridBitmap answer;
         Xor(a, answer);
         return answer;
     }
@@ -737,7 +743,7 @@ public:
     void logicalorDecompress(const HybridBitmap &a,  HybridBitmap &container) const;
 
     /**
-     * computes the size (in number of set bits) of the logical or with another
+     * computes the numSlices (in number of set bits) of the logical or with another
      * compressed bitmap
      * Running time complexity is proportional to the sum of the compressed
      * bitmap sizes.
@@ -745,15 +751,17 @@ public:
     size_t logicalorcount(const HybridBitmap &a) const;
 
     /**
-     * computes the size (in number of set bits) of the logical and with another
+     * computes the numSlices (in number of set bits) of the logical and with another
      * compressed bitmap
      * Running time complexity is proportional to the sum of the compressed
      * bitmap sizes.
      */
     size_t logicalandcount(const HybridBitmap &a) const;
 
+    size_t andCount(const HybridBitmap &a) const;
+
     /**
-     * computes the size (in number of set bits) of the logical and not with
+     * computes the numSlices (in number of set bits) of the logical and not with
      * another compressed bitmap
      * Running time complexity is proportional to the sum of the compressed
      * bitmap sizes.
@@ -761,7 +769,7 @@ public:
     size_t logicalandnotcount(const HybridBitmap &a) const;
 
     /**
-     * computes the size (in number of set bits) of the logical xor with another
+     * computes the numSlices (in number of set bits) of the logical xor with another
      * compressed bitmap
      * Running time complexity is proportional to the sum of the compressed
      * bitmap sizes.
@@ -880,15 +888,15 @@ public:
     inline bool isVerbatim() const { return verbatim; }
 
     /**
-     * Return the size in bits of this bitmap (this refers
-     * to the uncompressed size in bits).
+     * Return the numSlices in bits of this bitmap (this refers
+     * to the uncompressed numSlices in bits).
      *
      * You can increase it with padWithZeroes()
      */
     inline size_t sizeInBits() const { return sizeinbits; }
 
     /**
-     * Return the size of the buffer in bytes. This
+     * Return the numSlices of the buffer in bytes. This
      * is equivalent to the storage cost, minus some overhead.
      * See sizeOnDisk to get the actual storage cost with overhead.
      */
@@ -914,7 +922,7 @@ public:
     size_t addStreamOfNegatedDirtyWords(const uword *v, const size_t number);
 
     /**
-     * make sure the size of the array is totalbits bits by padding with zeroes.
+     * make sure the numSlices of the array is totalbits bits by padding with zeroes.
      * returns the number of words added (storage cost increase).
      *
      * This is useful when calling "logicalnot" functions.
@@ -926,7 +934,7 @@ public:
     size_t padWithZeroes(const size_t totalbits);
 
     /**
-     * Compute the size on disk assuming that it was saved using
+     * Compute the numSlices on disk assuming that it was saved using
      * the method "write".
      */
     size_t sizeOnDisk(const bool savesizeinbits = true) const;
@@ -939,7 +947,7 @@ public:
      * type which is typically a 32-bit unsigned integer for 32-bit CPUs
      * and a 64-bit unsigned integer for 64-bit CPUs.
      * Note that this format is machine-specific. Note also
-     * that the word size is not saved. For robust persistent
+     * that the word numSlices is not saved. For robust persistent
      * storage, you need to save this extra information elsewhere.
      *
      * Returns how many bytes were handed out to the stream.
@@ -962,7 +970,7 @@ public:
     void writeBuffer(std::ostream &out) const;
 
     /**
-     * size (in words) of the underlying STL vector.
+     * numSlices (in words) of the underlying STL vector.
      */
     size_t bufferSize() const { return buffer.size(); }
 
@@ -1013,7 +1021,7 @@ public:
      * Iterate over the uncompressed words.
      * Can be considerably faster than begin()/end().
      * Running time complexity of a full scan is proportional to the
-     * uncompressed size of the bitmap.
+     * uncompressed numSlices of the bitmap.
      */
     HybridBitmapIterator<uword> uncompress() const;
 
@@ -1021,7 +1029,7 @@ public:
      * To iterate over the compressed data.
      * Can be faster than any other iterator.
      * Running time complexity of a full scan is proportional to the
-     * compressed size of the bitmap.
+     * compressed numSlices of the bitmap.
      */
     HybridBitmapRawIterator<uword> raw_iterator() const;
 
@@ -1073,7 +1081,7 @@ public:
     /**
      * Returns the number of bits set to the value 1.
      * The running time complexity is proportional to the
-     * compressed size of the bitmap.
+     * compressed numSlices of the bitmap.
      *
      * This is sometimes called the cardinality.
      */
@@ -1091,12 +1099,12 @@ public:
 
     /**
      * Please don't copy your bitmaps! The running time
-     * complexity of a copy is the size of the compressed bitmap.
+     * complexity of a copy is the numSlices of the compressed bitmap.
      **/
 
     /**
      * Copies the content of one bitmap onto another. Running time complexity
-     * is proportional to the size of the compressed bitmap.
+     * is proportional to the numSlices of the compressed bitmap.
      * please, never hard-copy this object. Use the swap method if you must.
      */
     HybridBitmap &operator=(const HybridBitmap &x) {
@@ -1159,7 +1167,7 @@ public:
 
     /**
      * Apply the logical not operation on this bitmap.
-     * Running time complexity is proportional to the compressed size of the
+     * Running time complexity is proportional to the compressed numSlices of the
      *bitmap.
      * The current bitmap is not modified.
      *
@@ -1169,7 +1177,7 @@ public:
     void inplace_logicalnot();
 
     /**
-     * set size in bits. This does not affect the compressed size. It
+     * set numSlices in bits. This does not affect the compressed numSlices. It
      * runs in constant time. This should not normally be used, except
      * as part of a deserialization process.
      */
@@ -1215,16 +1223,16 @@ public:
      */
     inline void fastaddStreamOfDirtyWords(const uword *v, const size_t number);
 
-    // private because does not increment the size in bits
+    // private because does not increment the numSlices in bits
     // returns the number of words added (storage cost increase)
     inline size_t addLiteralWord(const uword newdata);
 
-    // private because does not increment the size in bits
+    // private because does not increment the numSlices in bits
     // returns the number of words added (storage cost increase)
     size_t addEmptyWord(const bool v);
     // this second version "might" be faster if you hate OOP.
     // in my tests, it turned out to be slower!
-    // private because does not increment the size in bits
+    // private because does not increment the numSlices in bits
     // inline void addEmptyWordStaticCalls(bool v);
     // RunningLengthWord<> rlw;
 
@@ -1708,13 +1716,13 @@ template <class uword> bool HybridBitmap<uword>::set(size_t i) {
 //                       static_cast<uword>(static_cast<uword>(1) << (i % wordinbits)));
 //        return true;
 //    }
-//    buffer[buffer.size() - 1] |=
+//    buffer[buffer.numSlices() - 1] |=
 //    static_cast<uword>(static_cast<uword>(1) << (i % wordinbits));
 //    // check if we just completed a stream of 1s
-//    if (buffer[buffer.size() - 1] == static_cast<uword>(~0)) {
+//    if (buffer[buffer.numSlices() - 1] == static_cast<uword>(~0)) {
 //        // we remove the last dirty word
-//        buffer[buffer.size() - 1] = 0;
-//        buffer.resize(buffer.size() - 1);
+//        buffer[buffer.numSlices() - 1] = 0;
+//        buffer.resize(buffer.numSlices() - 1);
 //        lastRunningLengthWord.setNumberOfLiteralWords(static_cast<uword>(
 //                                                                         lastRunningLengthWord.getNumberOfLiteralWords() - 1));
 //        // next we add one clean word
@@ -1753,9 +1761,30 @@ template <class uword> void HybridBitmap<uword>::inplace_logicalnot() {
 template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
     size_t tot(0);
     size_t pointer(0);
+    if (8*sizeof(uword)==32) {
+        if(verbatim){
+            for (int i = 0; i < bufferSize(); i++) {
+                tot += __builtin_popcount(buffer[i]);
+            }
+        }else{
+            while (pointer < buffer.size()) {
+                size_t temp = buffer.size();
+                ConstRunningLengthWord<uword> rlw(buffer[pointer]);
+                if (rlw.getRunningBit()) {
+                    tot += static_cast<size_t>(rlw.getRunningLength() * wordinbits);
+                }
+                ++pointer;
+                for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
+                    tot += __builtin_popcount(buffer[pointer]);
+                    ++pointer;
+                }
+            }
+        }
+    }else if(8*sizeof(uword)==64)
+        {
     if(verbatim){
         for (int i = 0; i < bufferSize(); i++) {
-            tot += countOnes((uword)buffer[i]);
+            tot += __builtin_popcountl(buffer[i]);
         }
     }else{
         while (pointer < buffer.size()) {
@@ -1766,13 +1795,37 @@ template <class uword> size_t HybridBitmap<uword>::numberOfOnes() const {
             }
             ++pointer;
             for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
-                tot += countOnes((uword)buffer[pointer]);
+                tot += __builtin_popcountl(buffer[pointer]);
                 ++pointer;
+            }
+        }
+    }
+}
+    else { //128 bits
+        if(verbatim){
+            for (int i = 0; i < bufferSize(); i++) {
+                tot += __builtin_popcountll(buffer[i])+__builtin_popcountll(buffer[i]>>64);
+            }
+        }else{
+            while (pointer < buffer.size()) {
+                size_t temp = buffer.size();
+                ConstRunningLengthWord<uword> rlw(buffer[pointer]);
+                if (rlw.getRunningBit()) {
+                    tot += static_cast<size_t>(rlw.getRunningLength() * wordinbits);
+                }
+                ++pointer;
+                for (size_t k = 0; k < rlw.getNumberOfLiteralWords(); ++k) {
+                    tot += __builtin_popcountll(buffer[pointer])+__builtin_popcountll(buffer[pointer]>>64);
+                    ++pointer;
+                }
             }
         }
     }
     return tot;
 }
+
+
+
 
 template <class uword>
 std::vector<size_t> HybridBitmap<uword>::toArray() const {
@@ -2165,7 +2218,7 @@ void HybridBitmap<uword>::append(const HybridBitmap &x) {
         std::stringstream ss;
         ss << "This should really not happen! You are trying to append to a bitmap "
               "having a fractional number of words, that is,  "
-           << static_cast<int>(sizeinbits) << " bits with a word size in bits of "
+           << static_cast<int>(sizeinbits) << " bits with a word numSlices in bits of "
            << static_cast<int>(wordinbits) << ". ";
         ss << "Size of the bitmap being appended: " << x.sizeinbits << " bits."
            << std::endl;
@@ -2554,7 +2607,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
                 }
 //                std::fill(container.buffer.begin()+actualsizeinwords,
 //                        container.buffer.begin()+actualsizeinwords+predator.getRunningLength(), ~0L);
-//                container.buffer.size  = buffer.size() +predator.getRunningLength() ;
+//                container.buffer.numSlices  = buffer.numSlices() +predator.getRunningLength() ;
                 actualsizeinwords+=predator.getRunningLength();
                 prey.discardFirstWordsWithReload(predator.getRunningLength());
                 predator.discardFirstWordsWithReload(predator.getRunningLength());
@@ -2587,7 +2640,7 @@ void HybridBitmap<uword>::logicalorDecompress(const HybridBitmap &a,
             rlwj.discardLiteralWordsWithReload(nbre_literal);
         }
     }
-//    const bool i_remains = rlwi.size() > 0;
+//    const bool i_remains = rlwi.numSlices() > 0;
 //    BufferedRunningLengthWord<uword> &remaining = i_remains ? rlwi : rlwj;
 //    remaining.discharge(container);
     container.setSizeInBits(sizeInBits() > a.sizeInBits() ? sizeInBits() : a.sizeInBits());
@@ -2932,6 +2985,89 @@ size_t HybridBitmap<uword>::logicalandcount(const HybridBitmap &a) const {
 }
 
 template <class uword>
+size_t HybridBitmap<uword>::andCount(const HybridBitmap &other) const {
+    if (verbatim && other.verbatim) {
+        const size_t limit = std::min(buffer.size(), other.buffer.size());
+        size_t total = 0;
+        for (size_t i = 0; i < limit; ++i) {
+            total += countOnes(static_cast<uword>(buffer[i] & other.buffer[i]));
+        }
+        return total;
+    }
+
+    if (!verbatim && !other.verbatim) {
+        return logicalandcount(other);
+    }
+
+    const HybridBitmap &compressed = verbatim ? other : *this;
+    const HybridBitmap &literal    = verbatim ? *this : other;
+
+    HybridBitmapRawIterator<uword> it = compressed.raw_iterator();
+    if (!it.hasNext()) {
+        return 0;
+    }
+    BufferedRunningLengthWord<uword> &rlw = it.next();
+
+    const uword *words = literal.buffer.data();
+    const size_t wordCount = literal.buffer.size();
+
+    size_t total = 0;
+    size_t wordIndex = 0;
+
+    while (wordIndex < wordCount) {
+        // Handle runs first
+        while (rlw.getRunningLength() > 0) {
+            const size_t chunk = std::min<size_t>(rlw.getRunningLength(), wordCount - wordIndex);
+            if (chunk == 0) {
+                return total;
+            }
+            if (rlw.getRunningBit()) {
+                const uword *p = words + wordIndex;
+                const uword *end = p + chunk;
+                for (; p != end; ++p) {
+                    total += countOnes(*p);
+                }
+            }
+            wordIndex += chunk;
+            rlw.discardFirstWordsWithReload(chunk);
+            if (rlw.size() == 0) {
+                if (!it.hasNext()) {
+                    return total;
+                }
+                rlw = it.next();
+            }
+        }
+
+        // Handle literal words
+        const size_t literals = std::min<size_t>(rlw.getNumberOfLiteralWords(), wordCount - wordIndex);
+        if (literals == 0) {
+            if (!it.hasNext()) {
+                return total;
+            }
+            rlw = it.next();
+            continue;
+        }
+
+        const uword *p = words + wordIndex;
+        for (size_t k = 0; k < literals; ++k) {
+            // Map words depending on which operand is verbatim
+            uword rightWord = verbatim ? rlw.getLiteralWordAt(k) : p[k];
+            uword leftWord  = verbatim ? p[k] : rlw.getLiteralWordAt(k);
+            total += countOnes(static_cast<uword>(leftWord & rightWord));
+        }
+        wordIndex += literals;
+        rlw.discardLiteralWordsWithReload(literals);
+        if (rlw.size() == 0 && it.hasNext()) {
+            rlw = it.next();
+        }
+    }
+
+    return total;
+}
+
+
+
+template <class uword>
 bool HybridBitmap<uword>::intersects(const HybridBitmap &a) const {
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
@@ -3273,34 +3409,30 @@ void HybridBitmap<uword>::shiftRowWithCarry(const HybridBitmap &this_bitmap, Hyb
 template <class uword>
 void HybridBitmap<uword>::And(const HybridBitmap &a, HybridBitmap &container) const {
     container.density=density*a.density;
-    if (verbatim && a.verbatim) {
+    if (a.density==0 ) {
+        container = a;
+    }else if (density==0){
+        container = *this;
+    }else if (a.density==1) {
+        container = *this;
+    }else if (density==1) {
+        container = a;
+    }
+    else if (verbatim && a.verbatim) {
         //if(container.density<andThreshold){
         if(std::min(density, a.density)<andThreshold){
-            if(container.density==0){
-                container.verbatim=false;
-                container.setSizeInBits(std::max(sizeinbits, a.sizeinbits),false);
-            }else{
                 andVerbatimCompress(a, container);
-            }
         }else{
             andVerbatim(a, container);
         }
     } else if(verbatim || a.verbatim) {
-        if(container.density==0){
-            container.verbatim=false;
-            container.setSizeInBits(std::max(sizeinbits, a.sizeinbits),false);
-        }else{
             andHybridCompress(a, container);
             container.setSizeInBits(std::max(sizeinbits, a.sizeinbits));
-        }
+
     }else{
-        if(container.density==0){
-            container.verbatim=false;
-            container.setSizeInBits(std::max(sizeinbits, a.sizeinbits),false);
-        }else{
             //container.reserve(actualsizeinwords > a.actualsizeinwords ? actualsizeinwords : a.actualsizeinwords);
             logicaland(a, container);
-        }
+
     }
     //        container.age = Math.max(this.age, a.age)+1;
     ////        if(container.age>20){
@@ -3666,7 +3798,7 @@ template <class uword>
 void HybridBitmap<uword>::andVerbatimCompress(const HybridBitmap &a, HybridBitmap &container) const{
 
     container.buffer.reserve(bufferSize());
-    container.density=density*a.density;
+    //container.density=density*a.density;
     //container.verbatim = false;
     for (int i = 0; i < buffer.size(); i++) {
         container.addWord(buffer[i] & a.buffer[i]);
@@ -3680,7 +3812,21 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
     //double expDens = (this.setbits+a.setbits)/(double)(this.sizeinbits)-(this.setbits/(double)this.sizeinbits*a.setbits/(double)a.sizeinbits);
     container.density= (density+a.density)-(density*a.density);
     //    container.sizeinbits=this.sizeinbits;
-    if (verbatim && a.verbatim) {
+    if (density==0 || a.density==0) { //if one of the bitmaps is all zeros
+        if (a.density==0) {
+            container = a;
+        }else {
+            container = *this;
+        }
+    }
+    else if (density==1 || a.density==1) {
+        if (a.density==1) {
+            container = a;
+        }else {
+            container = *this;
+        }
+    }
+    else if (verbatim && a.verbatim) {
         if(container.density>(1-orThreshold)){
             //if(Math.max(this.density, a.density)>){
             orVerbatimCompress(a,container);
@@ -3696,7 +3842,7 @@ void HybridBitmap<uword>::Or(const HybridBitmap &a, HybridBitmap &container) con
         }
     }else{
         //if(container.density>orThreshold){
-        if(std::max(density, a.density)>orThreshold){
+        if(std::max(density, a.density)>orThreshold && std::max(density, a.density)<(1-orThreshold)){
             logicalorDecompress(a, container);
         }else{
             container.buffer.reserve(bufferSize() + a.bufferSize());
@@ -3773,13 +3919,26 @@ void HybridBitmap<uword>::Xor(const HybridBitmap &a, HybridBitmap &container) co
     //double expDens = this.setbits/(double)this.sizeinbits*(a.sizeinbits-a.setbits)/(double)a.sizeinbits+a.setbits/(double)a.sizeinbits*(this.sizeinbits-this.setbits)/(double)this.sizeinbits;
     container.density=density*(1-a.density)+a.density*(1-density);
     //    container.sizeinbits=this.sizeinbits;
-    if (verbatim && a.verbatim) {
+    if (a.density==0 || density==0) { //if one of the bitmaps is all zeros
+        if (a.density==0) {
+            container = *this;
+        }else {
+            container = a;
+        }
+    }else if (a.density==1 || density==1) {
+        if (a.density==1) {
+            container = logicalnot();
+        }else {
+            container = a.logicalnot();
+        }
+    }
+    else if (verbatim && a.verbatim) {
         xorVerbatim(a, container);
     }else if(verbatim || a.verbatim){
         xorHybrid(a, container);
     }else{
         //if(container.density>orThreshold){
-        if(std::max(density, a.density)>orThreshold){
+        if(std::max(density, a.density)>orThreshold && std::max(density, a.density)<(1-orThreshold)){
             logicalxorDecompress(a, container);
         }else{
             container.buffer.reserve(bufferSize() + a.bufferSize());
@@ -3842,7 +4001,7 @@ void HybridBitmap<uword>::Not(HybridBitmap &container) const{
 
     container.density=1-density;
     if (verbatim){
-        for(int i=0; i < buffer.size(); i++){
+        for(int i=0; i < buffer.numSlices(); i++){
             container.buffer[i]=~buffer[i];
         }
     }else{
@@ -3947,8 +4106,8 @@ void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, const HybridBitmap 
 
 template <class uword>
 void HybridBitmap<uword>::andVerbatim(const HybridBitmap &a, HybridBitmap &container) const{
-    container.reset();
-    container.density = density * a.density;
+    //container.reset();
+    //container.density = density * a.density;
     container.verbatim = true;
     container.buffer.resize(bufferSize());  // Use resize() instead of reserve()
     for (int i = 0; i < buffer.size() && i < a.bufferSize(); i++) {
@@ -4084,7 +4243,7 @@ template <class uword>
 void HybridBitmap<uword>::andHybridCompress(const HybridBitmap &a, HybridBitmap &container) const {
     int j = 0;
     int i=0;
-    container.density=density*a.density;
+    //container.density=density*a.density;
 
     if (verbatim) { // this is verbatim
         container.buffer.reserve(a.bufferSize());
@@ -4270,7 +4429,7 @@ void HybridBitmap<uword>::logicalAndDecompress(const HybridBitmap &a, HybridBitm
     container.buffer.resize(((sizeinbits/sizeof(uword)*8)+1));
     container.verbatim=true;
 //    if (RESERVEMEMORY)
-//        container.buffer.reserve(buffer.size() > a.buffer.size() ? buffer.size() : a.buffer.size());
+//        container.buffer.reserve(buffer.numSlices() > a.buffer.numSlices() ? buffer.numSlices() : a.buffer.numSlices());
     HybridBitmapRawIterator<uword> i = a.raw_iterator();
     HybridBitmapRawIterator<uword> j = raw_iterator();
     uword actualsizeinwords = 0;
@@ -4741,7 +4900,7 @@ void HybridBitmap<uword>::xorHybridCompress(const HybridBitmap &a, HybridBitmap 
 
 template <class uword>
 void HybridBitmap<uword>::xorHybrid(const HybridBitmap &a, HybridBitmap &container)const {
-    container.reset();
+    //container.reset();
     container.verbatim=true;
     container.density=density*(1-a.density)+a.density*(1-density);
     int j = 0;
@@ -5006,7 +5165,7 @@ void HybridBitmap<uword>::xorNotHybrid(const HybridBitmap &a, HybridBitmap &cont
 
             for( j=0; j<rlw.getNumberOfLiteralWords(); j++){
                 //                    if((this.rlw.position+j+1)>=this.buffer.length)
-                //                        System.out.println("ERROR C has broblems. buffer size: "+this.buffer.length);
+                //                        System.out.println("ERROR C has broblems. buffer numSlices: "+this.buffer.length);
                 //                    if(i>=a.buffer.length)
                 //                        System.out.println("ERROR Verbatim has broblems. Num of bits: "+a.sizeinbits);
                 container.buffer.push_back((~a.buffer[i])^(buffer[lastrlw+j+1]));
