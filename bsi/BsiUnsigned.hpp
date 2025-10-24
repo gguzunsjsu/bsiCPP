@@ -9,6 +9,8 @@
 #include "BsiVector.hpp"
 #include <cmath>
 #include <cstdint>
+#include <iostream>
+#include <memory>
 
 
 template <class uword>
@@ -1461,97 +1463,188 @@ BsiVector<uword>* BsiUnsigned<uword>::multiply_bsi(BsiVector<uword> *unbsi) cons
     return this->multiplyBSI_Signed(unbsi);
 };
 
+
+// WALLACE MULTIPLIER : ---------------------------
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const {
-    std::cout << "START:" << "\n";
-    BsiUnsigned<uword>* res = nullptr;
-    HybridBitmap<uword> C, S, FS, DS;
-    int k = 0;
-    res = new BsiUnsigned<uword>(); //add size for res
-    res->offset = k;
-    for (int i = 0; i < this->numSlices; i++) {
-        res->bsi.push_back(unbsi->bsi[0].And(this->bsi[i]));
-    }
-    res->numSlices = this->numSlices;
+    const int m = this->numSlices;
+    const int n = unbsi->numSlices;
 
-    k = 1;
-    for (int it=1; it<unbsi->numSlices; it++) {
-        /* Move the slices of res k positions */
-        // HybridBitmap<uword> A, B;
-        // A = res->bsi[k];
-        // B = this->bsi[0];
-        S=res->bsi[k];
-        S = S.Xor(this->bsi[0]);
-        C = res->bsi[k].And(this->bsi[0]);
-        FS = unbsi->bsi[it].And(S);
-        // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
-        // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-        // res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
-        res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
-        // int res_slices = res->numSlices;
-        for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
-            // B = this->bsi[i];
-            if ((i + k) < res->numSlices){
-                // A = res->bsi[i + k];
-                S=res->bsi[i + k];
-                S = S.Xor(this->bsi[i]);
-                S = S.Xor(C);
-                // C = res->bsi[i + k].maj(this->bsi[i], C);
-                // C.majInPlace(res->bsi[i + k],this->bsi[i]);
-                // C = A.And(B).Or(B.And(C)).Or(A.And(C));
-                C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
-
-            } else {
-                S=this->bsi[i];
-                S = S.Xor(C);
-                C = C.And(this->bsi[i]);
-                //                C = this->bsi[i].And(C);
-                res->numSlices++;
-                FS = unbsi->bsi[it].And(S);
-                res->bsi.push_back(FS);
-            }
-            int t = i+k;
-            FS = unbsi->bsi[it].And(S);
-            // res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
-            // res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
-            // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-            // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
-            // HybridBitmap<uword> A, B, C1;
-            // A = unbsi->bsi[it].And(FS);
-            // B = res->bsi[i + k].andNot(unbsi->bsi[it]);
-            // C1 = B.Or(A);
-
-            res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
-          //  std::cout << "it: " << it <<  "  i+k:" << i+k << "\n";
-
-        }
-        for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
-            S = res->bsi[i];
-            S = S.Xor(C);
-            C = C.And(res->bsi[i]);
-            // C = res->bsi[i].And(C);
-            FS = unbsi->bsi[it].And(S);
-            // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
-            // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
-            // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
-            res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
-        }
-        int c = C.numberOfOnes();
-        if (C.numberOfOnes() > 0) {
-            res->bsi.push_back(unbsi->bsi[it].And(C)); // Carry bit
-            res->numSlices++;
-        }
-        k++;
-    }
-
-    res->existenceBitmap = this->existenceBitmap;
+    BsiUnsigned<uword>* res = new BsiUnsigned<uword>();
+    res->setPartitionID(this->getPartitionID());
     res->setNumberOfRows(this->getNumberOfRows());
+    res->rows  = this->rows;
     res->index = this->index;
-    res->decimals = this->decimals + unbsi->decimals;
-    res->lastSlice=this->lastSlice;
-    res->firstSlice=unbsi->firstSlice|this->firstSlice;
+    res->offset = this->offset + unbsi->offset;
+    res->existenceBitmap = this->existenceBitmap;
+
+
+    if (m == 0 || n == 0) return res;
+
+    const int MAXW = m + n;
+    std::vector<std::vector<HybridBitmap<uword>>> cols(MAXW);
+
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            HybridBitmap<uword> p = this->bsi[i].And(unbsi->bsi[j]);
+            if (p.numberOfOnes() > 0) cols[i + j].push_back(std::move(p));
+        }
+    }
+
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        std::vector<std::vector<HybridBitmap<uword>>> next(cols.size() + 1);
+
+        for (int k = 0; k < (int)cols.size(); ++k) {
+            auto &col = cols[k];
+            const int len = (int)col.size();
+            int t = 0;
+
+            for (; t + 2 < len; t += 3) {
+                HybridBitmap<uword> &A = col[t];
+                HybridBitmap<uword> &B = col[t + 1];
+                HybridBitmap<uword> &C = col[t + 2];
+
+                HybridBitmap<uword> sum = A.Xor(B);
+                sum.XorInPlace(C);
+
+                HybridBitmap<uword> carry = A.And(B);
+                carry = carry.Or(B.And(C)).Or(A.And(C));
+
+                next[k].push_back(std::move(sum));
+                next[k + 1].push_back(std::move(carry));
+                changed = true;
+            }
+
+            for (; t < len; ++t) next[k].push_back(std::move(col[t]));
+        }
+
+        cols.swap(next);
+    }
+
+    const int W = (int)cols.size();
+    HybridBitmap<uword> zero;
+    zero.setSizeInBits(this->bsi[0].sizeInBits());
+
+    std::vector<HybridBitmap<uword>> row0(W, zero), row1(W, zero);
+    for (int k = 0; k < W; ++k) {
+        if (!cols[k].empty()) {
+            row0[k] = cols[k][0];
+            if (cols[k].size() > 1) row1[k] = cols[k][1];
+        }
+    }
+
+    HybridBitmap<uword> carry = zero;
+    for (int k = 0; k < W; ++k) {
+        HybridBitmap<uword> s = row0[k].Xor(row1[k]);
+        s.XorInPlace(carry);
+
+        HybridBitmap<uword> c_out = row0[k].And(row1[k]);
+        c_out = c_out.Or(row1[k].And(carry)).Or(row0[k].And(carry));
+
+        res->addSlice(s);
+        carry = std::move(c_out);
+    }
+    if (carry.numberOfOnes() > 0) {
+        res->addSlice(carry);
+    }
+
     return res;
-};
+}
+
+// Original Method : --------------------------------
+// template <class uword>
+// BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI(BsiVector<uword> *unbsi) const {
+//     std::cout << "START:" << "\n";
+//     BsiUnsigned<uword>* res = nullptr;
+//     HybridBitmap<uword> C, S, FS, DS;
+//     int k = 0;
+//     res = new BsiUnsigned<uword>(); //add size for res
+//     res->offset = k;
+//     for (int i = 0; i < this->numSlices; i++) {
+//         res->bsi.push_back(unbsi->bsi[0].And(this->bsi[i]));
+//     }
+//     res->numSlices = this->numSlices;
+//
+//     k = 1;
+//     for (int it=1; it<unbsi->numSlices; it++) {
+//         /* Move the slices of res k positions */
+//         // HybridBitmap<uword> A, B;
+//         // A = res->bsi[k];
+//         // B = this->bsi[0];
+//         S=res->bsi[k];
+//         S = S.Xor(this->bsi[0]);
+//         C = res->bsi[k].And(this->bsi[0]);
+//         FS = unbsi->bsi[it].And(S);
+//         // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
+//         // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+//         // res->bsi[k] = unbsi.bsi[it].Not().And(res->bsi[k]).Or(unbsi.bsi[it].And(FS));
+//         res->bsi[k] = unbsi->bsi[it].Not().And(res->bsi[k]).Or(unbsi->bsi[it].And(FS));
+//         // int res_slices = res->numSlices;
+//         for (int i = 1; i < this->numSlices; i++) {// Add the slices of this to the current res
+//             // B = this->bsi[i];
+//             if ((i + k) < res->numSlices){
+//                 // A = res->bsi[i + k];
+//                 S=res->bsi[i + k];
+//                 S = S.Xor(this->bsi[i]);
+//                 S = S.Xor(C);
+//                 // C = res->bsi[i + k].maj(this->bsi[i], C);
+//                 // C.majInPlace(res->bsi[i + k],this->bsi[i]);
+//                 // C = A.And(B).Or(B.And(C)).Or(A.And(C));
+//                 C = res->bsi[i + k].And(this->bsi[i]).Or(this->bsi[i].And(C)).Or(res->bsi[i + k].And(C));
+//
+//             } else {
+//                 S=this->bsi[i];
+//                 S = S.Xor(C);
+//                 C = C.And(this->bsi[i]);
+//                 //                C = this->bsi[i].And(C);
+//                 res->numSlices++;
+//                 FS = unbsi->bsi[it].And(S);
+//                 res->bsi.push_back(FS);
+//             }
+//             int t = i+k;
+//             FS = unbsi->bsi[it].And(S);
+//             // res->bsi[i + k] = unbsi.bsi[it].selectMultiplication(res->bsi[i + k],FS);
+//             // res->bsi[i + k] = unbsi->bsi[it].selectMultiplication(res->bsi[i + k],FS);
+//             // res->bsi[i+k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+//             // res->bsi[i + k] = res->bsi[i + k].andNot(unbsi.bsi[it]).Or(unbsi.bsi[it].And(FS));
+//             // HybridBitmap<uword> A, B, C1;
+//             // A = unbsi->bsi[it].And(FS);
+//             // B = res->bsi[i + k].andNot(unbsi->bsi[it]);
+//             // C1 = B.Or(A);
+//
+//             res->bsi[i + k] = res->bsi[i + k].andNot(unbsi->bsi[it]).Or(unbsi->bsi[it].And(FS));    //selectMultiplication not working for verbatim=false
+//           //  std::cout << "it: " << it <<  "  i+k:" << i+k << "\n";
+//
+//         }
+//         for (int i = this->numSlices + k; i < res->numSlices; i++) {// Add the remaining slices of res with the Carry C
+//             S = res->bsi[i];
+//             S = S.Xor(C);
+//             C = C.And(res->bsi[i]);
+//             // C = res->bsi[i].And(C);
+//             FS = unbsi->bsi[it].And(S);
+//             // res->bsi[k] = unbsi.bsi[it].selectMultiplication(res->bsi[k],FS);
+//             // res->bsi[k] = unbsi->bsi[it].selectMultiplication(res->bsi[k],FS);
+//             // res->bsi[k].selectMultiplicationInPlace(unbsi->bsi[it],FS);
+//             res->bsi[k] = unbsi->bsi[it].andNot(res->bsi[k]).Or(unbsi->bsi[it].And(FS)); //selectMultiplication also works
+//         }
+//         int c = C.numberOfOnes();
+//         if (C.numberOfOnes() > 0) {
+//             res->bsi.push_back(unbsi->bsi[it].And(C)); // Carry bit
+//             res->numSlices++;
+//         }
+//         k++;
+//     }
+//
+//     res->existenceBitmap = this->existenceBitmap;
+//     res->setNumberOfRows(this->getNumberOfRows());
+//     res->index = this->index;
+//     res->decimals = this->decimals + unbsi->decimals;
+//     res->lastSlice=this->lastSlice;
+//     res->firstSlice=unbsi->firstSlice|this->firstSlice;
+//     return res;
+// };
 
 template <class uword>
 BsiVector<uword>* BsiUnsigned<uword>::multiplyBSI_Signed(BsiVector<uword> *unbsi) const{
