@@ -53,15 +53,15 @@ void SUM_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
     auto t_sum = std::chrono::high_resolution_clock::now();
     BsiVector<T>* bsi_sum = bsi_one->SUM(bsi_two);
     auto t_sum2 = std::chrono::high_resolution_clock::now();
-    if (debug) std::cout << "BSI sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2 - t_sum).count() << "us\n";
+    std::cout << "BSI sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2 - t_sum).count() << "us\n";
     int count = 0;
     for (int i = 0; i < vector_length; ++i)
-        if (bsi_sum->getValue(i) != normal_sum[i] && debug) {
-            std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue(i) << " vs Normal=" << normal_sum[i] << "\n";
+        if (bsi_sum->getValue(i) != normal_sum[i]) {
+            if (debug) std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue(i) << " vs Normal=" << normal_sum[i] << "\n";
             count += 1;
         }
     if (count == 0) std::cout << "PASS !!\n";
-    if (!debug && count != 0) std::cout << "FAIL\n";
+    if (count != 0) std::cout << "FAIL -------------------\n";
 }
 
 template<typename T>
@@ -75,12 +75,12 @@ void SUM_test_dec(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
     if (debug) std::cout << "BSI sum time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_sum2 - t_sum).count() << "us\n";
     int count = 0;
     for (int i = 0; i < vector_length; ++i)
-        if ((std::fabs(bsi_sum->getValue_with_decimal(i) - normal_sum[i]) > epsilon) && debug) {
-            std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue_with_decimal(i) << " vs Normal=" << normal_sum[i] << "\n";
+        if ((std::fabs(bsi_sum->getValue_with_decimal(i) - normal_sum[i]) > epsilon) ) {
+            if (debug) std::cout << "Mismatch sum [" << i << "]: BSI=" << bsi_sum->getValue_with_decimal(i) << " vs Normal=" << normal_sum[i] << "\n";
             count += 1;
         }
     if (count == 0) std::cout << "PASS !!\n";
-    if (!debug && count != 0) std::cout << "FAIL\n";
+    if (count != 0) std::cout << "FAIL -------------------\n";
 }
 
 template<typename T>
@@ -92,13 +92,13 @@ void negate_test(BsiVector<T>* bsi_one, const std::vector<long>& normal_neg, int
     if (debug) std::cout << "BSI negation time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_neg2 - t_neg).count() << "us\n";
     int count = 0;
     for (int i = 0; i < vector_length; ++i)
-        if (bsi_neg->getValue(i) != normal_neg[i] && debug) {
-            std::cout << "Mismatch negate [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
+        if (bsi_neg->getValue(i) != normal_neg[i]) {
+            if (debug) std::cout << "Mismatch negate [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
             count += 1;
         }
 
     if (count == 0) std::cout << "PASS !!\n";
-    if (!debug && count != 0) std::cout << "FAIL\n";
+    if (count != 0) std::cout << "FAIL -------------------\n";
 }
 
 template<typename T>
@@ -110,13 +110,13 @@ void negate_test_dec(BsiVector<T>* bsi_one, const std::vector<double>& normal_ne
     if (debug) std::cout << "BSI negation time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_neg2 - t_neg).count() << "us\n";
     int count = 0;
     for (int i = 0; i < vector_length; ++i)
-        if ((std::fabs(bsi_neg->getValue_with_decimal(i) - normal_neg[i]) > epsilon) && debug) {
-            std::cout << "Mismatch negate [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
+        if ((std::fabs(bsi_neg->getValue_with_decimal(i) - normal_neg[i]) > epsilon)) {
+            if (debug) std::cout << "Mismatch negate [" << i << "]: BSI=" << bsi_neg->getValue(i) << " vs Normal=" << normal_neg[i] << "\n";
             count += 1;
         }
 
     if (count == 0) std::cout << "PASS !!\n";
-    if (!debug && count != 0) std::cout << "FAIL\n";
+    if (count != 0) std::cout << "FAIL -------------------\n";
 }
 
 template<typename T>
@@ -124,26 +124,49 @@ void multiply_test(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two, const std::vect
     std::cout << "\nBSI multiply: "  << label << " \n";
     auto t_mul = std::chrono::high_resolution_clock::now();
     BsiVector<uint64_t>* bsi_mul = bsi_one->multiply_bsi(bsi_two);
+    // std::cout << "BSI mul val: " << bsi_mul->getValue_with_decimal(0) << "Nor mul val: " << normal_mul[0] << "\n";
     auto t_mul2 = std::chrono::high_resolution_clock::now();
-    if (debug) std::cout << "BSI multiplication time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_mul2 - t_mul).count() << "us\n";
+    // if (debug)
+    std::cout << "BSI multiplication time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_mul2 - t_mul).count() << "us\n";
     int count = 0;
     for (int i = 0; i < vector_length; ++i) {
         long val = bsi_mul->getValue(i);
-        if (val != normal_mul[i] && debug) {
-            std::cout << "Mismatch multiplication [" << i << "]: BSI=" << bsi_mul->getValue(i) << " vs Normal=" << normal_mul[i] << "\n";
+        std::cout << "Multiplication [" << i << "]: BSI=" << bsi_mul->getValue(i) << " vs Normal=" << normal_mul[i] << "\n";
+        if (val != normal_mul[i]) {
+            // if (debug) std::cout << "Mismatch multiplication [" << i << "]: BSI=" << bsi_mul->getValue(i) << " vs Normal=" << normal_mul[i] << "\n";
             count += 1;
         }
     }
     if (count == 0) std::cout << "PASS !!\n";
-    if (!debug && count != 0) std::cout << "FAIL\n";
+    if (count != 0) std::cout << "FAIL -------------------\n";
+}
+
+template<typename T>
+void multiply_test_dec(BsiVector<T>* bsi_one, BsiVector<T>* bsi_two,
+                       const std::vector<double>& normal_mul, int vector_length, const std::string& label = "", bool debug = true, bool decimal = false, double epsilon = 1e-9) {
+    // double epsilon = 1e-9;
+    std::cout << "\nBSI Decimal Mul: " << label << " \n";
+    auto t_mul = std::chrono::high_resolution_clock::now();
+    BsiVector<T>* bsi_mul = bsi_one->multiply_bsi(bsi_two);
+    auto t_mul2 = std::chrono::high_resolution_clock::now();
+    // if (debug)
+    std::cout << "BSI mul time: " << std::chrono::duration_cast<std::chrono::microseconds>(t_mul2 - t_mul).count() << "us\n";
+    int count = 0;
+    for (int i = 0; i < vector_length; ++i)
+        if ((std::fabs(bsi_mul->getValue_with_decimal(i) - normal_mul[i]) > epsilon)) {
+            if (debug) std::cout << "Mismatch mul [" << i << "]: BSI=" << bsi_mul->getValue_with_decimal(i) << " vs Normal=" << normal_mul[i] << "\n";
+            count += 1;
+        }
+    if (count == 0) std::cout << "PASS !!\n";
+    if (count != 0) std::cout << "FAIL -------------------\n";
 }
 
 int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
     int range = 1000;
-    int vector_length = 1000; // keep small for verbose checks (set higher for performance tests)
-    double alpha = 4.0;
+    int vector_length = 1; // keep small for verbose checks (set higher for performance tests)
+    double alpha = 1.0;
     bool debug = true;
     double epsilon = 1e-9;
 
@@ -156,9 +179,20 @@ int main() {
 
     // Generate Zipf-distributed integers and decimals
     ZipfDistribution zipf_dist(range, alpha);
+
+    one = {3845, 8983, 2462, 5143, 4161, 1682, 858, 6666, 1618, 8762, 4727, 4496, 7324, 5405, 8503, 4113, 6344, 4765,
+                   9532, 6318, 5836, 1355, 7574, 5366, 923, 8105, 4128, 5522, 8079, 5614, 9500, 1124, 9662, 8096, 4215, 5805, 8636, 3055, 4342, 3306};
+    // two = {3, 6213, 7136, 3150, 7709, 3049, 2233, 2729, 4630, 5721, 6472, 7239, 8922, 3978, 8275, 5955, 1584, 6472, 6248, 894, 2728,
+    //                          2645, 7825, 4747, 7680, 3204, 1729, 2069, 4722, 7085, 7129, 3161, 5333, 4241, 9510, 3614, 3695, 2781, 352, 3647};
+
+    two = {39, 25, 47, 12, 5, 10, 30, 5, 1, 26, 9, 9, 2, 47, 29, 48, 28, 29, 13, 27,
+        30, 1, 43, 17, 46, 7, 45, 1, 27, 41, 1, 31, 43, 12, 35, 17, 26, 29, 47, 42};
+
+
     for (int i = 0; i < vector_length; ++i) {
-        one[i] = zipf_dist(gen) - 2;
-        two[i] = zipf_dist(gen) - 2;
+        // one[i] = zipf_dist(gen) - 2;
+        // two[i] = zipf_dist(gen) - 2;
+
 
         one_signed[i] = zipf_dist(gen) - (range / 2);
         two_signed[i] = zipf_dist(gen) - (range / 2);
@@ -177,14 +211,25 @@ int main() {
                         mixed_sum_signed_plus_unsigned(vector_length), mixed_sum_unsigned_plus_signed(vector_length),
                         mixed_mul_signed_unsigned(vector_length), mixed_mul_unsigned_signed(vector_length);
     std::vector<double> normal_sum_d(vector_length), normal_mul_d(vector_length), normal_neg_d(vector_length), signed_neg_d(vector_length), signed_sum_d(vector_length),
-                        mixed_sum_d_signed_plus_unsigned(vector_length), mixed_sum_d_unsigned_plus_signed(vector_length);
+                        mixed_sum_d_signed_plus_unsigned(vector_length), mixed_sum_d_unsigned_plus_signed(vector_length),
+                        mixed_mul_d_signed_unsigned(vector_length), mixed_mul_d_unsigned_signed(vector_length),
+                        signed_mul_d(vector_length), normal_sum_d_nd(vector_length), mixed_sum_d_nd_signed_plus_unsigned(vector_length),
+                        mixed_sum_d_nd_unsigned_plus_signed(vector_length), signed_sum_d_nd(vector_length);
+
+    auto t_bsi_build_a = std::chrono::high_resolution_clock::now();
 
     // Plain arithmetic results
     for (int i = 0; i < vector_length; ++i) {
+
         normal_mul[i] = one[i] * two[i];
         mixed_mul_signed_unsigned[i] = one_signed[i] * two[i];
         mixed_mul_unsigned_signed[i] = one[i] * two_signed[i];
         signed_mul[i] = one_signed[i] * two_signed[i];
+
+        normal_mul_d[i] = one_dec[i] * two_dec[i];
+        mixed_mul_d_signed_unsigned[i] = one_dec_signed[i] * two_dec[i];
+        mixed_mul_d_unsigned_signed[i] = one_dec[i] * two_dec_signed[i];
+        signed_mul_d[i] = one_dec_signed[i] * two_dec_signed[i];
 
         normal_sum[i] = one[i] + two[i];
         mixed_sum_signed_plus_unsigned[i] = one_signed[i] + two[i];
@@ -196,6 +241,11 @@ int main() {
         mixed_sum_d_unsigned_plus_signed[i] = one_dec[i] + two_dec_signed[i];
         signed_sum_d[i] = one_dec_signed[i] + two_dec_signed[i];
 
+        normal_sum_d_nd[i] = one_dec[i] + two[i];
+        mixed_sum_d_nd_signed_plus_unsigned[i] = one_dec_signed[i] + two[i];
+        mixed_sum_d_nd_unsigned_plus_signed[i] = one_dec[i] + two_signed[i];
+        signed_sum_d_nd[i] = one_dec_signed[i] + two_signed[i];
+
         normal_neg[i] = -one[i];
         signed_neg[i] = -one_signed[i];
 
@@ -206,9 +256,12 @@ int main() {
 
         normal_div[i] = (two[i] != 0) ? (double)one[i] / two[i] : 0;
 
-        normal_mul_d[i] = one_dec[i] * two[i];
         normal_div_d[i] = (two[i] != 0) ? one_dec[i] / two[i] : 0;
     }
+    // std::cout << "Vector length i: " << vector_length << "\n";
+
+    auto t_bsi_build_b = std::chrono::high_resolution_clock::now();
+    std::cout << "Time for normal operation: " << std::chrono::duration_cast<std::chrono::microseconds>(t_bsi_build_b - t_bsi_build_a).count() << "us\n";
 
     // === BSI part ===
     BsiUnsigned<uint64_t> bsi;
@@ -276,6 +329,11 @@ int main() {
     // multiply_test(bsi_one, bsi_two_signed, mixed_mul_unsigned_signed, vector_length, "unsigned * signed", debug);
     // multiply_test(bsi_one_signed, bsi_two_signed, signed_mul, vector_length, "signed * signed", debug);
 
+    // multiply_test_dec(bsi_one_dec, bsi_two_dec, normal_mul_d, vector_length, "unsigned + unsigned", debug, epsilon);
+    // multiply_test_dec(bsi_one_dec_signed, bsi_two_dec, mixed_mul_d_signed_unsigned, vector_length, "signed + unsigned", debug, epsilon);
+    // multiply_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_mul_d_unsigned_signed, vector_length, "unsigned + signed", debug, epsilon);
+    // multiply_test_dec(bsi_one_dec_signed, bsi_two_dec_signed, signed_mul_d, vector_length, "signed + signed", debug, epsilon);
+
     // ==== Sum ====
     // SUM_test(bsi_one, bsi_two, normal_sum, vector_length, "unsigned + unsigned", debug);
     // SUM_test(bsi_one_signed, bsi_two, mixed_sum_signed_plus_unsigned, vector_length, "signed + unsigned", debug);
@@ -287,13 +345,186 @@ int main() {
     // SUM_test_dec(bsi_one_dec, bsi_two_dec_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "unsigned + signed", debug, epsilon);
     // SUM_test_dec(bsi_one_dec_signed, bsi_two_dec_signed, signed_sum_d, vector_length, "signed + signed", debug, epsilon);
 
+    // SUM_test_dec(bsi_one_dec, bsi_two, normal_sum_d, vector_length, "d+nd: unsigned + unsigned", debug, epsilon);
+    // SUM_test_dec(bsi_one_dec_signed, bsi_two, mixed_sum_d_signed_plus_unsigned, vector_length, "d+nd: signed + unsigned", debug, epsilon);
+    // SUM_test_dec(bsi_one_dec, bsi_two_signed, mixed_sum_d_unsigned_plus_signed, vector_length, "d+nd: unsigned + signed", debug, epsilon);
+    // SUM_test_dec(bsi_one_dec_signed, bsi_two_signed, signed_sum_d, vector_length, "d+nd: signed + signed", debug, epsilon);
 
     // ==== Negation ====
     // negate_test(bsi_one, normal_neg, vector_length, "unsigned", debug);
     // negate_test(bsi_one_signed, signed_neg, vector_length, "signed", debug);
-
+    //
     // negate_test_dec(bsi_one_dec, normal_neg_d, vector_length, "unsigned", debug, epsilon);
     // negate_test_dec(bsi_one_dec_signed, signed_neg_d, vector_length, "signed", debug, epsilon);
 
+    /*
+    // Newton raphson divsion:
+
+    // one_dec = {-0.3};
+    // one = {300};
+    // two = {30};
+
+    // one_dec = {-0.3,0.42};
+    // one = {-300,10};
+    // two = {30, 40};
+
+    // one = {2,6,9, 10, 50};
+    // two = {2,6,9, 10, 50};
+
+    // one = {38, 5, 12, 50, 18, 7, 3, 32, 42, 43, 15, 35, 39, 20, 39, 34, 46, 8, 13, 23};
+    // two = {31, 12, 23, 48, 25, 16, 38, 6, 28, 9, 8, 46, 4, 6, 31, 8, 43, 11, 25, 16};
+    //
+    // one = {40, 30, 12, 8, 14, 0, 37, 33, 37, 5, 29, 49, 26, 32, 50, 27, 8, 13, 9, 19, 7,
+    //                          47, 26, 34, 25, 14, 6, 11, 14, 16, 38, 42, 45, 16, 14, 3, 7, 45, 29, 45};
+    // two = {39, 25, 47, 12, 5, 10, 30, 5, 1, 26, 9, 9, 2, 47, 29, 48, 28, 29, 13, 27,
+    //                          30, 1, 43, 17, 46, 7, 45, 1, 27, 41, 1, 31, 43, 12, 35, 17, 26, 29, 47, 42};
+    //
+    //
+    std::vector<long> nr_one = {3845, 8983, 2462, 5143, 4161, 1682, 858, 6666, 1618, 8762, 4727, 4496, 7324, 5405, 8503, 4113, 6344, 4765,
+                             9532, 6318, 5836, 1355, 7574, 5366, 923, 8105, 4128, 5522, 8079, 5614, 9500, 1124, 9662, 8096, 4215, 5805, 8636, 3055, 4342, 3306};
+    std::vector<long> nr_two = {9173, 6213, 7136, 3150, 7709, 3049, 2233, 2729, 4630, 5721, 6472, 7239, 8922, 3978, 8275, 5955, 1584, 6472, 6248, 894, 2728,
+                             2645, 7825, 4747, 7680, 3204, 1729, 2069, 4722, 7085, 7129, 3161, 5333, 4241, 9510, 3614, 3695, 2781, 352, 3647};
+    //
+    // for(int i = 0; i < random_vec_size; i++) {
+    //     one.push_back(1 + (gen() % one_range));
+    //     two.push_back(1 + (gen() % two_range));
+    // }
+
+    // Define vector size:
+    int vector_length_d = nr_one.size();
+    std::cout << "vector length :" << vector_length_d << std::endl;
+
+    std::vector<double> nr_normal_div(vector_length_d);
+    // std::vector<long> nr_normal_r(vector_length_d);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    // Normal division:
+    for(int i = 0; i < vector_length_d; ++i) {
+        nr_normal_div[i] = (double)one[i] / two[i];
+        // normal_r[i] = one[i] % two[i];
+        // std::cout << "nr_normal_div :" << std::endl;
+        // std::cout << nr_normal_div[i] << std::endl;
+
+    }
+    auto t1 = std::chrono::high_resolution_clock::now();
+    std::cout << "normal div duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t1-t0).count() << std::endl;
+
+
+    // BsiAttribute<uint64_t>* one_bsi = ubsi.buildBsiAttributeFromVector(one, 0.2);
+    BsiVector<uint64_t>* nr_one_bsi = bsi.buildBsiVector(nr_one, 0.2);
+    nr_one_bsi->setFirstSliceFlag(true);
+    nr_one_bsi->setLastSliceFlag(true);
+    nr_one_bsi->setPartitionID(0);
+
+    // BsiVector<uint64_t>* one_dec_bsi = bsi.buildBsiVector(one_dec, 2 ,0.2);
+    // one_dec_bsi->setFirstSliceFlag(true);
+    // one_dec_bsi->setLastSliceFlag(true);
+    // one_dec_bsi->setPartitionID(0);
+
+    BsiVector<uint64_t>* resultBsi;
+    BsiVector<uint64_t>* resultBsi2;
+    BsiVector<uint64_t>* resultBsi3;
+
+    BsiVector<uint64_t>* resultBsi_d;
+    BsiVector<uint64_t>* resultBsi2_d;
+    BsiVector<uint64_t>* resultBsi3_d;
+
+    // std::cout << "0. Decimal value: " << one_dec_bsi->getValue_with_decimal(0) << std::endl;
+
+    BsiVector<uint64_t>* nr_two_bsi = bsi.buildBsiVector(nr_two, 0.2);
+    nr_two_bsi->setFirstSliceFlag(true);
+    nr_two_bsi->setLastSliceFlag(true);
+    nr_two_bsi->setPartitionID(0);
+
+
+    std::cout << "4: NR div = one / two" << std::endl;
+    auto t9 = std::chrono::high_resolution_clock::now();
+
+    //initial guess:
+    double value = 0.1;
+    int n = nr_two_bsi->getNumberOfRows();
+    std::vector<double> point_one(n, value);
+
+    BsiVector<uint64_t>* init_guess = bsi.buildBsiVector(point_one,  2, 0.2);
+    init_guess->setFirstSliceFlag(true);
+    init_guess->setLastSliceFlag(true);
+    init_guess->setPartitionID(0);
+
+    //bsi twos:
+    double two_long = 2.00;
+    std::vector<double> twos(n, two_long);
+
+    BsiVector<uint64_t>* bsi_twos = bsi.buildBsiVector(twos, 2, 0.2);
+    bsi_twos->setFirstSliceFlag(true);
+    bsi_twos->setLastSliceFlag(true);
+    bsi_twos->setPartitionID(0);
+
+    BsiVector<uint64_t>*  resultBsi4;
+    BsiVector<uint64_t>*  resultBsi5;
+    BsiVector<uint64_t>*  resultBsi6;
+
+    //nr_two_bsi
+    //
+    double ig = init_guess->getValue_with_decimal(0);
+    double tb = nr_two_bsi->getValue_with_decimal(0);
+
+    resultBsi4 = init_guess->multiply_bsi(nr_two_bsi)->negate(); // -0.1 * 30 = -3
+    double result4 = resultBsi4->getValue_with_decimal(0);
+    double result42 = resultBsi4->getValue(0);
+
+
+    double bt = bsi_twos->getValue_with_decimal(0);
+    double bt2 = bsi_twos->getValue(0);
+
+    resultBsi5 = resultBsi4->SUM(bsi_twos); // 30 + 2 = 32
+    double result5 = resultBsi5->getValue_with_decimal(0);
+    double result52 = resultBsi5->getValue(0);
+
+    resultBsi6 = resultBsi5->multiply_bsi(init_guess); // 32 * 1 = 32
+    double result6 = resultBsi6->getValue_with_decimal(0);
+
+
+    resultBsi4 = resultBsi6->multiply_bsi(nr_two_bsi)->negate(); // 32*30 = 960
+    double result4a = resultBsi4->getValue_with_decimal(0);
+
+    resultBsi5 = resultBsi4->SUM(bsi_twos); // 962
+    double result5a = resultBsi5->getValue_with_decimal(0);
+
+    resultBsi6 = resultBsi5->multiply_bsi(resultBsi6); // 962 * 32 =
+    double result6a = resultBsi6->getValue_with_decimal(0);
+
+
+    // int iterations = 5-1;
+    //
+    // for (int i=0; i < iterations; i++) {
+    //     resultBsi6 = resultBsi6->multiplyBSI((resultBsi6->multiplyBSI(two_bsi))->negate()->SUM(bsi_twos));
+    // }
+
+    // auto t10 = std::chrono::high_resolution_clock::now();
+    // std::cout << "newton raphson div duration: \t" << std::chrono::duration_cast<std::chrono::microseconds>(t10-t9).count() << std::endl;
+    //
+    // for (int j=0; j < vector_length; j++) {
+    //     std::cout << "resultBsi4 " << j << ": "<< resultBsi4->getValue_with_decimal(j) << std::endl;
+    //     if (resultBsi4->getValue_with_decimal(j) != normal_div[j]) {
+    //         std::cout << "resultBsi4 " << j << ": " << resultBsi4->getValue_with_decimal(j) << ", NORMAL: " << normal_div[j] << " - Not matched!"<< std::endl;
+    //     }
+    // }
+    //
+    // for (int j=0; j < vector_length; j++) {
+    //     std::cout << "resultBsi5 " << j << ": "<< resultBsi5->getValue_with_decimal(j) << std::endl;
+    //     if (resultBsi5->getValue_with_decimal(j) != normal_div[j]) {
+    //         std::cout << "resultBsi5 " << j << ": " << resultBsi5->getValue_with_decimal(j) << ", " << normal_div[j] << " - Not matched!"<< std::endl;
+    //     }
+    // }
+    //
+    // for (int j=0; j < vector_length; j++) {
+    //     std::cout << "resultBsi6 " << j << ": "<< resultBsi6->getValue_with_decimal(j) << std::endl;
+    //     if (resultBsi6->getValue_with_decimal(j) != normal_div[j]) {
+    //         std::cout << "resultBsi6 " << j << ": " << resultBsi6->getValue_with_decimal(j) << ", " << normal_div[j] << " - Not matched!"<< std::endl;
+    //     }
+    // }
+    */
     return 0;
+
 }
