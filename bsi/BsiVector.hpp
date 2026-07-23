@@ -787,15 +787,8 @@ std::vector< std::vector< uword > > BsiVector<uword>::bringTheBits(const std::ve
     //output
     std::vector< std::vector< uword > > bitmapDataRaw(slices,std::vector<uword>(wordsNeeded +1));
 
-    //multithread
-    std::vector<std::thread> helperThreads;
     for(int slice=0; slice<slices; slice++) {
-        //std::ref is a wrapper around reference variables to make the compiler happy
-        helperThreads.push_back( std::thread(&BsiVector::bringTheBitsHelper, this, std::ref(array), slice, numberOfElements, std::ref(bitmapDataRaw)) );
-    }
-
-    for(int slice=0; slice<slices; slice++) {
-        helperThreads[slice].join();
+        bringTheBitsHelper(array, slice, numberOfElements, bitmapDataRaw);
     }
 
     return bitmapDataRaw;
