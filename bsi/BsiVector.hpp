@@ -477,7 +477,7 @@ BsiVector<uword>* BsiVector<uword>::buildBsiVector(std::vector<long> nums, doubl
     }
 
     int slices =  std::bit_width(static_cast<unsigned long>(std::max(std::abs(min), std::abs(max))));
-    std::cout << "Slices: " << slices << std::endl;
+    //std::cout << "Slices: " << slices << std::endl;
 
     if (min < 0) {
         BsiVector<uword>* res = new BsiSigned<uword>(slices+2);
